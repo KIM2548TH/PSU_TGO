@@ -318,311 +318,167 @@
 <script>
 // Global variables for linked material data
 let linkedMaterialData = null;
+let currentFormId = null;
 
-// เพิ่ม functions สำหรับ formula calculator
-function addToFormula(value) {
-    const formulaInput = document.getElementById("formula");
-    if (formulaInput) {
-        const currentValue = formulaInput.value || "";
-        formulaInput.value = currentValue + value;
-        updatePreview();
-    }
-}
-
-function clearFormula() {
-    const formulaInput = document.getElementById("formula");
-    if (formulaInput) {
-        formulaInput.value = "";
-        updatePreview();
-    }
-}
-
-function toggleFormulaCalculator() {
-    const calculator = document.getElementById("formula-calculator");
-    const dropdownBtn = document.getElementById("formula-dropdown-btn");
-    
-    if (calculator.classList.contains("hidden")) {
-        calculator.classList.remove("hidden");
-        const chevron = dropdownBtn.querySelector("i[data-feather='chevron-down']");
-        if (chevron) chevron.style.transform = "rotate(180deg)";
-        
-        // อัปเดตปุ่มเครื่องคิดเลข
-        updateCalculatorButtons();
-    } else {
-        calculator.classList.add("hidden");
-        const chevron = dropdownBtn.querySelector("i[data-feather='chevron-down']");
-        if (chevron) chevron.style.transform = "rotate(0deg)";
-    }
-}
-
-function closeFormulaCalculator() {
-    const calculator = document.getElementById("formula-calculator");
-    const dropdownBtn = document.getElementById("formula-dropdown-btn");
-    
-    calculator.classList.add("hidden");
-    const chevron = dropdownBtn.querySelector("i[data-feather='chevron-down']");
-    if (chevron) chevron.style.transform = "rotate(0deg)";
-}
-
-function applyFormula() {
-    closeFormulaCalculator();
-    updatePreview();
-}
-
-// ฟังก์ชันใหม่สำหรับโหลดข้อมูล linked material
-async function loadLinkedMaterialData(materialName) {
-    try {
-        const response = await fetch(`/form-management/get-linked-material-data/${encodeURIComponent(materialName)}`);
-        if (response.ok) {
-            linkedMaterialData = await response.json();
-            updateLinkedDisplay();
-            return linkedMaterialData;
-        }
-    } catch (error) {
-        console.error('Error loading linked material data:', error);
-    }
-    return null;
-}
-
-function updateLinkedDisplay() {
-    if (!linkedMaterialData) return;
-    
-    // อัปเดตข้อมูล scope และ sub-scope
-    const scopeElement = document.getElementById('linked-scope');
-    const subScopeElement = document.getElementById('linked-sub-scope');
-    
-    if (scopeElement) scopeElement.textContent = linkedMaterialData.ghg_scope;
-    if (subScopeElement) subScopeElement.textContent = linkedMaterialData.ghg_sup_scope;
-    
-    // อัปเดตฟิลด์ในส่วน preview
-    updateLinkedFieldsPreview();
-}
-
-function updateLinkedFieldsPreview() {
-    const container = document.getElementById('linked-fields-preview');
-    if (!container || !linkedMaterialData) return;
-    
-    let html = '';
-    linkedMaterialData.input_types.forEach((inputType, index) => {
-        html += `
-            <div class="mb-3">
-                <label class="block text-sm text-gray-700 mb-1">
-                    <strong>${inputType.label || inputType.field} (${inputType.unit || 'unit'})</strong>
-                </label>
-                <input type="${inputType.input_type}" 
-                       class="input input-bordered w-full text-sm bg-gray-50 border-gray-200" 
-                       value="[ข้อมูลจาก ${linkedMaterialData.material_name}]" 
-                       readonly>
-                <div class="flex gap-2 mt-1">
-                    <div class="text-xs text-gray-600 bg-gray-100 border border-gray-200 rounded-full px-2 py-1 inline-block">Field: ${inputType.field}</div>
-                    <div class="text-xs text-blue-600 bg-blue-100 border border-blue-200 rounded-full px-2 py-1 inline-block">Type: ${inputType.input_type}</div>
-                </div>
-            </div>
-        `;
-    });
-    
-    container.innerHTML = html;
-}
-
-function updateCalculatorButtons() {
-    const isLinked = {{ 'true' if form and form.is_linked else 'false' }};
-    
-    console.log("Updating calculator buttons, isLinked:", isLinked);
-    
-    // สร้างปุ่มตัวแปร
-    updateVariableButtons();
-    
-    // สร้างปุ่มตัวเลข (ทั้งฟอร์มปกติและลิงก์)
-    populateNumbersButtons();
-    
-    // สร้างปุ่มตัวดำเนินการ (ทั้งฟอร์มปกติและลิงก์)
-    populateOperatorsButtons();
-}
-
-function updateVariableButtons() {
-    const variablesButtons = document.getElementById("variables-buttons");
-    if (!variablesButtons) return;
-    
-    variablesButtons.innerHTML = "";
-    
-    const isLinked = {{ 'true' if form and form.is_linked else 'false' }};
-    
-    if (isLinked && linkedMaterialData) {
-        // ใช้ตัวแปรจาก linked material
-        linkedMaterialData.input_types.forEach(inputType => {
-            const button = document.createElement("button");
-            button.type = "button";
-            button.className = "btn btn-xs border border-blue-300 text-blue-700 bg-blue-50 hover:bg-blue-100";
-            button.textContent = inputType.field;
-            button.onclick = () => addToFormula(inputType.field);
-            variablesButtons.appendChild(button);
-        });
-    } else {
-        // ฟอร์มปกติ - ใช้ตัวแปรจาก input fields
-        const container = document.getElementById("input-fields-container");
-        if (!container) return;
-        
-        const fieldInputs = container.querySelectorAll("input[name='field']");
-        fieldInputs.forEach(input => {
-            if (input.value.trim()) {
-                const button = document.createElement("button");
-                button.type = "button";
-                button.className = "btn btn-xs btn-outline";
-                button.textContent = input.value.trim();
-                button.onclick = () => addToFormula(input.value.trim());
-                variablesButtons.appendChild(button);
-            }
-        });
-    }
-}
-
-function populateNumbersButtons() {
-    const numbersButtons = document.getElementById("numbers-buttons");
-    if (!numbersButtons) return;
-    
-    numbersButtons.innerHTML = "";
-    
-    // ตัวเลข 0-9
-    for (let i = 0; i <= 9; i++) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "btn btn-xs btn-outline";
-        button.textContent = i.toString();
-        button.onclick = () => addToFormula(i.toString());
-        numbersButtons.appendChild(button);
-    }
-    
-    // จุดทศนิยม
-    const decimalButton = document.createElement("button");
-    decimalButton.type = "button";
-    decimalButton.className = "btn btn-xs btn-outline";
-    decimalButton.textContent = ".";
-    decimalButton.onclick = () => addToFormula(".");
-    numbersButtons.appendChild(decimalButton);
-}
-
-function populateOperatorsButtons() {
-    const operatorsButtons = document.getElementById("operators-buttons");
-    if (!operatorsButtons) return;
-    
-    operatorsButtons.innerHTML = "";
-    
-    const operators = ['+', '-', '*', '/', '(', ')', '^', 'sqrt', '⌫', 'C'];
-    
-    operators.forEach(op => {
-        const button = document.createElement("button");
-        button.type = "button";
-        
-        if (op === '⌫') {
-            button.textContent = "⌫";
-            button.className = "btn btn-xs btn-error";
-            button.onclick = () => removeLastCharacter();
-        } else if (op === 'C') {
-            button.textContent = "Clear";
-            button.className = "btn btn-xs btn-warning";
-            button.onclick = () => clearFormula();
-        } else if (op === 'sqrt') {
-            button.textContent = "√";
-            button.className = "btn btn-xs btn-outline";
-            button.onclick = () => addToFormula("sqrt(");
-        } else {
-            button.textContent = op;
-            button.className = "btn btn-xs btn-outline";
-            button.onclick = () => addToFormula(op);
-        }
-        
-        operatorsButtons.appendChild(button);
-    });
-}
-
-function removeLastCharacter() {
-    const formulaInput = document.getElementById("formula");
-    if (formulaInput) {
-        formulaInput.value = formulaInput.value.slice(0, -1);
-        updatePreview();
-    }
-}
-
-function submitEditForm(event) {
-    event.preventDefault();
-    const form = event.target;
-    const formData = new FormData(form);
-
-    const submitButton = form.querySelector('button[type="submit"]');
-    const originalText = submitButton.textContent;
-    submitButton.textContent = 'กำลังบันทึก...';
-    submitButton.disabled = true;
-
-    fetch(form.action, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'สำเร็จ!',
-                text: data.message,
-                confirmButtonText: 'ตกลง'
-            }).then(() => {
-                window.location.href = data.redirect_url;
-            });
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'เกิดข้อผิดพลาด!',
-                text: data.message,
-                confirmButtonText: 'ตกลง'
-            });
-        }
-    })
-    .catch(error => {
-        Swal.fire({
-            icon: 'error',
-            title: 'เกิดข้อผิดพลาด!',
-            text: 'เกิดข้อผิดพลาดในการส่งข้อมูล',
-            confirmButtonText: 'ตกลง'
-        });
-    })
-    .finally(() => {
-        submitButton.textContent = originalText;
-        submitButton.disabled = false;
-    });
-}
-
-function initializeForm() {
+// ปรับปรุงฟังก์ชัน clearCachedData ให้ล้างข้อมูลทั้งหมด
+function clearCachedData() {
+    console.log("Clearing all cached data...");
+    linkedMaterialData = null;
     inputFieldCount = 0;
     currentFormula = '';
-    const container = document.getElementById("input-fields-container");
-    if (container) container.innerHTML = "";
+    currentFormId = null;
     
-    // ใช้ข้อมูลจาก template แทนการ fetch
-    const form = {{ form|tojson if form else 'null' }};
-    if (form) {
-        loadFormData(form);
-    } else {
-        addInputField();
-        setTimeout(() => {
-            updatePreview();
-            updateCalculatorButtons();
-            feather.replace();
-        }, 100);
+    // ล้างทุกฟิลด์ในฟอร์ม
+    const materialInput = document.querySelector("input[name='material_name']");
+    const descFormTextarea = document.querySelector("textarea[name='desc_form']");
+    const formulaInput = document.querySelector("input[name='formula']");
+    const descFormulaTextarea = document.querySelector("textarea[name='desc_formula']");
+    
+    if (materialInput) materialInput.value = '';
+    if (descFormTextarea) descFormTextarea.value = '';
+    if (formulaInput) formulaInput.value = '';
+    if (descFormulaTextarea) descFormulaTextarea.value = '';
+    
+    // ล้าง preview
+    const preview = document.getElementById("form-preview");
+    if (preview) {
+        preview.innerHTML = '<p class="italic text-sm text-gray-500">Loading...</p>';
+    }
+    
+    // ล้าง linked fields preview
+    const linkedPreview = document.getElementById('linked-fields-preview');
+    if (linkedPreview) {
+        linkedPreview.innerHTML = '';
+    }
+    
+    // ล้าง input fields container
+    const container = document.getElementById("input-fields-container");
+    if (container) {
+        container.innerHTML = "";
+    }
+    
+    // ล้าง calculator buttons
+    const variablesButtons = document.getElementById("variables-buttons");
+    const numbersButtons = document.getElementById("numbers-buttons");
+    const operatorsButtons = document.getElementById("operators-buttons");
+    
+    if (variablesButtons) variablesButtons.innerHTML = "";
+    if (numbersButtons) numbersButtons.innerHTML = "";
+    if (operatorsButtons) operatorsButtons.innerHTML = "";
+    
+    // ล้าง scope selections
+    const mainScopeSelect = document.querySelector("select[name='scope']");
+    const subScopeSelect = document.querySelector("select[name='sup_scope']");
+    if (mainScopeSelect) mainScopeSelect.value = '';
+    if (subScopeSelect) subScopeSelect.value = '';
+    
+    // ปิด formula calculator ถ้าเปิดอยู่
+    const formulaCalculator = document.getElementById('formula-calculator');
+    if (formulaCalculator) {
+        formulaCalculator.classList.add('hidden');
     }
 }
 
-async function loadFormData(formData) {
-    const container = document.getElementById("input-fields-container");
-    if (container) container.innerHTML = "";
-    inputFieldCount = 0;
+// ปรับปรุงฟังก์ชัน initializeForm ให้ fetch ข้อมูลใหม่ทุกครั้ง
+function initializeForm() {
+    console.log("=== Initializing Form ===");
     
-    // ถ้าเป็นฟอร์มลิงก์ ให้โหลดข้อมูล linked material
+    // ล้างข้อมูลทั้งหมดก่อนเสมอ
+    clearCachedData();
+    
+    // รอให้ DOM พร้อม
+    setTimeout(() => {
+        // ดึง form ID จาก hidden input
+        const formIdInput = document.querySelector("input[name='form_id']");
+        const formId = formIdInput ? formIdInput.value : null;
+        
+        console.log("Form ID from input:", formId);
+        
+        if (formId) {
+            console.log("Form ID found, fetching fresh data from server");
+            
+            // เปลี่ยนจากการใช้ template data เป็น fetch จาก server
+            fetchFormData(formId);
+        } else {
+            console.log("No form ID, creating new form");
+            currentFormId = null;
+            addInputField();
+            setTimeout(() => {
+                updatePreview();
+                updateCalculatorButtons();
+                feather.replace();
+            }, 100);
+        }
+    }, 50);
+}
+
+// เพิ่มฟังก์ชันใหม่สำหรับ fetch ข้อมูลจาก server
+async function fetchFormData(formId) {
+    try {
+        console.log("Fetching form data from server for ID:", formId);
+        
+        // เพิ่ม cache busting parameters
+        const timestamp = new Date().getTime();
+        const random = Math.random().toString(36).substring(7);
+        
+        const response = await fetch(`/form-management/get-form-data/${formId}?t=${timestamp}&r=${random}`, {
+            method: 'GET',
+            cache: 'no-cache',
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+                console.log("Received fresh form data from server:", result.form);
+                currentFormId = formId;
+                loadFormData(result.form);
+            } else {
+                console.error("Failed to get form data:", result.message);
+            }
+        } else {
+            console.error("HTTP error:", response.status);
+        }
+    } catch (error) {
+        console.error('Error fetching form data:', error);
+    }
+}
+
+// ปรับปรุงฟังก์ชัน loadFormData
+async function loadFormData(formData) {
+    console.log("=== Loading form data ===", formData);
+    
+    if (!formData || !formData.id) {
+        console.error("Invalid form data received");
+        return;
+    }
+    
+    // บังคับล้างข้อมูลเก่าทั้งหมดอีกครั้ง
+    linkedMaterialData = null;
+    
+    // รอให้การล้างข้อมูลเสร็จสิ้น
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // ถ้าเป็นฟอร์มลิงก์ ให้โหลดข้อมูล linked material ใหม่
     if (formData.is_linked && formData.linked_material_name) {
+        console.log("Loading linked material data for:", formData.linked_material_name);
         await loadLinkedMaterialData(formData.linked_material_name);
     }
     
-    // เฉพาะฟอร์มปกติจึงจะโหลด input fields
+    // โหลด input fields สำหรับฟอร์มปกติ
     if (!formData.is_linked && formData.input_types && formData.input_types.length > 0) {
+        console.log("Loading normal form input fields:", formData.input_types);
+        
+        // ล้าง container ก่อน
+        const container = document.getElementById("input-fields-container");
+        if (container) {
+            container.innerHTML = "";
+        }
+        inputFieldCount = 0;
+        
         formData.input_types.forEach(inputField => {
             addInputField({
                 field: inputField.field,
@@ -633,205 +489,582 @@ async function loadFormData(formData) {
         });
     } else if (!formData.is_linked) {
         // ถ้าเป็นฟอร์มปกติแต่ไม่มี input types
+        const container = document.getElementById("input-fields-container");
+        if (container) {
+            container.innerHTML = "";
+        }
+        inputFieldCount = 0;
         addInputField();
     }
     
+    // รอให้ DOM elements พร้อม แล้วกรอกข้อมูล
     setTimeout(() => {
-        // กรอกข้อมูลที่มีอยู่แล้ว
-        if (formData.material_name) {
-            const materialInput = document.querySelector("input[name='material_name']");
-            if (materialInput) materialInput.value = formData.material_name;
+        console.log("Filling form fields with fresh data...");
+        
+        // บังคับ clear และกรอกข้อมูลใหม่
+        const materialInput = document.querySelector("input[name='material_name']");
+        const descFormTextarea = document.querySelector("textarea[name='desc_form']");
+        const formulaInput = document.querySelector("input[name='formula']");
+        const descFormulaTextarea = document.querySelector("textarea[name='desc_formula']");
+        const mainScopeSelect = document.querySelector("select[name='scope']");
+        const hiddenScopeInput = document.querySelector("input[name='scope']");
+        const hiddenSubScopeInput = document.querySelector("input[name='sup_scope']");
+        
+        // ล้างและกรอกข้อมูลใหม่
+        if (materialInput) {
+            materialInput.value = '';
+            materialInput.value = formData.material_name || '';
+            console.log("Set material name:", formData.material_name);
         }
-        if (formData.desc_form) {
-            const descFormTextarea = document.querySelector("textarea[name='desc_form']");
-            if (descFormTextarea) descFormTextarea.value = formData.desc_form;
+        if (descFormTextarea) {
+            descFormTextarea.value = '';
+            descFormTextarea.value = formData.desc_form || '';
+            console.log("Set form description:", formData.desc_form);
         }
-        if (formData.formula) {
-            const formulaInput = document.querySelector("input[name='formula']");
-            if (formulaInput) formulaInput.value = formData.formula;
+        if (formulaInput) {
+            formulaInput.value = '';
+            formulaInput.value = formData.formula || '';
+            console.log("Set formula:", formData.formula);
         }
-        if (formData.desc_formula) {
-            const descFormulaTextarea = document.querySelector("textarea[name='desc_formula']");
-            if (descFormulaTextarea) descFormulaTextarea.value = formData.desc_formula;
+        if (descFormulaTextarea) {
+            descFormulaTextarea.value = '';
+            descFormulaTextarea.value = formData.desc_formula || '';
+            console.log("Set formula description:", formData.desc_formula);
         }
-        if (formData.ghg_scope) {
-            const mainScopeSelect = document.querySelector("select[name='scope']");
-            if (mainScopeSelect) mainScopeSelect.value = formData.ghg_scope;
+        if (mainScopeSelect) {
+            mainScopeSelect.value = '';
+            mainScopeSelect.value = formData.ghg_scope || '';
+            console.log("Set scope select:", formData.ghg_scope);
+        }
+        if (hiddenScopeInput) {
+            hiddenScopeInput.value = formData.ghg_scope || '';
+            console.log("Set hidden scope:", formData.ghg_scope);
+        }
+        if (hiddenSubScopeInput) {
+            hiddenSubScopeInput.value = formData.ghg_sup_scope || '';
+            console.log("Set hidden sub scope:", formData.ghg_sup_scope);
         }
         
-        setTimeout(() => {
-            updatePreview();
-            updateCalculatorButtons();
-            feather.replace();
-        }, 200);
-    }, 50);
-}
-
-function updatePreview() {
-    const container = document.getElementById("input-fields-container");
-    const preview = document.getElementById("form-preview");
-    const materialName = (document.querySelector("input[name='material_name']").value || "NO MATERIAL NAME").toUpperCase();
-    
-    // Check if form is linked
-    const isLinked = {{ 'true' if form and form.is_linked else 'false' }};
-    
-    let html = "";
-    html += `<div class="mb-6"><p class="text-sm text-gray-400"><strong>{{ t.material_name|upper }}:</strong> ${materialName}</p></div>`;
-
-    if (isLinked && linkedMaterialData) {
-        // แสดงข้อมูลฟอร์มลิงก์
-        html += `<div class="alert bg-blue-50 border border-blue-300 text-blue-800 mb-4">
-            <div class="text-sm">
-                <p><strong>เชื่อมโยงกับ Material:</strong> 
-                   <span class="font-mono bg-gray-100 border border-gray-300 px-2 py-1 rounded text-gray-800">${linkedMaterialData.material_name}</span>
-                </p>
-                <p><strong>Scope:</strong> <span class="text-blue-700">${linkedMaterialData.ghg_scope}</span> | <strong>Sub-Scope:</strong> <span class="text-blue-700">${linkedMaterialData.ghg_sup_scope}</span></p>
-                <p class="text-xs text-blue-700 mt-1">ข้อมูลจะถูกดึงจากฟอร์มต้นทางโดยอัตโนมัติ</p>
-            </div>
-        </div>`;
-        
-        // แสดงฟิลด์จาก linked material
-        linkedMaterialData.input_types.forEach(inputType => {
-            html += `<div class="mb-6">
-                <label class="block text-sm text-gray-700 mb-1">
-                    <strong>${inputType.label || inputType.field} (${inputType.unit || 'unit'})</strong>
-                </label>
-                <div class="relative">
-                    <input type="${inputType.input_type}" 
-                           class="input input-bordered w-full mb-2 bg-gray-50 border-gray-200" 
-                           placeholder="กรอก ${inputType.label || inputType.field}">
-                    <div class="flex gap-2 mt-2">
-                        <div class="text-xs text-gray-600 bg-gray-100 border border-gray-200 rounded-full px-3 py-1 inline-block">Field: ${inputType.field}</div>
-                        <div class="text-xs text-blue-600 bg-blue-100 border border-blue-200 rounded-full px-3 py-1 inline-block">Type: ${inputType.input_type}</div>
-                    </div>
-                </div>
-            </div>`;
-        });
-    } else if (isLinked) {
-        // ฟอร์มลิงก์แต่ยังไม่มีข้อมูล
-        html += `<div class="alert bg-blue-50 border border-blue-300 text-blue-800 mb-4">
-            <div class="text-sm">
-                <p><strong>เชื่อมโยงกับ Material:</strong> 
-                   <span class="font-mono bg-gray-100 border border-gray-300 px-2 py-1 rounded text-gray-800">{{ form.linked_material_name if form and form.linked_material_name else 'N/A' }}</span>
-                </p>
-                <p class="text-xs text-blue-700 mt-1">กำลังโหลดข้อมูล...</p>
-            </div>
-        </div>`;
-    } else {
-        // ฟอร์มปกติ
-        const descForm = document.querySelector("textarea[name='desc_form']").value || "No Description";
-        const mainScope = document.querySelector("select[name='scope']").value || "-";
-        const subScope = document.querySelector("select[name='sup_scope']").value || "-";
-        
-        html += `<div class="mb-4">
-            <p class="text-sm text-gray-600">{{ t.material_name }}: ${materialName}</p>
-            <p class="text-sm text-gray-600">{{ t.form_description }}: ${descForm}</p>
-            <div class="flex gap-4 mt-2">
-                <div class="text-xs text-gray-700 bg-gray-100 rounded-full px-3 py-1 inline-block">Main Scope: ${mainScope}</div>
-                <div class="text-xs text-gray-700 bg-gray-100 rounded-full px-3 py-1 inline-block">Sub Scope: ${subScope}</div>
-                <div class="text-xs text-gray-700 bg-blue-100 rounded-full px-3 py-1 inline-block">ฟอร์มปกติ</div>
-            </div>
-        </div>`;
-
-        // Show input fields for normal form
-        if (container) {
-            const fields = container.querySelectorAll("[data-index]");
-            fields.forEach(row => {
-                const field = row.querySelector("input[name='field']").value;
-                const label = row.querySelector("input[name='label']").value;
-                const inputType = row.querySelector("select[name='input_type']").value;
-                const unit = row.querySelector("input[name='unit']").value;
-                html += `<div class='mb-6'>
-                    <label class='block text-sm text-gray-800 mb-1'><strong>${label || field} (${unit || '-'})</strong></label>
-                    <div class="relative">
-                        <input type='${inputType}' class='input input-bordered w-full mb-2' placeholder='{{t.enter}} ${label || field}'>
-                        <div class="flex gap-2 mt-2">
-                            <div class="text-xs text-gray-700 bg-gray-200 rounded-full px-3 py-1 inline-block">Field: ${field || "Unnamed Field"}</div>
-                            <div class="text-xs text-gray-700 bg-blue-100 rounded-full px-3 py-1 inline-block">Type: ${inputType}</div>
-                        </div>
-                    </div>
-                </div>`;
-            });
+        // อัปเดต form ID input
+        const formIdInput = document.querySelector("input[name='form_id']");
+        if (formIdInput) {
+            formIdInput.value = formData.id;
         }
-    }
-
-    const formula = document.querySelector("input[name='formula']").value || "No Formula";
-    const descFormula = document.querySelector("textarea[name='desc_formula']").value || "No Formula Description";
-    html += `<div class="mt-6">
-        <p class="text-sm text-gray-600">{{ t.formula }}: ${formula}</p>
-        <p class="text-sm text-gray-600">{{ t.formula_description }}: ${descFormula}</p>
-    </div>`;
-
-    const currentUser = "{{ current_user.username if current_user else 'Unknown User' }}";
-    const currentTime = new Date().toLocaleString();
-    html += `<div class="mt-6 text-xs text-gray-500">
-        <div class="flex items-center gap-2"><i data-feather="user" class="w-4 h-4"></i><span>แก้ไขโดย: ${currentUser}</span></div>
-        <div class="flex items-center gap-2 mt-2"><i data-feather="clock" class="w-4 h-4"></i><span>แก้ไขเมื่อ: ${currentTime}</span></div>
-    </div>`;
-
-    preview.innerHTML = html || `<p class="italic text-sm text-gray-500">No fields added.</p>`;
-    feather.replace();
-}
-
-function confirmDelete(formId, materialName) {
-    if (confirm(`Are you sure you want to delete "${materialName}"?\n\nThis action cannot be undone.`)) {
-        fetch(`{{ url_for('form_management.delete_form', form_id='') }}${formId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('modal').classList.remove('modal-open');
-                setTimeout(() => {
-                    location.reload();
-                }, 300);
-            } else {
-                alert('Error: ' + data.message);
-            }
-        })
-        .catch(error => {
-            alert('An error occurred while deleting the form');
-        });
-    }
-}
-
-// Event listeners สำหรับ HTMX
-document.addEventListener('htmx:afterSettle', function(event) {
-    if (event.detail.target.querySelector('input[name="form_id"]')) {
-        console.log("Edit form modal loaded, initializing...");
+        
+        // อัปเดต preview และ calculator buttons
+        updatePreview();
+        updateCalculatorButtons();
         feather.replace();
+        console.log("=== Form initialization completed with fresh data ===");
+    }, 150);
+}
+
+// เพิ่มฟังก์ชันใหม่เพื่อบังคับรีเฟรช linked material data
+async function loadLinkedMaterialData(materialName) {
+    try {
+        console.log("Fetching fresh linked material data for:", materialName);
+        
+        // บังคับล้างข้อมูล linked material เก่า
+        linkedMaterialData = null;
+        
+        // เพิ่ม timestamp และ random number เพื่อป้องกัน cache
+        const timestamp = new Date().getTime();
+        const random = Math.random().toString(36).substring(7);
+        const response = await fetch(`/form-management/get-linked-material-data/${encodeURIComponent(materialName)}?t=${timestamp}&r=${random}`, {
+            cache: 'no-cache',
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            }
+        });
+        
+        if (response.ok) {
+            const newData = await response.json();
+            console.log("Received fresh linked material data:", newData);
+            
+            // บังคับใช้ข้อมูลใหม่
+            linkedMaterialData = newData;
+            updateLinkedDisplay();
+            
+            return linkedMaterialData;
+        } else {
+            console.error("Failed to fetch linked material data:", response.status);
+        }
+    } catch (error) {
+        console.error('Error loading linked material data:', error);
+    }
+    return null;
+}
+
+// ปรับปรุง Event listeners สำหรับ HTMX
+document.addEventListener('htmx:beforeSwap', function(event) {
+    if (event.detail.target.id === 'modal-content') {
+        console.log("=== Before modal swap - clearing all data ===");
+        clearCachedData();
+    }
+});
+
+document.addEventListener('htmx:afterSettle', function(event) {
+    // ตรวจสอบว่าเป็นการโหลด edit form modal
+    const editFormIndicator = event.detail.target.querySelector('input[name="form_id"]');
+    
+    if (editFormIndicator) {
+        console.log("=== Edit form modal loaded ===");
+        const formId = editFormIndicator.value;
+        console.log("Form ID:", formId);
+        
+        // บังคับล้างข้อมูลและโหลดใหม่ทุกครั้ง
+        console.log("Forcing fresh data load");
+        
+        // ล้างข้อมูลเก่าทั้งหมด
+        clearCachedData();
+        
+        // รอให้ DOM พร้อม แล้วเริ่มต้นใหม่
         setTimeout(() => {
+            feather.replace();
             initializeForm();
         }, 100);
     }
-    
-    // ถ้าเป็นการโหลด sub-scope container
-    if (event.detail.target.id === 'sub-scope-container' || 
-        event.detail.target.closest('#sub-scope-container') ||
-        event.detail.target.querySelector('select[name="sup_scope"]')) {
-        console.log("Sub scope container loaded/updated");
-        setTimeout(() => {
-            updatePreview();
-            feather.replace();
-        }, 50);
-    }
 });
 
-// Initialize when DOM loads
-document.addEventListener("DOMContentLoaded", function() {
-    if (document.querySelector('input[name="form_id"]')) {
-        console.log("Edit form DOM ready, initializing...");
-        feather.replace();
-        initializeForm();
-        
-        // เรียกใช้ updateCalculatorButtons เพิ่มเติมเพื่อให้แน่ใจว่าเครื่องคิดเลขพร้อมใช้งาน
-        setTimeout(() => {
-            updateCalculatorButtons();
-            console.log("Calculator buttons initialized");
-        }, 1000);
+// ปรับปรุงฟังก์ชัน submitEditForm
+function submitEditForm(event) {
+    event.preventDefault();
+    
+    if (typeof Swal === 'undefined') {
+        console.error('SweetAlert2 is not loaded');
+        return false;
     }
-});
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    // เพิ่มข้อมูล input fields สำหรับฟอร์มปกติ
+    const container = document.getElementById("input-fields-container");
+    if (container) {
+        const fieldInputs = container.querySelectorAll("input[name='field']");
+        const labelInputs = container.querySelectorAll("input[name='label']");
+        const typeSelects = container.querySelectorAll("select[name='input_type']");
+        const unitInputs = container.querySelectorAll("input[name='unit']");
+        
+        // ล้างข้อมูลเก่าก่อน
+        formData.delete('field');
+        formData.delete('label');
+        formData.delete('input_type');
+        formData.delete('unit');
+        
+        // เพิ่มข้อมูลใหม่
+        fieldInputs.forEach((input, index) => {
+            if (input.value.trim()) {
+                formData.append('field', input.value.trim());
+                formData.append('label', labelInputs[index] ? labelInputs[index].value.trim() : '');
+                formData.append('input_type', typeSelects[index] ? typeSelects[index].value : 'text');
+                formData.append('unit', unitInputs[index] ? unitInputs[index].value.trim() : '');
+            }
+        });
+    }
+    
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+    submitButton.textContent = 'กำลังบันทึก...';
+    submitButton.disabled = true;
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        cache: 'no-cache',
+        headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: 'สำเร็จ!',
+                text: data.message,
+                icon: 'success',
+                confirmButtonText: 'ตกลง'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('modal').classList.remove('modal-open');
+                    if (data.redirect_url) {
+                        window.location.href = data.redirect_url;
+                    } else {
+                        window.location.reload();
+                    }
+                }
+            });
+        } else {
+            Swal.fire({
+                title: 'เกิดข้อผิดพลาด!',
+                text: data.message,
+                icon: 'error',
+                confirmButtonText: 'ตกลง'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'เกิดข้อผิดพลาด!',
+            text: 'ไม่สามารถบันทึกข้อมูลได้',
+            icon: 'error',
+            confirmButtonText: 'ตกลง'
+        });
+    })
+    .finally(() => {
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+    });
+    
+    return false;
+}
+
+// ฟังก์ชันสำหรับอัปเดตการแสดงผลฟิลด์ linked
+function updateLinkedDisplay() {
+    console.log("Updating linked display with data:", linkedMaterialData);
+    
+    const linkedPreview = document.getElementById('linked-fields-preview');
+    if (!linkedPreview) {
+        console.log("linked-fields-preview element not found");
+        return;
+    }
+    
+    if (!linkedMaterialData || !linkedMaterialData.input_types) {
+        linkedPreview.innerHTML = '<p class="text-sm text-gray-500">ไม่มีข้อมูลฟิลด์</p>';
+        return;
+    }
+    
+    let html = '';
+    linkedMaterialData.input_types.forEach((field, index) => {
+        html += `
+            <div class="flex items-center justify-between py-2 px-3 bg-white border border-gray-200 rounded mb-2">
+                <div class="flex-1">
+                    <span class="font-medium text-gray-800">${field.label || field.field}</span>
+                    <span class="text-xs text-gray-500 ml-2">(${field.field})</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="badge badge-sm bg-blue-100 text-blue-800">${field.input_type}</span>
+                    ${field.unit ? `<span class="text-xs text-gray-600">${field.unit}</span>` : ''}
+                </div>
+            </div>
+        `;
+    });
+    
+    linkedPreview.innerHTML = html;
+    
+    // อัปเดตข้อมูลใน linked-info
+    const linkedInfo = document.getElementById('linked-info');
+    if (linkedInfo && linkedMaterialData) {
+        linkedInfo.innerHTML = `
+            <p><strong>เชื่อมโยงกับ Material:</strong> <span class="font-mono bg-gray-100 border border-gray-300 px-2 py-1 rounded text-gray-800">${linkedMaterialData.material_name}</span></p>
+            <p class="mt-1"><strong>Scope:</strong> <span class="text-blue-700">${linkedMaterialData.ghg_scope}</span> | <strong>Sub-Scope:</strong> <span class="text-blue-700">${linkedMaterialData.ghg_sup_scope}</span></p>
+            <p class="text-xs text-blue-700 mt-2">ระบบจะดึงข้อมูลจาก Material ดังกล่าวโดยอัตโนมัติ</p>
+        `;
+    }
+}
+
+// ปรับปรุงฟังก์ชัน updatePreview
+function updatePreview() {
+    console.log("Updating preview...");
+    
+    const preview = document.getElementById("form-preview");
+    if (!preview) {
+        console.log("form-preview element not found");
+        return;
+    }
+    
+    const materialNameInput = document.querySelector("input[name='material_name']");
+    const descFormTextarea = document.querySelector("textarea[name='desc_form']");
+    const formulaInput = document.querySelector("input[name='formula']");
+    const descFormulaTextarea = document.querySelector("textarea[name='desc_formula']");
+    const mainScopeSelect = document.querySelector("select[name='scope']");
+    const hiddenSubScopeInput = document.querySelector("input[name='sup_scope']");
+    
+    const materialName = (materialNameInput?.value || "NO MATERIAL NAME").toUpperCase();
+    const descForm = descFormTextarea?.value || "No Description";
+    const formula = formulaInput?.value || "No Formula";
+    const descFormula = descFormulaTextarea?.value || "No Formula Description";
+    const mainScope = mainScopeSelect?.value || "-";
+    const subScope = hiddenSubScopeInput?.value || "-";
+    
+    let html = `
+        <div class="mb-6">
+            <p class="text-sm text-gray-400"><strong>MATERIAL NAME:</strong> ${materialName}</p>
+        </div>
+        
+        <div class="mb-4">
+            <p class="text-sm text-gray-600"><strong>คำอธิบาย:</strong> ${descForm}</p>
+            <p class="text-sm text-gray-600 mt-1"><strong>Scope:</strong> ${mainScope} | <strong>Sub-Scope:</strong> ${subScope}</p>
+        </div>
+    `;
+    
+    // ตรวจสอบว่าเป็นฟอร์มลิงก์หรือไม่
+    const isLinkedForm = linkedMaterialData && linkedMaterialData.input_types;
+    
+    if (isLinkedForm) {
+        // แสดงฟิลด์จาก linked material
+        html += '<div class="space-y-3">';
+        linkedMaterialData.input_types.forEach((field, index) => {
+            const inputId = `preview_${field.field}_${index}`;
+            let inputHtml = '';
+            
+            switch (field.input_type) {
+                case 'number':
+                    inputHtml = `<input type="number" id="${inputId}" class="input input-sm input-bordered w-full" placeholder="กรอกค่า ${field.label}" step="any">`;
+                    break;
+                case 'select':
+                    inputHtml = `<select id="${inputId}" class="select select-sm select-bordered w-full">
+                        <option value="">เลือก ${field.label}</option>
+                    </select>`;
+                    break;
+                case 'textarea':
+                    inputHtml = `<textarea id="${inputId}" class="textarea textarea-sm textarea-bordered w-full" placeholder="กรอก ${field.label}"></textarea>`;
+                    break;
+                default:
+                    inputHtml = `<input type="text" id="${inputId}" class="input input-sm input-bordered w-full" placeholder="กรอก ${field.label}">`;
+            }
+            
+            html += `
+                <div class="form-control">
+                    <label class="text-sm font-medium text-gray-700">${field.label || field.field}</label>
+                    <div class="flex items-center gap-2">
+                        ${inputHtml}
+                        ${field.unit ? `<span class="text-xs text-gray-500">${field.unit}</span>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        
+        html += `
+            <div class="alert bg-blue-50 border border-blue-300 text-blue-800 mt-4">
+                <div class="text-xs">
+                    <strong>หมายเหตุ:</strong> ฟิลด์เหล่านี้ถูกเชื่อมโยงจาก Material: <strong>${linkedMaterialData.material_name}</strong>
+                </div>
+            </div>
+        `;
+    } else {
+        // แสดงฟิลด์ปกติ
+        const container = document.getElementById("input-fields-container");
+        if (container) {
+            const fieldInputs = container.querySelectorAll("input[name='field']");
+            const labelInputs = container.querySelectorAll("input[name='label']");
+            const typeSelects = container.querySelectorAll("select[name='input_type']");
+            const unitInputs = container.querySelectorAll("input[name='unit']");
+            
+            if (fieldInputs.length > 0) {
+                html += '<div class="space-y-3">';
+                fieldInputs.forEach((fieldInput, index) => {
+                    const field = fieldInput.value.trim();
+                    const label = labelInputs[index]?.value.trim() || field;
+                    const inputType = typeSelects[index]?.value || 'text';
+                    const unit = unitInputs[index]?.value.trim() || '';
+                    
+                    if (field) {
+                        const inputId = `preview_${field}_${index}`;
+                        let inputHtml = '';
+                        
+                        switch (inputType) {
+                            case 'number':
+                                inputHtml = `<input type="number" id="${inputId}" class="input input-sm input-bordered w-full" placeholder="กรอกค่า ${label}" step="any">`;
+                                break;
+                            case 'select':
+                                inputHtml = `<select id="${inputId}" class="select select-sm select-bordered w-full">
+                                    <option value="">เลือก ${label}</option>
+                                </select>`;
+                                break;
+                            case 'textarea':
+                                inputHtml = `<textarea id="${inputId}" class="textarea textarea-sm textarea-bordered w-full" placeholder="กรอก ${label}"></textarea>`;
+                                break;
+                            default:
+                                inputHtml = `<input type="text" id="${inputId}" class="input input-sm input-bordered w-full" placeholder="กรอก ${label}">`;
+                        }
+                        
+                        html += `
+                            <div class="form-control">
+                                <label class="text-sm font-medium text-gray-700">${label}</label>
+                                <div class="flex items-center gap-2">
+                                    ${inputHtml}
+                                    ${unit ? `<span class="text-xs text-gray-500">${unit}</span>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                html += '</div>';
+            } else {
+                html += '<p class="text-sm text-gray-500 italic">ยังไม่มีฟิลด์ข้อมูล</p>';
+            }
+        }
+    }
+    
+    // เพิ่มส่วนสูตรคำนวณ
+    html += `
+        <div class="mt-6">
+            <h4 class="text-sm font-semibold text-gray-800 mb-2">สูตรคำนวณ</h4>
+            <div class="bg-gray-50 border border-gray-200 rounded p-3">
+                <code class="text-sm text-gray-800">${formula}</code>
+            </div>
+            <p class="text-xs text-gray-600 mt-2">${descFormula}</p>
+        </div>
+    `;
+    
+    // เพิ่มข้อมูลผู้สร้าง
+    const currentTime = new Date().toLocaleString();
+    html += `
+        <div class="mt-6 text-xs text-gray-500 border-t border-gray-200 pt-3">
+            <p><strong>สร้างโดย:</strong> {{ current_user.username if current_user else 'Unknown User' }}</p>
+            <p><strong>เวลา:</strong> ${currentTime}</p>
+        </div>
+    `;
+    
+    preview.innerHTML = html;
+    
+    // อัปเดต feather icons
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+    
+    console.log("Preview updated successfully");
+}
+
+// ปรับปรุงฟังก์ชัน updateCalculatorButtons
+function updateCalculatorButtons() {
+    console.log("Updating calculator buttons...");
+    
+    const variablesButtons = document.getElementById("variables-buttons");
+    const numbersButtons = document.getElementById("numbers-buttons");
+    const operatorsButtons = document.getElementById("operators-buttons");
+    
+    if (!variablesButtons || !numbersButtons || !operatorsButtons) {
+        console.log("Calculator button containers not found");
+        return;
+    }
+    
+    // ล้างปุ่มเก่า
+    variablesButtons.innerHTML = "";
+    numbersButtons.innerHTML = "";
+    operatorsButtons.innerHTML = "";
+    
+    // สร้างปุ่มตัวแปร
+    let variables = [];
+    
+    // ตรวจสอบว่าเป็นฟอร์มลิงก์หรือไม่
+    if (linkedMaterialData && linkedMaterialData.input_types) {
+        // ใช้ตัวแปรจาก linked material
+        variables = linkedMaterialData.input_types.map(field => field.field);
+        console.log("Using linked variables:", variables);
+    } else {
+        // ใช้ตัวแปรจากฟอร์มปกติ
+        const container = document.getElementById("input-fields-container");
+        if (container) {
+            const fieldInputs = container.querySelectorAll("input[name='field']");
+            fieldInputs.forEach(input => {
+                if (input.value.trim()) {
+                    variables.push(input.value.trim());
+                }
+            });
+        }
+        console.log("Using normal form variables:", variables);
+    }
+    
+    // สร้างปุ่มตัวแปร
+    variables.forEach(variable => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn btn-sm btn-outline bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300';
+        button.textContent = variable;
+        button.onclick = () => insertIntoFormula(variable);
+        variablesButtons.appendChild(button);
+    });
+    
+    // สร้างปุ่มตัวเลข (0-9 และ จุดทศนิยม)
+    const numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.'];
+    numbers.forEach(number => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn btn-sm btn-outline bg-gray-50 hover:bg-gray-100';
+        button.textContent = number;
+        button.onclick = () => insertIntoFormula(number);
+        numbersButtons.appendChild(button);
+    });
+    
+    // สร้างปุ่มตัวดำเนินการ
+    const operators = [
+        { symbol: '+', label: '+' },
+        { symbol: '-', label: '-' },
+        { symbol: '*', label: '×' },
+        { symbol: '/', label: '÷' },
+        { symbol: '(', label: '(' },
+        { symbol: ')', label: ')' },
+        { symbol: '^', label: '^' },
+        { symbol: 'sqrt(', label: '√' },
+        { symbol: 'sin(', label: 'sin' },
+        { symbol: 'cos(', label: 'cos' }
+    ];
+    
+    operators.forEach(op => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn btn-sm btn-outline bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-300';
+        button.textContent = op.label;
+        button.onclick = () => insertIntoFormula(op.symbol);
+        operatorsButtons.appendChild(button);
+    });
+    
+    console.log("Calculator buttons updated successfully");
+}
+
+// ฟังก์ชันสำหรับแทรกสัญลักษณ์ลงในสูตร
+function insertIntoFormula(symbol) {
+    const formulaInput = document.querySelector("input[name='formula']");
+    if (!formulaInput) return;
+    
+    const currentValue = formulaInput.value;
+    const cursorPosition = formulaInput.selectionStart;
+    
+    const newValue = currentValue.slice(0, cursorPosition) + symbol + currentValue.slice(cursorPosition);
+    formulaInput.value = newValue;
+    
+    // ย้าย cursor ไปยังตำแหน่งหลังสัญลักษณ์ที่แทรก
+    const newCursorPosition = cursorPosition + symbol.length;
+    formulaInput.setSelectionRange(newCursorPosition, newCursorPosition);
+    formulaInput.focus();
+    
+    // อัปเดต preview
+    updatePreview();
+}
+
+// ฟังก์ชันเปิด/ปิด formula calculator
+function toggleFormulaCalculator() {
+    const calculator = document.getElementById('formula-calculator');
+    if (!calculator) return;
+    
+    if (calculator.classList.contains('hidden')) {
+        calculator.classList.remove('hidden');
+        updateCalculatorButtons();
+    } else {
+        calculator.classList.add('hidden');
+    }
+}
+
+// ฟังก์ชันปิด formula calculator
+function closeFormulaCalculator() {
+    const calculator = document.getElementById('formula-calculator');
+    if (calculator) {
+        calculator.classList.add('hidden');
+    }
+}
+
+// ฟังก์ชันใช้สูตร
+function applyFormula() {
+    const formulaInput = document.querySelector("input[name='formula']");
+    if (formulaInput) {
+        updatePreview();
+    }
+    closeFormulaCalculator();
+}
 </script>

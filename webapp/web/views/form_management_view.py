@@ -260,6 +260,7 @@ def load_edit_form_and_formula():
                 error_msg="Invalid form ID format",
             )
 
+        # บังคับไม่ใช้ cache โดยการ query ใหม่ทุกครั้ง
         form = FormAndFormula.objects(id=object_id).first()
         if not form:
             return render_template(
@@ -269,6 +270,9 @@ def load_edit_form_and_formula():
             )
 
         # แปลง FormAndFormula object เป็น dict เพื่อส่งไปยัง template
+        # เพิ่ม timestamp เพื่อบังคับให้ browser ไม่ cache
+        import time
+
         form_data = {
             "id": str(form.id),
             "material_name": form.material_name,
@@ -278,11 +282,10 @@ def load_edit_form_and_formula():
             "formula2": form.formula2 or "",
             "ghg_scope": form.ghg_scope,
             "ghg_sup_scope": form.ghg_sup_scope,
-            "is_linked": getattr(
-                form, "is_linked", False
-            ),  # ใช้ getattr เพื่อป้องกัน AttributeError
+            "is_linked": getattr(form, "is_linked", False),
             "linked_material_name": getattr(form, "linked_material_name", ""),
             "input_types": [],
+            "_timestamp": int(time.time() * 1000),  # เพิ่ม timestamp
         }
 
         if form.input_types:
@@ -296,9 +299,19 @@ def load_edit_form_and_formula():
                     }
                 )
 
-        return render_template(
-            "/form-management/edit-form-and-formula.html", form=form_data
+        # เพิ่ม headers เพื่อป้องกัน cache
+        from flask import make_response
+
+        response = make_response(
+            render_template(
+                "/form-management/edit-form-and-formula.html", form=form_data
+            )
         )
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+
+        return response
 
     except Exception as e:
         import traceback
