@@ -126,6 +126,18 @@ def load_emissions_table():
         calculate_grouped_input_types(head_table, page)
     )
 
+    # ดึงข้อมูลฟอร์มสำหรับแต่ละ header
+    head_table_info = {}
+    for head in current_headers:
+        form = FormAndFormula.objects(material_name=head).first()
+        if form:
+            head_table_info[head] = {
+                "is_linked": getattr(form, "is_linked", False),
+                "linked_material_name": getattr(form, "linked_material_name", ""),
+                "desc_form": form.desc_form,
+                "formula": form.formula,
+            }
+
     materials = Material.objects(
         scope=int(scope_id),
         sub_scope=int(sub_scope_id),
@@ -142,12 +154,13 @@ def load_emissions_table():
             sub_scope_id=sub_scope_id,
             materials=materials,
             head_table=current_headers,
+            head_table_info=head_table_info,  # เพิ่มข้อมูลฟอร์ม
             total_pages=total_pages,
             page=page,
             user=current_user,
             year=year,
             materials_form=materials_form,
-            items_per_page=items_per_page,  # ส่งจำนวนรายการต่อหน้า
+            items_per_page=items_per_page,
         )
 
     return render_template(
@@ -530,6 +543,18 @@ def save_materials():
         calculate_grouped_input_types(head_table, page)
     )
 
+    # สร้าง head_table_info สำหรับ current_headers
+    head_table_info = {}
+    for head in current_headers:
+        form = FormAndFormula.objects(material_name=head).first()
+        if form:
+            head_table_info[head] = {
+                "is_linked": getattr(form, "is_linked", False),
+                "linked_material_name": getattr(form, "linked_material_name", ""),
+                "desc_form": form.desc_form,
+                "formula": form.formula,
+            }
+
     # สร้าง materials_form ใหม่ตาม current_headers
     materials_form = []
     for head in current_headers:
@@ -557,6 +582,7 @@ def save_materials():
             sub_scope_id=sub_scope_id,
             materials=materials,
             head_table=current_headers,
+            head_table_info=head_table_info,  # เพิ่มบรรทัดนี้
             total_pages=total_pages,
             page=page,  # ส่งหน้าปัจจุบันกลับไปยังเทมเพลต
             user=current_user,
@@ -620,6 +646,18 @@ def delete_material():
         calculate_grouped_input_types(head_table, page)
     )
 
+    # สร้าง head_table_info สำหรับ current_headers
+    head_table_info = {}
+    for head in current_headers:
+        form = FormAndFormula.objects(material_name=head).first()
+        if form:
+            head_table_info[head] = {
+                "is_linked": getattr(form, "is_linked", False),
+                "linked_material_name": getattr(form, "linked_material_name", ""),
+                "desc_form": form.desc_form,
+                "formula": form.formula,
+            }
+
     materials = Material.objects(
         scope=int(scope_id),
         sub_scope=int(sub_scope_id),
@@ -636,21 +674,13 @@ def delete_material():
             sub_scope_id=sub_scope_id,
             materials=materials,
             head_table=current_headers,
+            head_table_info=head_table_info,  # เพิ่มบรรทัดนี้
             total_pages=total_pages,
             page=page,
             user=current_user,
             year=year,
             materials_form=materials_form,
             items_per_page=items_per_page,
-        )
-    else:
-        return redirect(
-            url_for(
-                "emissions.view_emissions",
-                scope_id=scope_id,
-                sub_scope_id=sub_scope_id,
-                year=year,
-            )
         )
 
 
@@ -698,6 +728,18 @@ def delete_all_materials():
         calculate_grouped_input_types(head_table, page)
     )
 
+    # สร้าง head_table_info สำหรับ current_headers
+    head_table_info = {}
+    for head in current_headers:
+        form = FormAndFormula.objects(material_name=head).first()
+        if form:
+            head_table_info[head] = {
+                "is_linked": getattr(form, "is_linked", False),
+                "linked_material_name": getattr(form, "linked_material_name", ""),
+                "desc_form": form.desc_form,
+                "formula": form.formula,
+            }
+
     materials = Material.objects(
         scope=int(scope_id),
         sub_scope=int(sub_scope_id),
@@ -714,21 +756,13 @@ def delete_all_materials():
             sub_scope_id=sub_scope_id,
             materials=materials,
             head_table=current_headers,
+            head_table_info=head_table_info,  # เพิ่มบรรทัดนี้
             total_pages=total_pages,
             page=page,
             user=current_user,
             year=year,
             materials_form=materials_form,
             items_per_page=items_per_page,
-        )
-    else:
-        return redirect(
-            url_for(
-                "emissions.view_emissions",
-                scope_id=scope_id,
-                sub_scope_id=sub_scope_id,
-                year=year,
-            )
         )
 
 
@@ -894,3 +928,148 @@ def delete_file(file_id):
         sub_scope_id=sub_scope_id,
         month=month,
     )
+
+
+@module.route("/get-form-details/<material_name>", methods=["GET"])
+@login_required
+def get_form_details(material_name):
+    """
+    ดึงรายละเอียดของฟอร์ม รวมถึงข้อมูลการลิงก์
+    """
+    try:
+        form = FormAndFormula.objects(material_name=material_name).first()
+        if not form:
+            return render_template(
+                "emissions-scope/partials/form-detail-modal.html",
+                error="ไม่พบฟอร์มที่ต้องการ",
+            )
+
+        # ดึงข้อมูล scope
+        scope_info = None
+        if hasattr(form, "ghg_scope") and hasattr(form, "ghg_sup_scope"):
+            scope = Scope.objects(
+                ghg_scope=form.ghg_scope, ghg_sup_scope=form.ghg_sup_scope
+            ).first()
+            if scope:
+                scope_info = {
+                    "ghg_scope": form.ghg_scope,
+                    "ghg_sup_scope": form.ghg_sup_scope,
+                    "ghg_name": scope.ghg_name,
+                }
+
+        # ดึงข้อมูลฟอร์มต้นทาง (ถ้าเป็นฟอร์มลิงก์)
+        source_form = None
+        if getattr(form, "is_linked", False) and getattr(
+            form, "linked_material_name", ""
+        ):
+            source_form = FormAndFormula.objects(
+                material_name=form.linked_material_name
+            ).first()
+
+            if source_form:
+                source_scope = Scope.objects(
+                    ghg_scope=source_form.ghg_scope,
+                    ghg_sup_scope=source_form.ghg_sup_scope,
+                ).first()
+                source_form.scope_name = (
+                    source_scope.ghg_name if source_scope else "Unknown"
+                )
+
+        # ดึงรายชื่อฟอร์มที่ลิงก์มาจากฟอร์มนี้
+        linked_forms = []
+        if not getattr(form, "is_linked", False):
+            linked_forms_query = FormAndFormula.objects(
+                linked_material_name=material_name, is_linked=True
+            )
+
+            for linked_form in linked_forms_query:
+                linked_scope = Scope.objects(
+                    ghg_scope=linked_form.ghg_scope,
+                    ghg_sup_scope=linked_form.ghg_sup_scope,
+                ).first()
+
+                linked_forms.append(
+                    {
+                        "material_name": linked_form.material_name,
+                        "desc_form": linked_form.desc_form,
+                        "ghg_scope": linked_form.ghg_scope,
+                        "ghg_sup_scope": linked_form.ghg_sup_scope,
+                        "scope_name": (
+                            linked_scope.ghg_name if linked_scope else "Unknown"
+                        ),
+                    }
+                )
+
+        return render_template(
+            "emissions-scope/partials/form-detail-modal.html",
+            form=form,
+            scope_info=scope_info,
+            source_form=source_form,
+            linked_forms=linked_forms,
+        )
+
+    except Exception as e:
+        import traceback
+
+        traceback.print_exc()
+        return render_template(
+            "emissions-scope/partials/form-detail-modal.html",
+            error=f"เกิดข้อผิดพลาด: {str(e)}",
+        )
+
+
+@module.route("/get-linked-form-info/<material_name>", methods=["GET"])
+@login_required
+def get_linked_form_info(material_name):
+    """
+    ดึงข้อมูลการลิงก์สำหรับแสดงในตารางเมื่อคลิกที่ข้อมูลลิงก์
+    """
+    try:
+        month_id = request.args.get("month_id")
+        year = request.args.get("year")
+
+        form = FormAndFormula.objects(material_name=material_name).first()
+        if not form:
+            return render_template(
+                "emissions-scope/partials/linked-form-info-modal.html",
+                error="ไม่พบฟอร์มที่ต้องการ",
+            )
+
+        # ดึงข้อมูลฟอร์มต้นทาง
+        source_form = None
+        source_material_data = None
+
+        if getattr(form, "is_linked", False) and getattr(
+            form, "linked_material_name", ""
+        ):
+            source_form = FormAndFormula.objects(
+                material_name=form.linked_material_name
+            ).first()
+
+            if source_form:
+                # ดึงข้อมูล Material ต้นทางในเดือนเดียวกัน
+                source_material_data = Material.objects(
+                    month=int(month_id),
+                    name=form.linked_material_name,
+                    year=int(year),
+                    department=current_user.department_key,
+                    campus=current_user.campus_id,
+                ).first()
+
+        return render_template(
+            "emissions-scope/partials/linked-form-info-modal.html",
+            form=form,
+            source_form=source_form,
+            source_material_data=source_material_data,
+            month_id=month_id,
+            year=year,
+        )
+
+    except Exception as e:
+        import traceback
+
+        traceback.print_exc()
+        return render_template(
+            "emissions-scope/partials/linked-form-info-modal.html",
+            error=f"เกิดข้อผิดพลาด: {str(e)}",
+        )
