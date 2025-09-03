@@ -166,9 +166,8 @@
                 type="text" 
                 name="formula" 
                 id="formula" 
-                class="input input-bordered w-full cursor-not-allowed" 
+                class="input input-bordered w-full" 
                 placeholder="e.g. diesel * 2.68" 
-                readonly 
                 required
                 onclick="toggleFormulaCalculator()">
               
@@ -356,24 +355,33 @@ function toggleFormType() {
         inputFieldsSection.classList.add('hidden');
         isLinkedInput.value = 'true';
         
-        console.log('Set is_linked to:', isLinkedInput.value); // Debug log
-        
         // โหลด available materials ถ้ามี scope และ sub scope
         triggerLinkedMaterialsLoad();
         
-        // ตั้งค่า formula เป็น buffer_data * 1 เป็นค่าเริ่มต้น
-        document.getElementById('formula').value = 'buffer_data * 1';
+        // ล้าง formula ให้ user กรอกเอง (แก้ไขจาก buffer_data * 1)
+        document.getElementById('formula').value = '';
         updatePreview();
+        updateFormulaButtons();
+        
+        // ตรวจสอบว่ามี material ที่เลือกอยู่หรือไม่
+        setTimeout(() => {
+            const linkedSelect = document.querySelector('select[name="linked_material_name"]');
+            if (linkedSelect && linkedSelect.value) {
+                onLinkedMaterialChange();
+            }
+        }, 500);
     } else {
         linkedSection.classList.add('hidden');
         inputFieldsSection.classList.remove('hidden');
         isLinkedInput.value = 'false';
         
-        console.log('Set is_linked to:', isLinkedInput.value); // Debug log
+        // ล้าง linked material data
+        window.linkedMaterialData = null;
         
         // ล้าง formula และให้ user กรอกเอง
         document.getElementById('formula').value = '';
         updatePreview();
+        updateFormulaButtons();
     }
 }
 
@@ -443,11 +451,13 @@ function loadFormData(formData) {
         document.querySelector('input[name="form_type"][value="linked"]').checked = true;
         toggleFormType();
         
-        // ตั้งค่า linked material name
+        // ตั้งค่า linked material name และโหลดข้อมูล
         setTimeout(() => {
             const linkedSelect = document.querySelector('select[name="linked_material_name"]');
             if (linkedSelect && formData.linked_material_name) {
                 linkedSelect.value = formData.linked_material_name;
+                // เรียก onLinkedMaterialChange เพื่อโหลดฟิลด์และตัวแปร
+                onLinkedMaterialChange();
             }
         }, 500);
     } else {
@@ -528,11 +538,29 @@ function updatePreview() {
     if (formType === 'linked') {
         const linkedMaterial = document.querySelector('select[name="linked_material_name"]').value;
         html += `<div class="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
-            <p class="text-sm font-medium text-green-800 mb-2">ฟอร์มลิงก์ - ดึงข้อมูลอัตโนมัติ</p>
+            <p class="text-sm font-medium text-green-800 mb-2">ฟอร์มลิงก์ - ดึงฟิลด์จาก Material ต้นฉบับ</p>
             <p class="text-xs text-green-700">Material ต้นทาง: ${linkedMaterial || 'ยังไม่ได้เลือก'}</p>
-            <p class="text-xs text-green-700 mt-1">ข้อมูลจะถูกดึงจาก Material ที่เลือกและคำนวณผ่านสูตรอัตโนมัติ</p>
+            <p class="text-xs text-green-700 mt-1">ฟิลด์และตัวแปรจะถูกดึงจาก Material ที่เลือก</p>
         </div>`;
+        
+        // แสดงฟิลด์จาก linked material
+        if (window.linkedMaterialData && window.linkedMaterialData.input_types) {
+            window.linkedMaterialData.input_types.forEach(field => {
+                html += `<div class='mb-6'>
+                    <label class='block text-sm text-gray-800 mb-1'><strong>${field.label || field.field} (${field.unit || '-'})</strong></label>
+                    <div class="relative">
+                        <input type='${field.input_type}' class='input input-bordered w-full mb-2' placeholder='{{t.enter}} ${field.label || field.field}'>
+                        <div class="flex gap-2 mt-2">
+                            <div class="text-xs text-gray-700 bg-gray-200 rounded-full px-3 py-1 inline-block">Field: ${field.field}</div>
+                            <div class="text-xs text-gray-700 bg-blue-100 rounded-full px-3 py-1 inline-block">Type: ${field.input_type}</div>
+                            <div class="text-xs text-gray-700 bg-green-100 rounded-full px-3 py-1 inline-block">จาก: ${linkedMaterial}</div>
+                        </div>
+                    </div>
+                </div>`;
+            });
+        }
     } else {
+        // แสดงฟิลด์ปกติ
         const fields = container.querySelectorAll("[data-index]");
         fields.forEach(row => {
             const field = row.querySelector("input[name='field']").value;
@@ -645,12 +673,58 @@ document.addEventListener('htmx:afterSettle', function(event) {
     if (event.detail.target.id === 'available-materials-container') {
         feather.replace();
         updatePreview();
+        // เรียก onLinkedMaterialChange หากมีการเลือก material อยู่แล้ว
+        const linkedSelect = document.querySelector('select[name="linked_material_name"]');
+        if (linkedSelect && linkedSelect.value) {
+            setTimeout(() => {
+                onLinkedMaterialChange();
+            }, 100);
+        }
     }
     if (event.detail.target.id === 'sub-scope-container') {
         triggerLinkedMaterialsLoad();
         updatePreview();
     }
 });
+
+// เพิ่มฟังก์ชันใหม่สำหรับจัดการ linked material change
+function onLinkedMaterialChange() {
+    const linkedMaterialSelect = document.querySelector('select[name="linked_material_name"]');
+    const selectedMaterial = linkedMaterialSelect.value;
+    
+    console.log('onLinkedMaterialChange called with:', selectedMaterial);
+    
+    if (selectedMaterial) {
+        // ดึงข้อมูล material ที่เลือก
+        fetch(`/form-management/get-linked-material-data/${encodeURIComponent(selectedMaterial)}`)
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Received linked material data:', data);
+                if (data && data.input_types) {
+                    // เก็บข้อมูลไว้ใน global variable
+                    window.linkedMaterialData = data;
+                    console.log('Set linkedMaterialData:', window.linkedMaterialData);
+                    
+                    // อัปเดต preview และ calculator
+                    updatePreview();
+                    updateFormulaButtons();
+                } else {
+                    console.error('No input_types in response data');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching linked material data:', error);
+            });
+    } else {
+        console.log('No material selected, clearing data');
+        window.linkedMaterialData = null;
+        updatePreview();
+        updateFormulaButtons();
+    }
+}
 
 // Initialize when DOM loads or when modal content loads
 document.addEventListener("DOMContentLoaded", function() {

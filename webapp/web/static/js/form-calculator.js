@@ -140,7 +140,6 @@ function removeField(button) {
 
 function updateFormulaButtons() {
     const container = document.getElementById("input-fields-container");
-    const fields = container.querySelectorAll("[data-index]");
     const variablesButtons = document.getElementById("variables-buttons");
     const numbersButtons = document.getElementById("numbers-buttons");
     const operatorsButtons = document.getElementById("operators-buttons");
@@ -151,18 +150,36 @@ function updateFormulaButtons() {
     numbersButtons.innerHTML = "";
     operatorsButtons.innerHTML = "";
 
-    fields.forEach((row) => {
-        const field = row.querySelector("input[name='field']").value;
-        if (field) {
+    // ตรวจสอบว่าเป็นฟอร์มลิงก์หรือไม่
+    const formType = document.querySelector('input[name="form_type"]:checked')?.value;
+    
+    if (formType === 'linked' && window.linkedMaterialData && window.linkedMaterialData.input_types) {
+        // ใช้ตัวแปรจาก linked material
+        window.linkedMaterialData.input_types.forEach(field => {
             const button = document.createElement("button");
             button.type = "button";
             button.className = "btn btn-xs btn-outline bg-pink-100 text-pink-800";
-            button.textContent = field;
-            button.onclick = () => addToFormula(field);
+            button.textContent = field.field;
+            button.onclick = () => addToFormula(field.field);
             variablesButtons.appendChild(button);
-        }
-    });
+        });
+    } else {
+        // ใช้ตัวแปรจากฟอร์มปกติ
+        const fields = container.querySelectorAll("[data-index]");
+        fields.forEach((row) => {
+            const field = row.querySelector("input[name='field']").value;
+            if (field) {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "btn btn-xs btn-outline bg-pink-100 text-pink-800";
+                button.textContent = field;
+                button.onclick = () => addToFormula(field);
+                variablesButtons.appendChild(button);
+            }
+        });
+    }
 
+    // สร้างปุ่มตัวเลข
     for (let i = 0; i <= 9; i++) {
         const button = document.createElement("button");
         button.type = "button";
@@ -172,6 +189,7 @@ function updateFormulaButtons() {
         numbersButtons.appendChild(button);
     }
 
+    // สร้างปุ่ม operators
     const operators = ["+", "-", "*", "/", "^", "(", ")", ".", "⌫", "C"];
     operators.forEach(op => {
         const button = document.createElement("button");

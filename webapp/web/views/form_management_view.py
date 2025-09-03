@@ -153,15 +153,28 @@ def edit_form_and_formula():
                     400,
                 )
 
-        # ตรวจสอบว่าเป็นฟอร์มลิงก์หรือไม่
+        # ตรวจสอบว่าเป็นฟอร์มลิงก์หรือไม่ (ใช้ข้อมูลจาก database)
         is_linked = getattr(form, "is_linked", False)
 
         print(f"Debug - Current form is_linked: {is_linked}")
-        print(f"Debug - Form variables before: {form.variables}")
+        print(f"Debug - Form linked_material_name: {getattr(form, 'linked_material_name', '')}")
 
         if is_linked:
+            # ใช้ linked_material_name ที่มีอยู่แล้วใน database
+            linked_material_name = getattr(form, "linked_material_name", "")
+            
+            if not linked_material_name:
+                return (
+                    jsonify(
+                        {
+                            "success": False, 
+                            "message": "ฟอร์มลิงก์นี้ไม่มีการระบุ Material ต้นทาง กรุณาติดต่อผู้ดูแลระบบ"
+                        }
+                    ),
+                    400,
+                )
+            
             # ดึงข้อมูล material ต้นฉบับ
-            linked_material_name = request.form.get("linked_material_name", "")
             linked_material = FormAndFormula.objects(
                 material_name=linked_material_name
             ).first()
@@ -170,13 +183,13 @@ def edit_form_and_formula():
                     jsonify(
                         {
                             "success": False,
-                            "message": f"Material '{linked_material_name}' ไม่พบในระบบ",
+                            "message": f"Material '{linked_material_name}' ไม่พบในระบบ กรุณาติดต่อผู้ดูแลระบบ",
                         }
                     ),
                     404,
                 )
 
-            # ใช้ quantity_type ของ material ต้นฉบับ
+            # ใช้ input_types ของ material ต้นฉบับ (ไม่เปลี่ยน)
             input_fields = []
             variables = []
             for quantity in linked_material.input_types:
@@ -192,14 +205,18 @@ def edit_form_and_formula():
 
             form.input_types = input_fields
             form.variables = variables
+            
+            print(f"Debug - Updated linked form variables: {variables}")
         else:
-            # ฟอร์มปกติ - อัปเดต input fields
+            # ฟอร์มปกติ - อัปเดต input fields จากฟอร์ม
             input_fields = []
             variables = []
             fields = request.form.getlist("field")
             labels = request.form.getlist("label")
             input_types = request.form.getlist("input_type")
             units = request.form.getlist("unit")
+
+            print(f"Debug - Normal form fields from request: {fields}")
 
             for i in range(len(fields)):
                 field = fields[i]
@@ -215,6 +232,8 @@ def edit_form_and_formula():
 
             form.input_types = input_fields
             form.variables = variables
+            
+            print(f"Debug - Updated normal form variables: {variables}")
 
         form.save()
 
