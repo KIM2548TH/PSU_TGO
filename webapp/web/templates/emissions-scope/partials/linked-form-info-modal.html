@@ -1,0 +1,82 @@
+{% if error %}
+<div class="alert alert-error">
+    <i data-feather="alert-circle" class="w-6 h-6"></i>
+    <span>{{ error }}</span>
+</div>
+{% else %}
+<div class="space-y-4">
+    <div class="border-b border-gray-200 pb-3">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i data-feather="link" class="w-5 h-5 text-blue-500"></i>
+            ข้อมูลการลิงก์: {{ form.material_name }}
+        </h3>
+        <p class="text-sm text-gray-500 mt-1">ข้อมูลสำหรับเดือน {{ month_id }} ปี {{ year }}</p>
+    </div>
+
+    {% if form.is_linked and source_form %}
+    <div class="bg-blue-50 p-4 rounded-lg">
+        <h4 class="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+            <i data-feather="database" class="w-4 h-4"></i>
+            ข้อมูลต้นทาง
+        </h4>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-medium text-blue-700">ฟอร์มต้นทาง</label>
+                <p class="text-sm text-blue-900">{{ source_form.material_name }}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-blue-700">สูตรคำนวณ</label>
+                <p class="text-sm text-blue-900 font-mono">{{ source_form.formula }}</p>
+            </div>
+        </div>
+
+        {% if source_material_data %}
+        <div class="border-t border-blue-200 pt-3">
+            <h5 class="font-medium text-blue-900 mb-2">ข้อมูลที่นำมาใช้:</h5>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {% for qty in source_material_data.quantity_type %}
+                <div class="bg-white p-3 rounded border border-blue-200">
+                    <label class="block text-xs font-medium text-blue-600">{{ qty.label }}</label>
+                    <p class="text-sm text-blue-900">{{ qty.amount }} {{ qty.unit }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            
+            {% if source_material_data.result %}
+            <div class="mt-3 bg-green-100 p-3 rounded border border-green-200">
+                <label class="block text-sm font-medium text-green-700">ผลลัพธ์การคำนวณ</label>
+                <p class="text-lg font-semibold text-green-900">{{ source_material_data.result }} tCO2eq</p>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="border-t border-blue-200 pt-3">
+            <div class="bg-yellow-100 border border-yellow-300 rounded p-3">
+                <p class="text-sm text-yellow-800">
+                    <i data-feather="info" class="w-4 h-4 inline mr-1"></i>
+                    ยังไม่มีการกรอกข้อมูลในฟอร์มต้นทางสำหรับเดือนนี้
+                </p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="bg-gray-50 p-4 rounded-lg">
+        <h4 class="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+            <i data-feather="info" class="w-4 h-4"></i>
+            หมายเหตุ
+        </h4>
+        <ul class="text-sm text-gray-700 space-y-1">
+            <li>• ข้อมูลในฟอร์มนี้จะอัปเดตอัตโนมัติเมื่อมีการเปลี่ยนแปลงข้อมูลในฟอร์มต้นทาง</li>
+            <li>• ไม่สามารถแก้ไขข้อมูลในฟอร์มลิงก์ได้โดยตรง</li>
+            <li>• หากต้องการแก้ไขข้อมูล กรุณาแก้ไขที่ฟอร์มต้นทาง: <strong>{{ source_form.material_name }}</strong></li>
+        </ul>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    feather.replace();
+</script>
+{% endif %}
