@@ -4,14 +4,20 @@
     <span>{{ error }}</span>
 </div>
 {% else %}
-<div class="space-y-6">
-    <div class="border-b border-gray-200 pb-4">
+<div class="space-y-6 relative">
+    <!-- Close button -->
+    <button type="button" class="absolute top-0 right-0 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors" onclick="closeModal()">
+        <i data-feather="x" class="w-5 h-5"></i>
+    </button>
+
+    <div class="border-b border-gray-200 pb-4 pr-12">
         <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <i data-feather="file-text" class="w-5 h-5"></i>
             รายละเอียดฟอร์ม: {{ form.material_name }}
         </h3>
     </div>
 
+    <!-- ...existing code... -->
     <!-- ข้อมูลพื้นฐานของฟอร์ม -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="space-y-4">
@@ -158,5 +164,10 @@
 
 <script>
     feather.replace();
+    
+    function closeModal() {
+        // Use the same modal closing method as materials-form
+        document.getElementById('modal').classList.remove('modal-open');
+    }
 </script>
 {% endif %}

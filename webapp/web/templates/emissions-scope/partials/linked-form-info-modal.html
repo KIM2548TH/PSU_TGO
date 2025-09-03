@@ -4,8 +4,13 @@
     <span>{{ error }}</span>
 </div>
 {% else %}
-<div class="space-y-4">
-    <div class="border-b border-gray-200 pb-3">
+<div class="space-y-4 relative">
+    <!-- Close button -->
+    <button type="button" class="absolute top-0 right-0 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors" onclick="closeModal()">
+        <i data-feather="x" class="w-5 h-5"></i>
+    </button>
+
+    <div class="border-b border-gray-200 pb-3 pr-12">
         <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <i data-feather="link" class="w-5 h-5 text-blue-500"></i>
             ข้อมูลการลิงก์: {{ form.material_name }}
@@ -78,5 +83,10 @@
 
 <script>
     feather.replace();
+    
+    function closeModal() {
+        // Use the same modal closing method as materials-form
+        document.getElementById('modal').classList.remove('modal-open');
+    }
 </script>
 {% endif %}
