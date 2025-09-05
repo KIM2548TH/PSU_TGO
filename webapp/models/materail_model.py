@@ -19,6 +19,7 @@ class Material(me.Document):
     result = me.DynamicField(
         default=None
     )  # ใช้ DynamicField เพื่อรองรับค่า null หรือค่าประเภทอื่น
+    result2 = me.DynamicField(default=None)
     create_date = me.DateTimeField(default=datetime.datetime.now)
     update_date = me.DateTimeField(default=datetime.datetime.now)
     edit_by_id = me.StringField(required=True)  # แก้ไขให้เป็น StringField
