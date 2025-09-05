@@ -269,7 +269,7 @@ def load_materials_form():
 
 def calculate_result(material):
     """
-    คำนวณผลลัพธ์จากสูตรและบันทึก result ลงใน material
+    คำนวณผลลัพธ์จากสูตรและบันทึก result และ result2 ลงใน material
     """
     # ดึงข้อมูลสูตรจากฐานข้อมูล
     form_and_formula = FormAndFormula.objects(material_name=material.name).first()
@@ -305,15 +305,56 @@ def calculate_result(material):
         print(f"Executing sanitized formula: {sanitized_formula}")
         print(f"With variables: {sanitized_variables}")
 
-        # คำนวณผลลัพธ์
+        # คำนวณผลลัพธ์แรก (result)
         eval_result = eval(sanitized_formula, {}, sanitized_variables)
 
         # บันทึกผลลัพธ์ลงใน material.result
         material.result = eval_result
-        material.update_date = datetime.datetime.now()
-        material.save()
 
         print(f"คำนวณผลลัพธ์สำหรับ {material.name} สำเร็จ: {material.result}")
+
+        # คำนวณ result2 ถ้ามี formula2
+        if hasattr(form_and_formula, "formula2") and form_and_formula.formula2:
+            try:
+                # สร้าง variables สำหรับ formula2 ที่รวม result ด้วย
+                formula2_variables = sanitized_variables.copy()
+                formula2_variables["result"] = eval_result  # เพิ่ม result เข้าไปในตัวแปร
+
+                # ทำ sanitization สำหรับ formula2
+                sanitized_formula2 = form_and_formula.formula2
+
+                # แทนที่ตัวแปรใน formula2
+                for original_var in sorted_vars:
+                    safe_name = variable_mapping[original_var]
+                    sanitized_formula2 = re.sub(
+                        r"\b" + re.escape(original_var) + r"\b",
+                        safe_name,
+                        sanitized_formula2,
+                    )
+
+                print(f"Executing sanitized formula2: {sanitized_formula2}")
+                print(f"With formula2 variables: {formula2_variables}")
+
+                # คำนวณ result2
+                eval_result2 = eval(sanitized_formula2, {}, formula2_variables)
+                material.result2 = eval_result2
+
+                print(f"คำนวณ result2 สำหรับ {material.name} สำเร็จ: {material.result2}")
+
+            except Exception as e:
+                print(f"เกิดข้อผิดพลาดในการคำนวณ result2 สำหรับ {material.name}: {e}")
+                print("--- Debug Information for result2 ---")
+                print(f"Original formula2: {form_and_formula.formula2}")
+                print(f"Sanitized formula2: {sanitized_formula2}")
+                print(f"Formula2 variables: {formula2_variables}")
+                print("-----------------------------------")
+                material.result2 = None
+        else:
+            # ถ้าไม่มี formula2 ให้ตั้งค่า result2 เป็น None
+            material.result2 = None
+
+        material.update_date = datetime.datetime.now()
+        material.save()
 
     except Exception as e:
         print(f"เกิดข้อผิดพลาดในการคำนวณผลลัพธ์สำหรับ {material.name}: {e}")
@@ -439,6 +480,7 @@ def save_material(scope_id, sub_scope_id, month_id, year, material_data):
                 update_date=datetime.datetime.now(),
                 quantity_type=material.quantity_type,
                 result=material.result,
+                result2=material.result2,
                 is_linked=True,  # ตั้งค่า is_linked เป็น True
             )
             linked_material.save()
