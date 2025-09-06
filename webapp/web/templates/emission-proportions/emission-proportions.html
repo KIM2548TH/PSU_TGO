@@ -1,0 +1,128 @@
+{% extends "/base/default_page.html" %}
+{% block content %}
+
+<div class="p-6">
+
+  {% for scope in scope_data %}
+    {% set color = {1:'purple', 2:'green', 3:'blue'}[scope.scope] %}
+    <div class="mb-8">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="bg-{{color}}-100 p-3 rounded-full">
+          <i data-feather="{% if scope.scope == 1 %}layers{% elif scope.scope == 2 %}zap{% else %}globe{% endif %}" class="w-6 h-6 text-{{color}}-600"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-{{color}}-800">
+          Scope {{scope.scope}} - 
+          {% if scope.scope == 1 %}
+            การปล่อยมลพิษทางตรง
+          {% elif scope.scope == 2 %}
+            การปล่อยมลพิษทางอ้อม
+          {% else %}
+            การปล่อยมลพิษ (อื่นๆ)
+          {% endif %}
+        </h2>
+        <span class="badge bg-{{color}}-100 text-{{color}}-800 text-sm">
+          {{scope.material_count}} รายการ
+        </span>
+        <span class="ml-auto text-xl font-bold text-{{color}}-700">
+          {{ '{:,.2f}'.format(scope.scope_total) }} kg CO₂e
+        </span>
+        <span class="ml-2 text-gray-500 text-sm">
+          {{scope.scope_percentage|round(2)}}% ของทั้งหมด
+        </span>
+      </div>
+      {% for sub_scope in scope.sub_scopes %}
+        <div class="card shadow-lg border border-{{color}}-200 bg-base-100 mb-6">
+          <div class="card-header bg-{{color}}-50 p-4 border-b border-{{color}}-200">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="bg-{{color}}-100 text-{{color}}-600 p-2 rounded-full flex-shrink-0 w-8 h-8 flex items-center justify-center">
+                  <span class="text-xs font-bold">{{scope.scope}}.{{sub_scope.sub_scope}}</span>
+                </div>
+                <h3 class="text-lg font-bold text-{{color}}-800">
+                  {{sub_scope.ghg_name}}
+                </h3>
+                <span class="badge bg-{{color}}-100 text-{{color}}-800 text-sm">
+                  {{sub_scope.materials|length}} รายการ
+                </span>
+              </div>
+              <div class="text-right">
+                <div class="text-xl font-bold text-{{color}}-600">{{ '{:,.2f}'.format(sub_scope.sub_scope_total) }} kg CO₂e</div>
+                <div class="text-sm text-gray-600">{{sub_scope.sub_scope_percent_scope1_2_3|round(2)}}% ของ Scope {{scope.scope}}</div>
+              </div>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <div class="inline-block min-w-full align-middle">
+              <table class="table w-full table-auto">
+                <thead class="bg-gray-100">
+                  <tr>
+                    <!-- ✅ ให้คอลัมน์ "รายการ" กว้างกว่า -->
+                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700 min-w-[250px]">
+                      รายการ
+                    </th>
+                    <th class="px-4 py-3 text-center text-sm font-medium text-gray-700 whitespace-nowrap">
+                      TOTAL (GHG) (KG CO₂E)
+                    </th>
+                    <th class="px-4 py-3 text-center text-sm font-medium text-gray-700 whitespace-nowrap">
+                      สัดส่วน (%) (SCOPE 1)
+                    </th>
+                    <th class="px-4 py-3 text-center text-sm font-medium text-gray-700 whitespace-nowrap">
+                      สัดส่วน (%) (SCOPE 1+2)
+                    </th>
+                    <th class="px-4 py-3 text-center text-sm font-medium text-gray-700 whitespace-nowrap">
+                      สัดส่วน (%) (SCOPE 1+2+3)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for mat in sub_scope.materials %}
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                      <!-- ✅ ให้คอลัมน์นี้กว้างกว่า -->
+                      <td class="px-4 py-3 text-sm text-gray-800 min-w-[250px]">
+                        <div class="font-medium">{{mat.name}} ({{mat.year}})</div>
+                      </td>
+                      <td class="px-4 py-3 text-center text-sm font-bold text-{{color}}-600">
+                        {{ '{:,.2f}'.format(mat.result2) }}
+                      </td>
+                      <td class="px-4 py-3 text-center text-sm font-medium">
+                        {{mat.percent_scope1|round(2)}}
+                      </td>
+                      <td class="px-4 py-3 text-center text-sm font-medium">
+                        {{mat.percent_scope1_2|round(2)}}
+                      </td>
+                      <td class="px-4 py-3 text-center text-sm font-medium">
+                        {{mat.percent_scope1_2_3|round(2)}}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                  <tr class="bg-{{color}}-100 font-bold border-t-2 border-{{color}}-200">
+                    <td class="px-4 py-3 text-sm font-bold text-{{color}}-800 min-w-[250px]">รวมทั้งหมด</td>
+                    <td class="px-4 py-3 text-center text-sm font-bold text-{{color}}-700">
+                      {{ '{:,.2f}'.format(sub_scope.sub_scope_total) }}
+                    </td>
+                    <td class="px-4 py-3 text-center text-sm font-bold">
+                      {{sub_scope.sub_scope_percent_scope1|round(2)}}
+                    </td>
+                    <td class="px-4 py-3 text-center text-sm font-bold">
+                      {{sub_scope.sub_scope_percent_scope1_2|round(2)}}
+                    </td>
+                    <td class="px-4 py-3 text-center text-sm font-bold">
+                      {{sub_scope.sub_scope_percent_scope1_2_3|round(2)}}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+        </div>
+      {% endfor %}
+    </div>
+  {% endfor %}
+  <div class="bg-gray-400 text-white p-4 rounded-lg mt-8 flex justify-between items-center">
+    <span class="font-bold">รวมทั้งหมด</span>
+    <span class="text-xl font-bold">{{ '{:,.2f}'.format(grand_total) }} kg CO₂e</span>
+    <span class="text-sm">100% ของทั้งหมด</span>
+  </div>
+</div>
+{% endblock content %}
