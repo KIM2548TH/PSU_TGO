@@ -1,0 +1,1 @@
+$env:APP_SETTINGS = Join-Path (pwd) '.env'; poetry run run-web -d

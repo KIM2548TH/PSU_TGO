@@ -4,6 +4,7 @@ from ..forms.user_form import LoginForm, RegisterForm, EditUserForm, Editprofile
 from ...services.user_service import UserService
 from ...models import User, Role, Permission, FormAndFormula, Scope, Material, InputType
 from ..views.emissoins import calculate_result
+from ..utils.acl import permissions_required_all
 import datetime
 
 
@@ -12,6 +13,7 @@ module = Blueprint("form_management", __name__, url_prefix="/form-management")
 
 @module.route("/", methods=["GET"])
 @login_required
+@permissions_required_all(["เข้าถึงหน้าแหล่งปล่อยก๊าซเรือนกระจก"])
 def form_management():
     forms = FormAndFormula.objects().order_by(
         "ghg_scope", "ghg_sup_scope", "material_name"
@@ -98,6 +100,7 @@ def get_sub_scopes(main_scope):
 
 @module.route("/load-add-form", methods=["GET"])
 @login_required
+@permissions_required_all(["เพิ่มฟอร์ม"])
 def load_add_form_and_formula():
     """
     โหลดหน้าเพิ่มฟอร์มใหม่ พร้อมรองรับ default scope และ sub scope
@@ -105,10 +108,6 @@ def load_add_form_and_formula():
     default_scope = request.args.get("default_scope", None)
     default_sub_scope = request.args.get("default_sub_scope", None)
 
-    print(
-        f"Received default_scope: {default_scope}, default_sub_scope: {default_sub_scope}"
-    )
-    print(default_scope, 55555555555555555555)
 
     return render_template(
         "/form-management/add-form-and-formula.html",
@@ -256,6 +255,7 @@ def edit_form_and_formula():
 
 @module.route("/load-edit-form", methods=["GET"])
 @login_required
+@permissions_required_all(["แก้ไขฟอร์ม"])
 def load_edit_form_and_formula():
     form_id = request.args.get("form_id")
 
