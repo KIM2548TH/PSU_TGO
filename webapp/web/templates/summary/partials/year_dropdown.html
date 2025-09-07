@@ -1,24 +1,27 @@
 {% for year in years %}
-<li onclick="event.stopPropagation();">
-  <label class="label cursor-pointer justify-start w-full p-2 hover:bg-base-200" 
-         onclick="event.stopPropagation();">
-    <input type="radio" class="radio radio-sm mr-2" 
-           name="selected_year" value="{{ year }}"
+<li>
+  <label class="flex items-center cursor-pointer p-2 hover:bg-gray-100">
+    <input type="radio" 
+           name="selected_year" 
+           value="{{ year }}" 
+           class="radio radio-primary radio-sm mr-2"
            {% if loop.first %}checked{% endif %}
            hx-post="/summary/stats" 
-           hx-target="#stats-container"
-           hx-include="[name='selected_sub_scopes']:checked, [name='time_period']:checked, [name='selected_scopes']:checked, [name='selected_year']:checked"
+           hx-target="#stats-container" 
+           hx-include="[name='time_period']:checked, [name='selected_year']:checked"
            hx-trigger="change"
-           onclick="event.stopPropagation();">
-    <span class="label-text" onclick="event.stopPropagation();">{{ year }}</span>
+           hx-swap="outerHTML">
+    <span class="flex-1">{{ year }}</span>
   </label>
 </li>
 {% endfor %}
 
-<!-- Trigger update charts เมื่อ year เปลี่ยน -->
-<div hx-post="/summary/charts" 
-     hx-target="#charts-container"
-     hx-include="[name='selected_sub_scopes']:checked, [name='time_period']:checked, [name='selected_scopes']:checked, [name='selected_year']:checked"
-     hx-trigger="change from:[name='selected_year']">
+<!-- Auto trigger charts update -->
+<div class="hidden">
+  <div hx-post="/summary/charts" 
+       hx-target="#charts-container"
+       hx-include="[name='time_period']:checked, [name='selected_year']:checked"
+       hx-trigger="change from:[name='selected_year']"
+       hx-swap="outerHTML"></div>
 </div>
 

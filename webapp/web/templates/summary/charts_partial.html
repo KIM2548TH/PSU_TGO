@@ -2,267 +2,193 @@
   NOTE: This entire block of code should be in your partial file 
   that is loaded by HTMX (e.g., /summary/charts_partial.html)
 -->
-<div id="charts-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-  
-  <!-- Emissions Over Time Card -->
-  <div class="dashboard-card flex flex-col p-6 bg-white shadow-lg rounded-xl overflow-hidden">
-    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex-shrink-0">Emissions Over Time</h3>
-    <div class="relative flex-grow min-h-[300px] md:min-h-[350px] overflow-auto">
-      <canvas id="emissionsOverTimeChart"></canvas>
-    </div>
-  </div>
-
-  <!-- Category Breakdown Card -->
-  <div class="dashboard-card flex flex-col p-6 bg-white shadow-lg rounded-xl overflow-hidden">
-    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex-shrink-0">Category Breakdown</h3>
-    <div class="relative w-full max-w-[220px] mx-auto my-4 flex-shrink-0">
-      <canvas id="categoryBreakdownChart"></canvas>
-    </div>
-    <div id="category-legend" class="flex-grow overflow-y-auto min-h-0 space-y-4 pr-2 max-h-[200px]">
-      <!-- Legend items will be injected here by JavaScript -->
-    </div>
-  </div>
-
-</div>
-
-<!-- 
-  The script to initialize charts is included directly in the partial. 
-  This ensures it runs every time HTMX loads this content.
-  NO CHANGES WERE MADE TO THE SCRIPT.
--->
-<script>
-  // Self-invoking function to avoid polluting the global scope
-  (() => {
-    let emissionsOverTimeChart;
-    let categoryBreakdownChart;
-  
-    const doughnutCenterText = {
-      id: 'doughnutCenterText',
-      afterDraw: (chart) => {
-        const pluginOptions = chart.config.options.plugins.doughnutCenterText;
-        if (!pluginOptions || !pluginOptions.display) return;
-        const { ctx, chartArea: { top, width, height } } = chart;
-        ctx.save();
-        const total = pluginOptions.text;
-        const unit = pluginOptions.unit;
-        ctx.font = `bold ${width / 5}px Inter, sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#1f2937';
-        ctx.fillText(total, width / 2, height / 2 + top - 10);
-        ctx.font = `normal ${width / 15}px Inter, sans-serif`;
-        ctx.fillStyle = '#6b7280';
-        ctx.fillText(unit, width / 2, height / 2 + top + 20);
-        ctx.restore();
-      }
-    };
+<div id="charts-container">
+  <div class="grid grid-cols-3 gap-6">
     
-    if (!Chart.registry.plugins.get('doughnutCenterText')) {
+    <!-- Emissions Over Time Card - ใช้ 2 columns -->
+    <div class="dashboard-card flex flex-col p-6 bg-white shadow-lg rounded-xl overflow-hidden col-span-2">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4 flex-shrink-0">Emissions Over Time</h3>
+      <div class="relative flex-grow min-h-[300px] md:min-h-[350px] overflow-auto">
+        <canvas id="emissionsOverTimeChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Category Breakdown Card - ใช้ 1 column -->
+    <div class="dashboard-card flex flex-col p-6 bg-white shadow-lg rounded-xl overflow-hidden col-span-1">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4 flex-shrink-0">Category Breakdown</h3>
+      <div class="relative w-full max-w-[220px] mx-auto my-4 flex-shrink-0">
+        <canvas id="categoryBreakdownChart"></canvas>
+      </div>
+      <div id="category-legend" class="flex-grow overflow-y-auto min-h-0 space-y-4 pr-2 max-h-[200px]"></div>
+    </div>
+
+  </div>
+
+  <script>
+    (() => {
+      let emissionsOverTimeChart;
+      let categoryBreakdownChart;
+      const doughnutCenterText = {
+        id: 'doughnutCenterText',
+        afterDraw: (chart) => {
+          const opts = chart.config.options.plugins.doughnutCenterText;
+          if (!opts || !opts.display) return;
+          const { ctx, chartArea: { top, width, height } } = chart;
+            ctx.save();
+            ctx.font = `bold ${width / 5}px Inter, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#1f2937';
+            ctx.fillText(opts.text, width / 2, height / 2 + top - 10);
+            ctx.font = `normal ${width / 15}px Inter, sans-serif`;
+            ctx.fillStyle = '#6b7280';
+            ctx.fillText(opts.unit, width / 2, height / 2 + top + 20);
+            ctx.restore();
+        }
+      };
+      if (!Chart.registry.plugins.get('doughnutCenterText')) {
         Chart.register(doughnutCenterText);
-    }
+      }
 
-    function renderCustomLegend(labels, values, colors) {
-      const legendContainer = document.getElementById('category-legend');
-      if (!legendContainer) return;
-      legendContainer.innerHTML = ''; 
-      const total = values.reduce((acc, val) => acc + val, 0);
-      const fragment = document.createDocumentFragment();
-      labels.forEach((label, index) => {
-        const value = values[index];
-        const percentage = total > 0 ? (value / total) * 100 : 0;
-        const color = colors[index % colors.length];
-        const itemDiv = document.createElement('div');
-        itemDiv.innerHTML = `
-          <div class="flex justify-between items-center mb-1.5 text-sm">
-            <div class="flex items-center">
-              <span class="w-3 h-3 rounded-full mr-3 flex-shrink-0" style="background-color: ${color};"></span>
-              <span class="text-gray-600">${label}</span>
-            </div>
-            <span class="font-medium text-gray-800">${value.toFixed(1)} kg</span>
-          </div>
-          <div class="w-full bg-gray-200 rounded-full h-1.5">
-            <div class="h-1.5 rounded-full" style="width: ${percentage}%; background-color: ${color};"></div>
-          </div>
-        `;
-        fragment.appendChild(itemDiv);
-      });
-      legendContainer.appendChild(fragment);
-    }
+      function renderCustomLegend(labels, values, colors) {
+        const el = document.getElementById('category-legend');
+        if (!el) return;
+        el.innerHTML = '';
+        const total = values.reduce((a,v)=>a+v,0);
+        const frag = document.createDocumentFragment();
+        labels.forEach((label,i)=>{
+          const value = values[i];
+            const pct = total>0 ? (value/total)*100 : 0;
+            const color = colors[i % colors.length];
+            const div = document.createElement('div');
+            div.innerHTML = `
+              <div class="flex justify-between items-center mb-1.5 text-sm">
+                <div class="flex items-center">
+                  <span class="w-3 h-3 rounded-full mr-3 flex-shrink-0" style="background-color:${color};"></span>
+                  <span class="text-gray-600">${label}</span>
+                </div>
+                <span class="font-medium text-gray-800">${value.toFixed(1)} kg</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-1.5">
+                <div class="h-1.5 rounded-full" style="width:${pct}%;background-color:${color};"></div>
+              </div>`;
+            frag.appendChild(div);
+        });
+        el.appendChild(frag);
+      }
 
-    function renderEmissionsOverTimeChart(labels, currentValues, previousValues, currentYear, previousYear) {
-      const ctx = document.getElementById('emissionsOverTimeChart')?.getContext('2d');
-      if (!ctx) return;
-      if (emissionsOverTimeChart) emissionsOverTimeChart.destroy();
-
-      emissionsOverTimeChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: `Previous Year (${previousYear})`,
-              data: previousValues,
-              backgroundColor: 'rgba(59, 130, 246, 0.3)',
-              hoverBackgroundColor: 'rgba(20, 184, 166, 0.3)',
-              borderRadius: 6,
-              borderSkipped: false,
-              barPercentage: 0.6,
-              categoryPercentage: 0.7,
-            },
-            {
-              label: `Selected Year (${currentYear})`,
-              data: currentValues,
-              backgroundColor: '#3b82f6',
-              hoverBackgroundColor: '#14b8a6',
-              borderRadius: 6,
-              borderSkipped: false,
-              barPercentage: 0.6,
-              categoryPercentage: 0.7,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: {
-            duration: 1000,
-            easing: 'easeInOutQuart',
+      function renderEmissionsOverTimeChart(labels, curVals, prevVals, curYear, prevYear){
+        const ctx = document.getElementById('emissionsOverTimeChart')?.getContext('2d');
+        if(!ctx) return;
+        if(emissionsOverTimeChart) emissionsOverTimeChart.destroy();
+        emissionsOverTimeChart = new Chart(ctx,{
+          type:'bar',
+          data:{
+            labels,
+            datasets:[
+              {
+                label:`Previous Year (${prevYear})`,
+                data:prevVals,
+                backgroundColor:'rgba(59,130,246,0.3)',
+                hoverBackgroundColor:'rgba(20,184,166,0.3)',
+                borderRadius:6,
+                borderSkipped:false,
+                barPercentage:0.6,
+                categoryPercentage:0.7
+              },
+              {
+                label:`Selected Year (${curYear})`,
+                data:curVals,
+                backgroundColor:'#3b82f6',
+                hoverBackgroundColor:'#14b8a6',
+                borderRadius:6,
+                borderSkipped:false,
+                barPercentage:0.6,
+                categoryPercentage:0.7
+              }
+            ]
           },
-          plugins: {
-            legend: { display: true },
-            tooltip: {
-              callbacks: {
-                title: (context) => {
-                  const month = labels[context[0].dataIndex];
-                  const year = context[0].dataset.label.includes('Selected Year') ? currentYear : previousYear;
-                  return `${month} (${year})`;
+          options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            plugins:{
+              legend:{display:true},
+              tooltip:{
+                callbacks:{
+                  title:(c)=>{
+                    const m = labels[c[0].dataIndex];
+                    const y = c[0].dataset.label.includes('Selected')?curYear:prevYear;
+                    return `${m} (${y})`;
+                  },
+                  label:(c)=>` ${c.raw.toFixed(1)} kg CO2`
                 },
-                label: (context) => {
-                  const value = context.raw.toFixed(1);
-                  return ` ${value} kg CO2`;
-                },
-              },
-              displayColors: false,
-              padding: 10,
-              backgroundColor: '#1f2937',
-              titleFont: { size: 14 },
-              bodyFont: { size: 12 },
+                displayColors:false,
+                padding:10,
+                backgroundColor:'#1f2937'
+              }
             },
-          },
-          scales: {
-            x: {
-              grid: { display: false },
-              ticks: { color: '#6b7280' },
-            },
-            y: {
-              beginAtZero: true,
-              grid: {
-                color: 'rgba(0, 0, 0, 0.05)',
-                drawBorder: false,
-              },
-              ticks: {
-                display: true,
-                color: '#6b7280',
-              },
-            },
-          },
-        },
-      });
-    }
-    
-    function renderCategoryBreakdownChart(labels, values, colors) {
-      const ctx = document.getElementById('categoryBreakdownChart')?.getContext('2d');
-      if (!ctx) return;
-      if (categoryBreakdownChart) categoryBreakdownChart.destroy();
-      const totalValue = values.reduce((acc, val) => acc + val, 0);
-
-      categoryBreakdownChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: values,
-            backgroundColor: colors,
-            borderColor: '#ffffff',
-            borderWidth: 4,
-            cutout: '75%',
-            offset: new Array(values.length).fill(0),
-            hoverOffset: 12, 
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          animation: {
-            duration: 800,
-            easing: 'easeOutCubic'
-          },
-          onClick: (event, elements, chart) => {
-            if (elements.length === 0) return;
-            const { datasetIndex, index } = elements[0];
-            const currentOffset = chart.data.datasets[datasetIndex].offset[index];
-            chart.data.datasets[datasetIndex].offset.fill(0);
-            if (currentOffset === 0) {
-              chart.data.datasets[datasetIndex].offset[index] = 20;
-            }
-            chart.update();
-          },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-                enabled: true,
-                callbacks: {
-                    label: function(context) {
-                        const label = context.label || '';
-                        const value = context.raw;
-                        const percentage = totalValue > 0 ? ((value / totalValue) * 100).toFixed(1) : 0;
-                        return ` ${label}: ${percentage}%`;
-                    }
-                }
-            },
-            doughnutCenterText: {
-                display: true,
-                text: Math.round(totalValue),
-                unit: 'kg CO2'
+            scales:{
+              x:{grid:{display:false},ticks:{color:'#6b7280'}},
+              y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.05)',drawBorder:false},ticks:{color:'#6b7280'}}
             }
           }
-        }
-      });
-      renderCustomLegend(labels, values, colors);
-    }
-    
-    function initializeCharts() {
-      try {
+        });
+      }
+
+      function renderCategoryBreakdownChart(labels, values, colors){
+        const ctx = document.getElementById('categoryBreakdownChart')?.getContext('2d');
+        if(!ctx) return;
+        if(categoryBreakdownChart) categoryBreakdownChart.destroy();
+        const total = values.reduce((a,v)=>a+v,0);
+        categoryBreakdownChart = new Chart(ctx,{
+          type:'doughnut',
+          data:{labels,datasets:[{data:values,backgroundColor:colors,borderColor:'#ffffff',borderWidth:4,cutout:'75%',offset:new Array(values.length).fill(0),hoverOffset:12}]},
+          options:{
+            responsive:true,
+            maintainAspectRatio:true,
+            animation:{duration:800,easing:'easeOutCubic'},
+            plugins:{
+              legend:{display:false},
+              tooltip:{
+                callbacks:{
+                  label:(c)=>{
+                    const val=c.raw;
+                    const pct= total>0 ? ((val/total)*100).toFixed(1):0;
+                    return ` ${c.label}: ${pct}%`;
+                  }
+                }
+              },
+              doughnutCenterText:{display:true,text:Math.round(total),unit:'kg CO2'}
+            },
+            onClick:(evt,els,chart)=>{
+              if(!els.length) return;
+              const {datasetIndex,index}=els[0];
+              const ds=chart.data.datasets[datasetIndex];
+              const cur=ds.offset[index];
+              ds.offset.fill(0);
+              if(cur===0) ds.offset[index]=20;
+              chart.update();
+            }
+          }
+        });
+        renderCustomLegend(labels, values, colors);
+      }
+
+      function init(){
         const selectedYear = {{ selected_year | tojson }};
         const rawDailyData = {{ data.daily_data | tojson }};
         const previousYearData = {{ previous_year_data.daily_data | tojson }};
         const categoryLabels = {{ data.category_data.keys() | list | tojson }};
         const categoryValues = {{ data.category_data.values() | list | tojson }};
-        
-        if (!rawDailyData || !previousYearData || !categoryLabels || !categoryValues) {
-          throw new Error("Data from server is missing or empty.");
-        }
-
-        const monthOrder = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        const timeSeriesValues = monthOrder.map(month => rawDailyData[month] || 0);
-        const previousYearValues = monthOrder.map(month => previousYearData[month] || 0);
-        const timeSeriesLabels = monthOrder.map(month => month.substring(0, 3));
-
-        const categoryColors = ['#4f46e5', '#10b981', '#f97316', '#3b82f6', '#ec4899', '#8b5cf6'];
-
-        renderEmissionsOverTimeChart(timeSeriesLabels, timeSeriesValues, previousYearValues, selectedYear, selectedYear - 1);
-        renderCategoryBreakdownChart(categoryLabels, categoryValues, categoryColors);
-
-      } catch (error) {
-        console.error("Chart initialization failed:", error);
-        const chartsContainer = document.getElementById('charts-container');
-        if (chartsContainer) {
-          chartsContainer.innerHTML = `<div class="text-center text-gray-500 p-8">${error.message} Please check data and try again.</div>`;
-        }
+        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const curVals = months.map(m=>rawDailyData[m]||0);
+        const prevVals = months.map(m=>previousYearData[m]||0);
+        const labels = months.map(m=>m.substring(0,3));
+        const colors = ['#4f46e5','#10b981','#f97316','#3b82f6','#ec4899','#8b5cf6'];
+        renderEmissionsOverTimeChart(labels, curVals, prevVals, selectedYear, selectedYear-1);
+        renderCategoryBreakdownChart(categoryLabels, categoryValues, colors);
       }
-    }
-
-    initializeCharts();
-    
-  })();
-</script>
+      init();
+    })();
+  </script>
+</div>

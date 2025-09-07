@@ -1,141 +1,71 @@
 <div id="stats-container">
   {% if data.materials_count > 0 %}
-  
-  <!-- Top 3 Sub Scopes - Toggleable Section -->
-  <div class="bg-white rounded-lg shadow-sm mb-4">
-    <div class="flex items-center justify-between p-4 border-b border-gray-200">
-      <h3 class="text-sm font-medium text-gray-600">Top Sub Scopes</h3>
-      <button id="toggle-top-sub-scopes" class="text-sm text-gray-500 hover:text-gray-700 focus:outline-none">
-        <span id="toggle-text">Show</span>
-      </button>
-    </div>
-    <div id="top-sub-scopes-content" class="hidden p-4">
-      <div class="mb-4">
-        <select id="scope-selector" name="selected_scope" 
-                class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors"
-                hx-get="{{ url_for('summary.top_sub_scope_partial', selected_year=selected_year) }}"
-                hx-target="#top-sub-scope-content" 
-                hx-swap="innerHTML">
-          
-          {% for scope in scopes %}
-          <option value="{{ scope.ghg_scope }}">Scope {{ scope.ghg_scope }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div id="top-sub-scope-content">
-        <!-- HTMX will replace this content -->
-        <p class="text-gray-500 text-sm">Select a scope to view top sub scopes.</p>
-      </div>
-    </div>
-  </div>
 
-  <!-- Other Cards -->
+  {# เอา Top Sub Scopes กลับมาแบบเดิม (ใช้ details เป็น dropdown / hide-show) #}
+  {% set first_scope_key = data.category_data.keys()|list|first %}
+  {% set first_scope_num = first_scope_key.replace('Scope ','') if first_scope_key else None %}
+
+
+  <!-- การ์ด 3 ใบ: Total / Average / vs Last Year -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
     <!-- Total Emissions -->
     <div class="bg-white rounded-lg p-4 shadow-sm">
-      <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center justify-between mb-1">
         <h3 class="text-sm font-medium text-gray-600">Total Emissions</h3>
         <i data-feather="zap" class="w-4 h-4 text-gray-400"></i>
       </div>
-      <div class="text-2xl font-bold text-base-content mb-1">{{ data.total_emissions }} kg</div>
-      <div class="text-xs text-gray-500">Year {{ data.selected_year }}</div>
+      <div class="text-3xl font-bold text-gray-900">{{ data.total_emissions|round(1) }} kg</div>
+      <div class="text-xs text-gray-500">Year {{ selected_year }}</div>
     </div>
 
-    <!-- Average Emissions by Time Period -->
+    <!-- Average Emissions -->
     <div class="bg-white rounded-lg p-4 shadow-sm">
-      <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center justify-between mb-1">
         <h3 class="text-sm font-medium text-gray-600">Average Emissions</h3>
         <i data-feather="calendar" class="w-4 h-4 text-gray-400"></i>
       </div>
-      <div class="text-2xl font-bold text-base-content mb-1">{{ data.daily_average }} kg</div>
+      <div class="text-3xl font-bold text-gray-900">
+        {% if data.daily_average %}{{ data.daily_average|round(2) }}{% else %}0{% endif %} kg
+      </div>
       <div class="text-xs text-gray-500">{{ data.average_label }}</div>
     </div>
 
-    <!-- Year-over-Year Comparison -->
+    <!-- Year Comparison -->
+    {% set pct = data.year_change_percent %}
+    {% set trend = data.year_change_trend %}
     <div class="bg-white rounded-lg p-4 shadow-sm">
-      <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center justify-between mb-1">
         <h3 class="text-sm font-medium text-gray-600">vs Last Year</h3>
-        {% if data.year_change_trend == "increase" %}
-          <i data-feather="trending-up" class="w-4 h-4 text-red-400"></i>
-        {% elif data.year_change_trend == "decrease" %}
-          <i data-feather="trending-down" class="w-4 h-4 text-green-400"></i>
+        {% if trend == 'increase' %}
+          <i data-feather="trending-up" class="w-4 h-4 text-red-500"></i>
+        {% elif trend == 'decrease' %}
+          <i data-feather="trending-down" class="w-4 h-4 text-green-500"></i>
         {% else %}
           <i data-feather="minus" class="w-4 h-4 text-gray-400"></i>
         {% endif %}
       </div>
-      <div class="text-2xl font-bold mb-1 
-                  {% if data.year_change_trend == 'increase' %}text-red-600
-                  {% elif data.year_change_trend == 'decrease' %}text-green-600
-                  {% else %}text-gray-600{% endif %}">
-        {% if data.year_change_percent >= 0 %}+{% endif %}{{ data.year_change_percent }}%
+      <div class="text-3xl font-bold
+        {% if trend == 'increase' %}text-red-600
+        {% elif trend == 'decrease' %}text-green-600
+        {% else %}text-gray-800{% endif %}">
+        {{ '+' if pct>0 else '' }}{{ pct|round(1) }}%
       </div>
       <div class="text-xs text-gray-500">
-        {% if data.year_change_trend == "increase" %}
-          Increased from {{ data.last_year_total }} kg
-        {% elif data.year_change_trend == "decrease" %}
-          Decreased from {{ data.last_year_total }} kg
+        {% if data.last_year_total > 0 %}
+          {{ 'Increased' if trend=='increase' else 'Decreased' if trend=='decrease' else 'No change' }}
+          from {{ data.last_year_total|round(1) }} kg
         {% else %}
-          Same as last year
+          Baseline year
         {% endif %}
       </div>
     </div>
   </div>
 
-  <!-- Auto trigger charts update -->
-  <div hx-post="/summary/charts" 
-       hx-target="#charts-container"
-       hx-include="[name='selected_sub_scopes']:checked, [name='time_period']:checked, [name='selected_scopes']:checked, [name='selected_year']:checked"
-       hx-trigger="load">
-  </div>
-
   {% else %}
-  <div class="text-center text-gray-500 p-8">No data found for selected criteria</div>
-  <script>
-      // Clear charts when no data
-      setTimeout(() => {
-          const chartsContainer = document.getElementById('charts-container');
-          if (chartsContainer) {
-              chartsContainer.innerHTML = '<div class="text-center text-gray-500 p-8">No data available</div>';
-          }
-      }, 100);
-  </script>
+    <div class="text-center text-gray-500 p-8 bg-white rounded-lg shadow-sm">
+      <i data-feather="bar-chart-2" class="w-10 h-10 mx-auto mb-4 text-gray-300"></i>
+      <p class="text-base">No data found for selected criteria</p>
+    </div>
   {% endif %}
 </div>
-
-<script>
-  // Function to initialize toggle functionality
-  function initializeToggle() {
-    const toggleButton = document.getElementById('toggle-top-sub-scopes');
-    const content = document.getElementById('top-sub-scopes-content');
-    const toggleText = document.getElementById('toggle-text');
-    const scopeSelector = document.getElementById('scope-selector');
-
-    if (toggleButton && content && toggleText) {
-      toggleButton.addEventListener('click', () => {
-        content.classList.toggle('hidden');
-        toggleText.textContent = content.classList.contains('hidden') ? 'Show' : 'Hide';
-
-        // If showing content, trigger loading of the first scope
-        if (!content.classList.contains('hidden') && scopeSelector) {
-          const firstOption = scopeSelector.options[0];
-          if (firstOption) {
-            const selectedValue = firstOption.value;
-            // Trigger HTMX request for the first scope
-            scopeSelector.value = selectedValue;
-            scopeSelector.dispatchEvent(new Event('change'));
-          }
-        }
-      });
-    }
-  }
-
-  // Initialize toggle functionality on page load
-  initializeToggle();
-
-  // Reinitialize toggle functionality after HTMX updates
-  document.body.addEventListener('htmx:afterSwap', (event) => {
-    if (event.target.id === 'top-sub-scope-content') {
-      initializeToggle();
-    }
-  });
-</script>
+<script>if(window.feather){feather.replace();}</script>

@@ -1,0 +1,53 @@
+<div id="sub-scope-grid" class="max-h-96 overflow-y-auto">
+  {% set scope_groups = {} %}
+  {% for sub_scope in sub_scopes %}
+    {% set main_scope = sub_scope.ghg_scope %}
+    {% if main_scope not in scope_groups %}
+      {% set _ = scope_groups.update({main_scope: []}) %}
+    {% endif %}
+    {% set _ = scope_groups[main_scope].append(sub_scope) %}
+  {% endfor %}
+  
+  {% for main_scope in scope_groups.keys()|sort %}
+  <div class="mb-6">
+    <!-- Scope Header -->
+    <div class="bg-primary text-primary-content rounded-lg p-3 mb-3">
+      <h4 class="font-bold text-lg flex items-center gap-2">
+        <i data-feather="folder" class="w-5 h-5"></i>
+        Scope {{ main_scope }}
+        <span class="badge badge-sm bg-white text-primary ml-auto">
+          {{ scope_groups[main_scope]|length }} sub-scopes
+        </span>
+      </h4>
+    </div>
+    
+    <!-- Sub Scopes in this group (3 columns) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 ml-4">
+      {% for sub_scope in scope_groups[main_scope]|sort(attribute='ghg_sup_scope') %}
+      <div class="border border-gray-200 rounded-lg p-3 hover:border-primary transition-colors bg-white shadow-sm">
+        <label class="flex items-start cursor-pointer">
+          <input type="checkbox" 
+                 class="checkbox checkbox-primary checkbox-sm mt-1 mr-3" 
+                 name="selected_sub_scopes" 
+                 value="{{ sub_scope.id }}"
+                 {% if sub_scope.id|string in current_selected_sub_scopes %}checked{% endif %}
+                 hx-post="/summary/toggle-sub-scope"
+                 hx-target="#sub-scope-grid"
+                 hx-include="[name='selected_sub_scopes']:checked, [name='selected_scopes']:checked"
+                 hx-swap="outerHTML"
+                 hx-trigger="change">
+          <div class="flex-1">
+            <div class="font-semibold text-sm text-primary mb-1">
+              {{ main_scope }}.{{ sub_scope.ghg_sup_scope }}
+            </div>
+            <div class="text-xs text-gray-600 leading-relaxed">
+              {{ sub_scope.ghg_name }}
+            </div>
+          </div>
+        </label>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>

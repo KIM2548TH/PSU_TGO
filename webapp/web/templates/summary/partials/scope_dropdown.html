@@ -1,34 +1,40 @@
 {% for scope in scopes %}
-<li onclick="event.stopPropagation();">
-  <label class="label cursor-pointer justify-start w-full p-2 hover:bg-base-200" 
-         onclick="event.stopPropagation();">
-    <input type="checkbox" class="checkbox checkbox-sm mr-2" 
-           name="selected_scopes" value="{{ scope.ghg_scope }}"
-           hx-post="/summary/sub-scopes" 
-           hx-target="#sub-scope-list"
-           hx-include="[name='selected_scopes']:checked, [name='selected_sub_scopes']:checked"
+<li>
+  <label class="flex items-center cursor-pointer p-2 hover:bg-gray-100">
+    <input type="checkbox" 
+           name="selected_scopes" 
+           value="{{ scope.ghg_scope }}" 
+           class="checkbox checkbox-primary checkbox-sm mr-2"
+           {% if scope.ghg_scope|string in session.get('selected_scopes', []) %}checked{% endif %}
+           hx-post="/summary/update-scope-selection" 
            hx-trigger="change"
-           onclick="event.stopPropagation();">
-    <span class="label-text" onclick="event.stopPropagation();">Scope {{ scope.ghg_scope }}</span>
+           hx-include="[name='selected_scopes']:checked"
+           hx-swap="none">
+    <span class="flex-1">Scope {{ scope.ghg_scope }}</span>
   </label>
 </li>
 {% endfor %}
 
-<!-- Trigger update badges, stats และ charts เมื่อ scope เปลี่ยน -->
-<div hx-post="/summary/update-badges" 
-     hx-target="#active-filters"
-     hx-include="[name='selected_scopes']:checked, [name='selected_sub_scopes']:checked"
-     hx-trigger="change from:[name='selected_scopes']">
+<!-- Hidden triggers ที่จะทำงานเมื่อ scope เปลี่ยน -->
+<div style="display: none;">
+  <div hx-get="/summary/update-badges"
+       hx-target="#active-filters"
+       hx-trigger="change from:[name='selected_scopes'] delay:100ms"
+       hx-sync="body:queue last"
+       hx-swap="outerHTML"></div>
+
+  <div hx-post="/summary/stats"
+       hx-target="#stats-container"
+       hx-include="[name='time_period']:checked, [name='selected_year']:checked, [name='selected_sub_scopes']:checked, [name='selected_scopes']:checked"
+       hx-trigger="change from:[name='selected_scopes'] delay:200ms"
+       hx-sync="body:queue last"
+       hx-swap="outerHTML"></div>
+
+  <div hx-post="/summary/charts"
+       hx-target="#charts-container"
+       hx-include="[name='time_period']:checked, [name='selected_year']:checked, [name='selected_sub_scopes']:checked, [name='selected_scopes']:checked"
+       hx-trigger="change from:[name='selected_scopes'] delay:300ms"
+       hx-sync="body:queue last"
+       hx-swap="outerHTML"></div>
 </div>
 
-<div hx-post="/summary/stats" 
-     hx-target="#stats-container"
-     hx-include="[name='selected_sub_scopes']:checked, [name='time_period']:checked, [name='selected_scopes']:checked, [name='selected_year']:checked"
-     hx-trigger="change from:[name='selected_scopes']">
-</div>
-
-<div hx-post="/summary/charts" 
-     hx-target="#charts-container"
-     hx-include="[name='selected_sub_scopes']:checked, [name='time_period']:checked, [name='selected_scopes']:checked, [name='selected_year']:checked"
-     hx-trigger="change from:[name='selected_scopes']">
-</div>

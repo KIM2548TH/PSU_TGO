@@ -50,21 +50,20 @@
         
         <!-- Sub Scope Selection -->
         <div class="relative sm:col-span-1">
-          <label class="block text-sm font-medium mb-2">Sub Scope</label>
-          <div class="dropdown dropdown-bottom w-full">
-            <div tabindex="0" role="button" class="btn btn-sm btn-outline w-full justify-between min-h-[2rem] text-sm">
-              <span class="truncate">Select Sub Scopes</span>
-              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-            </div>
-            <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full max-h-48 overflow-y-auto z-[1]" 
-                id="sub-scope-list"
-                onclick="event.stopPropagation();">
-              <li><span class="text-gray-500 p-2 text-sm">Select Scope first</span></li>
-            </ul>
-          </div>
-        </div>
+        <label class="block text-sm font-medium mb-2">Sub Scope</label>
+        <button type="button" 
+                class="btn btn-sm btn-outline w-full justify-between min-h-[2rem] text-sm"
+                hx-get="/summary/sub-scope-popup"
+                hx-target="#modal-content"
+                hx-trigger="click"
+                hx-include="[name='selected_scopes']:checked"
+                onclick="document.getElementById('modal').classList.add('modal-open')">
+          <span class="truncate">Select Sub Scopes</span>
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+      </div>
         
         <!-- Year Selection -->
         <div class="relative sm:col-span-1">
@@ -108,7 +107,7 @@
         </div>
       </div>
 
-      <!-- Active Filters -->
+      <!-- Active Filters - ไม่มี HTMX -->
       <div id="active-filters" class="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
         <span class="text-sm font-medium">Active Filter :</span>
         <span class="badge badge-primary badge-sm">{{ user.campus }}</span>
@@ -116,55 +115,59 @@
       </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div id="stats-container" class="mb-6">
-      <div class="text-center text-gray-500 p-8 bg-white rounded-lg shadow-sm">
-        <i data-feather="bar-chart-2" class="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-4 text-gray-300"></i>
-        <p class="text-base sm:text-lg">Select Sub Scopes to view statistics</p>
+    <!-- Top Sub Scopes Section -->
+    <details class="bg-white rounded-lg p-4 lg:p-5 mb-4 shadow-sm" id="top-sub-scope-panel">
+      <summary class="flex items-center justify-between cursor-pointer">
+        <h3 class="font-semibold text-gray-800 text-sm">Top Sub Scopes</h3>
+        <span class="text-xs text-primary">Show / Hide</span>
+      </summary>
+
+      <div class="mt-4">
+        <!-- Scope Selector -->
+        <div class="flex flex-wrap gap-4 mb-3 text-xs">
+          {% for s in [1,2,3] %}
+          <label class="flex items-center gap-1 cursor-pointer">
+            <input type="radio"
+                   name="selected_scope"
+                   value="{{ s }}"
+                   class="radio radio-xs radio-primary"
+                   hx-get="/summary/partials/top_sub_scope?selected_scope={{ s }}"
+                   hx-include="[name='selected_year']:checked"
+                   hx-target="#top-sub-scope-content"
+                   hx-swap="innerHTML"
+                   hx-trigger="change">
+            <span>Scope {{ s }}</span>
+          </label>
+          {% endfor %}
+        </div>
+
+        <div id="top-sub-scope-content"
+             class="min-h-[60px] text-sm text-gray-500">
+          <span class="text-xs text-gray-400">Select a scope to view top sub scopes.</span>
+        </div>
       </div>
-    </div>
+
+      <!-- Reload top list when year changes (ถ้าเลือก scope แล้ว) -->
+      <div class="hidden">
+        <div hx-get="/summary/partials/top_sub_scope"
+             hx-target="#top-sub-scope-content"
+             hx-include="[name='selected_scope']:checked, [name='selected_year']:checked"
+             hx-trigger="change from:[name='selected_year']"
+             hx-swap="innerHTML"></div>
+      </div>
+    </details>
+
+    <!-- Stats Cards -->
+    <div id="stats-container" class="mb-4"></div>
 
     <!-- Charts Section -->
-    <div id="charts-container">
-      <div class="text-center text-gray-500 p-8 bg-white rounded-lg shadow-sm">
-        <i data-feather="pie-chart" class="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-4 text-gray-300"></i>
-        <p class="text-base sm:text-lg">Select Sub Scopes to view charts</p>
-      </div>
-    </div>
+    <div id="charts-container"></div>
   </div>
 </div>
 
 <!-- Additional CSS for better responsive behavior -->
 <style>
-/* Responsive adjustments */
-@media (max-width: 640px) {
-  .grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3.xl\\:grid-cols-6 {
-    gap: 0.75rem;
-  }
-  
-  .btn-xs {
-    font-size: 0.7rem;
-    padding: 0.2rem 0.4rem;
-    min-height: 1.5rem;
-  }
-  
-  .input-sm {
-    font-size: 0.875rem;
-    padding: 0.375rem 0.5rem;
-  }
-}
 
-@media (min-width: 1280px) {
-  .container {
-    max-width: 1280px;
-  }
-}
-
-@media (min-width: 1536px) {
-  .container {
-    max-width: 1400px;
-  }
-}
 
 /* Fix dropdown content width on all screens */
 .dropdown-content {
@@ -193,5 +196,30 @@
   }
 }
 </style>
+
+<!-- Auto-load ครั้งแรกเมื่อเข้าหน้า -->
+<div style="display: none;">
+  <!-- Load badges ครั้งแรก -->
+  <div hx-get="/summary/update-badges" 
+       hx-target="#active-filters"
+       hx-trigger="load"
+       hx-swap="outerHTML"></div>
+  
+  <!-- Load stats ครั้งแรก -->
+  <div hx-post="/summary/stats" 
+       hx-target="#stats-container"
+       hx-include="[name='time_period']:checked, [name='selected_year']:checked"
+       hx-trigger="load"
+       hx-swap="outerHTML"></div>
+  
+  <!-- Load charts ครั้งแรก -->
+  <div hx-post="/summary/charts" 
+       hx-target="#charts-container"
+       hx-include="[name='time_period']:checked, [name='selected_year']:checked"
+       hx-trigger="load"
+       hx-swap="outerHTML"></div>
+</div>
+
+
 
 {% endblock content %}
