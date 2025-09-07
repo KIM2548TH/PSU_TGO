@@ -1,13 +1,14 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from ...models import Scope, FormAndFormula, CampusAndDepartment
-
+from ..utils.acl import permissions_required_all
 module = Blueprint("scope_management", __name__, url_prefix="/scope")
 
 
 
 @module.route("/", methods=["GET"])
 @login_required
+@permissions_required_all(["เข้าถึงหน้าจัดการ Ghg Scope"])
 def scope_page():
     """
     แสดงหน้าหลักสำหรับจัดการ Scope โดยดึงข้อมูลเฉพาะ campus='base'
@@ -146,6 +147,7 @@ def update_scope(scope_id):
 
 @module.route("/load-add-form")
 @login_required
+@permissions_required_all(["เพิ่ม Ghg Scope"])
 def load_add_scope_form():
     """
     โหลดฟอร์ม HTML สำหรับการ 'เพิ่ม' scope ใหม่ (สำหรับ HTMX)
@@ -170,6 +172,7 @@ def load_add_scope_form():
 
 @module.route("/load-edit-form/<scope_id>")
 @login_required
+@permissions_required_all(["แก้ไข Ghg Scope"])
 def load_edit_scope_form(scope_id):
     """
     โหลดฟอร์ม HTML สำหรับการ 'แก้ไข' scope ที่มีอยู่ (สำหรับ HTMX)

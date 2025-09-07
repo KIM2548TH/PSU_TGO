@@ -18,12 +18,13 @@ from urllib.parse import quote
 from ...models.scope_model import Scope
 from ...models.campus_and_department_model import CampusAndDepartment
 from ...models.form_and_formula_model import FormAndFormula
-
+from ..utils.acl import permissions_required_all
 module = Blueprint("proportions", __name__, url_prefix="/proportions")
 
 
 @module.route("/", methods=["GET"])
 @login_required
+@permissions_required_all(["เข้าถึงข้อมูลสัดส่วนการปล่อย"])
 def emission_proportions():
     user_campus = current_user.campus_id
     user_department = current_user.department_key

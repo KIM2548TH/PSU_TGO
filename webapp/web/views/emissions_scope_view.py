@@ -2,14 +2,14 @@ from flask import Blueprint, render_template, redirect, url_for, request, jsonif
 from flask_login import login_required, current_user
 from ...models import FormAndFormula, Scope, Material, CampusAndDepartment
 from datetime import datetime
-# from ..utils.acl import permissions_required_all
+from ..utils.acl import permissions_required_all
 
 module = Blueprint("emissions_scope", __name__, url_prefix="/emissions-scope")
 
 
 @module.route("/", methods=["GET"])
 @login_required
-# @permissions_required_all(["view_scope"])
+@permissions_required_all(["เข้าถึงข้อมูลการปล่อย"])
 def emissions_scope():
     # รับปีที่เลือกจาก query parameter หรือใช้ปีปัจจุบันเป็นค่าเริ่มต้น
     selected_year = request.args.get("year", default=datetime.now().year, type=int)
@@ -130,7 +130,7 @@ def calculate_scope_progress(scope, selected_year):
 
 @module.route("/get-latest-sub-scope", methods=["POST"])
 @login_required
-# @permissions_required_all(["edit_scope"])
+@permissions_required_all(["แก้ไขข้อมูลการปล่อย"])
 def get_latest_sub_scope():
     ghg_scope = request.json.get("ghg_scope")  # รับข้อมูลจาก JSON
     if not ghg_scope or not ghg_scope.isdigit():
@@ -155,6 +155,7 @@ def get_latest_sub_scope():
 
 @module.route("/edit/<int:ghg_scope>/<int:ghg_sup_scope>", methods=["GET", "POST"])
 @login_required
+@permissions_required_all(["แก้ไขข้อมูลการปล่อย"])
 def edit_scope(ghg_scope, ghg_sup_scope):
     # ค้นหา Scope ที่ต้องการแก้ไขตาม campus และ department ของ current_user
     scope = Scope.objects(
