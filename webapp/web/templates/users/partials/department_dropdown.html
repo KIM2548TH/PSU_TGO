@@ -1,0 +1,5 @@
+<select name="department" id="department-select" class="select select-bordered w-full">
+  {% for key, name in departments.items() %}
+    <option value="{{ key }}">{{ name }}</option>
+  {% endfor %}
+</select>

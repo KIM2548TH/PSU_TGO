@@ -1,3 +1,4 @@
+import datetime
 from flask import (
     Blueprint,
     render_template,
@@ -29,10 +30,12 @@ def emission_proportions():
     user_campus = current_user.campus_id
     user_department = current_user.department_key
 
+    current_year = datetime.datetime.now().year
     query_filter = {
         "campus": user_campus,
         "result2__ne": None,
         "result2__exists": True,
+        "year": current_year,  # เพิ่มเงื่อนไขปีปัจจุบัน
     }
     if user_department and user_department.strip():
         query_filter["department"] = user_department
@@ -67,20 +70,8 @@ def emission_proportions():
     for scope in sorted(scopes.keys()):
         sub_scopes = []
         for sub_scope in sorted(scopes[scope].keys()):
-            materials_list = []
-            sub_scope_total = sum(
-                float(mat.result2) if mat.result2 else 0.0
-                for mat in scopes[scope][sub_scope]
-            )
-            # ดึงชื่อ ghg_name จาก Scope model
-            scope_obj = Scope.objects(
-                ghg_scope=scope,
-                ghg_sup_scope=sub_scope,
-                campus=user_campus,
-                department=user_department,
-            ).first()
-            ghg_name = scope_obj.ghg_name if scope_obj else f"{scope}.{sub_scope}"
-
+            # รวม material ที่ชื่อเดียวกัน
+            material_dict = {}
             for mat in scopes[scope][sub_scope]:
                 result2 = float(mat.result2) if mat.result2 else 0.0
 
@@ -97,31 +88,58 @@ def emission_proportions():
                         form_obj.desc_form if form_obj else str(mat.form_and_formula)
                     )
 
-                percent_scope1 = (
-                    (result2 / scope_totals.get(1, 1) * 100)
-                    if scope_totals.get(1, 0) > 0
-                    else 0
-                )
-                percent_scope1_2 = (
-                    (result2 / (scope_totals.get(1, 0) + scope_totals.get(2, 0)) * 100)
-                    if (scope_totals.get(1, 0) + scope_totals.get(2, 0)) > 0
-                    else 0
-                )
-                percent_scope1_2_3 = (
-                    (result2 / grand_total * 100) if grand_total > 0 else 0
-                )
-                materials_list.append(
-                    {
+                key = mat.name  # รวมตามชื่อ material
+                if key not in material_dict:
+                    material_dict[key] = {
                         "name": mat.name,
                         "form_and_formula": form_name,
                         "year": mat.year,
                         "department": department_name,
-                        "result2": result2,
+                        "result2": 0.0,
+                    }
+                material_dict[key]["result2"] += result2
+
+            # สร้าง materials_list จาก dict
+            materials_list = []
+            for item in material_dict.values():
+                percent_scope1 = (
+                    (item["result2"] / scope_totals.get(1, 1) * 100)
+                    if scope_totals.get(1, 0) > 0
+                    else 0
+                )
+                percent_scope1_2 = (
+                    (
+                        item["result2"]
+                        / (scope_totals.get(1, 0) + scope_totals.get(2, 0))
+                        * 100
+                    )
+                    if (scope_totals.get(1, 0) + scope_totals.get(2, 0)) > 0
+                    else 0
+                )
+                percent_scope1_2_3 = (
+                    (item["result2"] / grand_total * 100) if grand_total > 0 else 0
+                )
+                item.update(
+                    {
                         "percent_scope1": percent_scope1,
                         "percent_scope1_2": percent_scope1_2,
                         "percent_scope1_2_3": percent_scope1_2_3,
                     }
                 )
+                materials_list.append(item)
+            sub_scope_total = sum(
+                float(mat.result2) if mat.result2 else 0.0
+                for mat in scopes[scope][sub_scope]
+            )
+            # ดึงชื่อ ghg_name จาก Scope model
+            scope_obj = Scope.objects(
+                ghg_scope=scope,
+                ghg_sup_scope=sub_scope,
+                campus=user_campus,
+                department=user_department,
+            ).first()
+            ghg_name = scope_obj.ghg_name if scope_obj else f"{scope}.{sub_scope}"
+
             sub_scope_percent_scope1 = (
                 (sub_scope_total / scope_totals.get(1, 1) * 100)
                 if scope_totals.get(1, 0) > 0
