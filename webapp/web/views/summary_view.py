@@ -4,12 +4,14 @@ from ...models import Scope, CampusAndDepartment
 from ...models.materail_model import Material, QuantityType
 from datetime import datetime, timedelta
 from bson import ObjectId
+from ..utils.acl import permissions_required_all
 
 module = Blueprint("summary", __name__, url_prefix="/summary")
 
 
 @module.route("/", methods=["GET"])
 @login_required
+@permissions_required_all(["เข้าถึงหน้าสรุปผล"])
 def summary():
     user = current_user
     user.campus = CampusAndDepartment.get_campus_name(user.campus_id)

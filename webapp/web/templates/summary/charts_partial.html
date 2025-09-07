@@ -7,7 +7,7 @@
     
     <!-- Emissions Over Time Card - ใช้ 2 columns -->
     <div class="dashboard-card flex flex-col p-6 bg-white shadow-lg rounded-xl overflow-hidden col-span-2">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4 flex-shrink-0">Emissions Over Time</h3>
+      <h3 class="text-lg font-semibold text-gray-800 mb-4 flex-shrink-0">{{ t.emissions_over_time }}</h3>
       <div class="relative flex-grow min-h-[300px] md:min-h-[350px] overflow-auto">
         <canvas id="emissionsOverTimeChart"></canvas>
       </div>
@@ -15,7 +15,7 @@
 
     <!-- Category Breakdown Card - ใช้ 1 column -->
     <div class="dashboard-card flex flex-col p-6 bg-white shadow-lg rounded-xl overflow-hidden col-span-1">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4 flex-shrink-0">Category Breakdown</h3>
+      <h3 class="text-lg font-semibold text-gray-800 mb-4 flex-shrink-0">{{ t.category_breakdown }}</h3>
       <div class="relative w-full max-w-[220px] mx-auto my-4 flex-shrink-0">
         <canvas id="categoryBreakdownChart"></canvas>
       </div>
