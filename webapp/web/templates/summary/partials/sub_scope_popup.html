@@ -1,0 +1,202 @@
+<div class="flex justify-between items-center mb-4 flex-shrink-0">
+    <h3 class="font-bold text-xl">Select Sub Scopes</h3>
+    <button type="button" 
+            class="btn btn-sm btn-circle btn-ghost"
+            onclick="document.getElementById('modal').classList.remove('modal-open')">
+      ✕
+    </button>
+  </div>
+  
+  {% if sub_scopes %}
+    <!-- เพิ่ม container ห่อเนื้อหาทั้งหมด และให้ scroll ได้ -->
+    <div id="popup-content" class="flex-1 overflow-y-auto">
+      <!-- Stats Bar -->
+      <div class="bg-gray-50 rounded-lg p-4 mb-4">
+        <div class="flex justify-between items-center text-sm">
+          <span class="text-gray-600">Total Sub Scopes: <strong>{{ sub_scopes|length }}</strong></span>
+          <span class="text-gray-600">Selected: <strong>{{ current_selected_sub_scopes|length if current_selected_sub_scopes else 0 }}</strong></span>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="flex gap-2 mb-4">
+        <button type="button" 
+                class="btn btn-sm btn-outline"
+                hx-post="/summary/select-all-sub-scopes"
+                hx-target="#popup-content"
+                hx-include="[name='selected_scopes']:checked"
+                hx-swap="innerHTML">
+          <i data-feather="check-square" class="w-4 h-4 mr-1"></i>
+          Select All
+        </button>
+        
+        <button type="button" 
+                class="btn btn-sm btn-outline"
+                hx-post="/summary/clear-all-sub-scopes"
+                hx-target="#popup-content"
+                hx-include="[name='selected_scopes']:checked"
+                hx-swap="innerHTML">
+          <i data-feather="square" class="w-4 h-4 mr-1"></i>
+          Clear All
+        </button>
+      </div>
+      
+      <!-- Sub Scopes Grid -->
+      <div id="sub-scope-grid" class="pb-4">
+        {% set scope_groups = {} %}
+        {% for sub_scope in sub_scopes %}
+          {% set main_scope = sub_scope.ghg_scope %}
+          {% if main_scope not in scope_groups %}
+            {% set _ = scope_groups.update({main_scope: []}) %}
+          {% endif %}
+          {% set _ = scope_groups[main_scope].append(sub_scope) %}
+        {% endfor %}
+        
+        {% for main_scope in scope_groups.keys()|sort %}
+        <div class="mb-6">
+          <!-- Scope Header with Theme Colors -->
+          {% if main_scope == 1 %}
+            {% set bg_color = "bg-purple-50" %}
+            {% set border_color = "border-purple-100" %}
+            {% set icon_bg = "bg-purple-500" %}
+            {% set text_color = "text-purple-500" %}
+            {% set badge_bg = "bg-purple-500" %}
+            {% set scope_title = "Direct Emission" %}
+            {% set scope_icon = "layers" %}
+            {% set card_border = "border-purple-200" %}
+            {% set card_hover = "hover:border-purple-400" %}
+            {% set checkbox_color = "checkbox-purple" %}
+            {% set number_color = "text-purple-500" %}
+          {% elif main_scope == 2 %}
+            {% set bg_color = "bg-green-50" %}
+            {% set border_color = "border-green-100" %}
+            {% set icon_bg = "bg-green-500" %}
+            {% set text_color = "text-green-500" %}
+            {% set badge_bg = "bg-green-500" %}
+            {% set scope_title = "Indirect Emission" %}
+            {% set scope_icon = "zap" %}
+            {% set card_border = "border-green-200" %}
+            {% set card_hover = "hover:border-green-400" %}
+            {% set checkbox_color = "checkbox-green" %}
+            {% set number_color = "text-green-500" %}
+          {% elif main_scope == 3 %}
+            {% set bg_color = "bg-blue-50" %}
+            {% set border_color = "border-blue-100" %}
+            {% set icon_bg = "bg-blue-500" %}
+            {% set text_color = "text-blue-500" %}
+            {% set badge_bg = "bg-blue-500" %}
+            {% set scope_title = "Indirect Emission (Other)" %}
+            {% set scope_icon = "globe" %}
+            {% set card_border = "border-blue-200" %}
+            {% set card_hover = "hover:border-blue-400" %}
+            {% set checkbox_color = "checkbox-blue" %}
+            {% set number_color = "text-blue-500" %}
+          {% else %}
+            {% set bg_color = "bg-gray-50" %}
+            {% set border_color = "border-gray-100" %}
+            {% set icon_bg = "bg-gray-500" %}
+            {% set text_color = "text-gray-500" %}
+            {% set badge_bg = "bg-gray-500" %}
+            {% set scope_title = "Unknown Scope" %}
+            {% set scope_icon = "folder" %}
+            {% set card_border = "border-gray-200" %}
+            {% set card_hover = "hover:border-gray-400" %}
+            {% set checkbox_color = "checkbox-gray" %}
+            {% set number_color = "text-gray-500" %}
+          {% endif %}
+          
+          <div class="{{ bg_color }} {{ border_color }} border rounded-lg p-4 mb-3">
+            <div class="flex items-center gap-3">
+              <!-- ✅ เพิ่มวงกลมไอคอนให้ทุก scope -->
+              <div class="{{ icon_bg }} p-2 rounded-full">
+                <i data-feather="{{ scope_icon }}" class="w-5 h-5 text-white"></i>
+              </div>
+              <div class="flex-1">
+                <!-- ✅ ใช้สีเดียวกับไอคอน -->
+                <h4 class="font-bold text-lg {{ text_color }}">
+                  Scope {{ main_scope }} - {{ scope_title }}
+                </h4>
+              </div>
+              <span class="badge {{ badge_bg }} text-white">
+                {{ scope_groups[main_scope]|length }} sub-scopes
+              </span>
+            </div>
+          </div>
+          
+          <!-- Sub Scopes in this group (3 columns) -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 ml-4">
+            {% for sub_scope in scope_groups[main_scope]|sort(attribute='ghg_sup_scope') %}
+            <div class="border {{ card_border }} rounded-lg p-3 {{ card_hover }} transition-colors bg-white shadow-sm">
+              <label class="flex items-start cursor-pointer">
+                <input type="checkbox" 
+                       class="checkbox {{ checkbox_color }} checkbox-sm mt-1 mr-3" 
+                       name="selected_sub_scopes" 
+                       value="{{ sub_scope.id }}"
+                       {% if sub_scope.id|string in current_selected_sub_scopes %}checked{% endif %}
+                       hx-post="/summary/toggle-sub-scope"
+                       hx-target="#popup-content"
+                       hx-include="[name='selected_sub_scopes']:checked, [name='selected_scopes']:checked"
+                       hx-swap="innerHTML"
+                       hx-trigger="change">
+                <div class="flex-1">
+                  <!-- ✅ ตัวเลขใช้สีเดียวกับไอคอน -->
+                  <div class="font-semibold text-sm {{ number_color }} mb-1">
+                    {{ main_scope }}.{{ sub_scope.ghg_sup_scope }}
+                  </div>
+                  <div class="text-xs text-gray-600 leading-relaxed">
+                    {{ sub_scope.ghg_name }}
+                  </div>
+                </div>
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    
+    <!-- Apply Button - Fixed ที่ด้านล่าง -->
+    <div class="flex justify-end mt-4 pt-4 border-t border-gray-200 flex-shrink-0">
+      <button type="button" 
+              class="btn btn-primary"
+              onclick="document.getElementById('modal').classList.remove('modal-open')">
+        <i data-feather="check" class="w-4 h-4 mr-2"></i>
+        Apply Selection
+      </button>
+    </div>
+  {% else %}
+    <div class="text-center py-12 flex-1 flex items-center justify-center">
+      <div>
+        <i data-feather="inbox" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i>
+        <h4 class="text-lg font-medium text-gray-500 mb-2">No Sub Scopes Available</h4>
+        <p class="text-sm text-gray-400">Please select at least one scope first</p>
+      </div>
+    </div>
+  {% endif %}
+
+
+<!-- Real-time triggers - อัปเดตทุกอย่างเมื่อมีการเปลี่ยนแปลง -->
+<div hx-post="/summary/update-badges" 
+     hx-target="#active-filters"
+     hx-trigger="change from:[name='selected_sub_scopes']"
+     hx-include="[name='selected_sub_scopes']:checked, [name='selected_scopes']:checked"
+     hx-swap="outerHTML">
+</div>
+
+<div hx-post="/summary/stats" 
+     hx-target="#stats-container"
+     hx-include="[name='time_period']:checked, [name='selected_year']:checked, [name='selected_sub_scopes']:checked, [name='selected_scopes']:checked"
+     hx-trigger="change from:[name='selected_sub_scopes']"
+     hx-swap="outerHTML">
+</div>
+
+<div hx-post="/summary/charts" 
+     hx-target="#charts-container"
+     hx-include="[name='time_period']:checked, [name='selected_year']:checked, [name='selected_sub_scopes']:checked, [name='selected_scopes']:checked"
+     hx-trigger="change from:[name='selected_sub_scopes']"
+     hx-swap="outerHTML">
+</div>
+<script>
+if (window.feather) { feather.replace(); }
+</script>

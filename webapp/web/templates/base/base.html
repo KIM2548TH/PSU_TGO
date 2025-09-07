@@ -54,7 +54,25 @@
     </div>
     <!-- Feather Replace Script -->
     <script>
-      if (window.feather) feather.replace();
+    document.addEventListener('DOMContentLoaded', function() {
+      // เรียก feather.replace() เมื่อโหลดหน้าครั้งแรก
+      if (typeof feather !== 'undefined') {
+        feather.replace();
+      }
+      
+      // เรียก feather.replace() ทุกครั้งที่ HTMX อัปเดต content
+      document.addEventListener('htmx:afterSwap', function(e) {
+        if (typeof feather !== 'undefined') {
+          feather.replace();
+        }
+      });
+      
+      document.addEventListener('htmx:afterSettle', function(e) {
+        if (typeof feather !== 'undefined') {
+          feather.replace();
+        }
+      });
+    });
     </script>
   
   {% block js %}

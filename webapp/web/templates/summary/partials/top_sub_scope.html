@@ -1,81 +1,65 @@
 <div id="top-sub-scope-content" class="space-y-1">
-    {% if top_sub_scopes %}
-      {% set total_emissions = top_sub_scopes|sum(attribute='total_result') %}
-      <div class="space-y-1">
-        {% for sub_scope in top_sub_scopes %}
-          <div class="bg-white rounded-lg p-2 border border-gray-100 hover:border-gray-200 transition-colors">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-2 flex-1 min-w-0">
-                <!-- Minimal Rank Badge -->
-                <div class="flex items-center justify-center w-6 h-6 rounded text-xs font-bold text-white
-                  {% if loop.index == 1 %}bg-red-500
-                  {% elif loop.index == 2 %}bg-orange-500
-                  {% elif loop.index == 3 %}bg-yellow-500
-                  {% else %}bg-gray-400{% endif %}">
-                  {{ loop.index }}
+  {% if top_sub_scopes and top_sub_scopes|length > 0 %}
+    {% set total_emissions = top_sub_scopes|sum(attribute='total_result') %}
+    {% set safe_total = total_emissions if total_emissions > 0 else 1 %}
+    <div class="space-y-1">
+      {% for sub_scope in top_sub_scopes %}
+        {% set pct = (sub_scope.total_result / safe_total * 100) if safe_total else 0 %}
+        <div class="bg-white rounded-lg p-2 border border-gray-100 hover:border-gray-200 transition-colors">
+          <div class="flex items-center space-x-2">
+            <div class="flex items-center justify-center w-6 h-6 rounded text-xs font-bold text-white
+              {% if loop.index == 1 %}bg-red-500
+              {% elif loop.index == 2 %}bg-orange-500
+              {% elif loop.index == 3 %}bg-yellow-500
+              {% else %}bg-gray-400{% endif %}">
+              {{ loop.index }}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-medium text-gray-900 truncate pr-2">{{ sub_scope.ghg_name }}</span>
+                <span class="text-xs font-bold text-gray-900 whitespace-nowrap">
+                  {% if sub_scope.total_result >= 1000000 %}
+                    {{ (sub_scope.total_result / 1000000)|round(1) }}M
+                  {% elif sub_scope.total_result >= 1000 %}
+                    {{ (sub_scope.total_result / 1000)|round(1) }}k
+                  {% else %}
+                    {{ sub_scope.total_result|round(0) }}
+                  {% endif %}
+                </span>
+              </div>
+              <div class="mt-1 flex items-center space-x-2">
+                <div class="flex-1 bg-gray-100 rounded-full h-1">
+                  <div class="h-full rounded-full transition-all duration-500
+                    {% if loop.index == 1 %}bg-red-400
+                    {% elif loop.index == 2 %}bg-orange-400
+                    {% elif loop.index == 3 %}bg-yellow-400
+                    {% else %}bg-gray-300{% endif %}"
+                       style="width: {{ pct|round(1) }}%"></div>
                 </div>
-                
-                <!-- Compact Content -->
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center justify-between">
-                    <h4 class="text-xs font-medium text-gray-900 truncate pr-2">
-                      {{ sub_scope.ghg_name }}
-                    </h4>
-                    <div class="text-xs font-bold text-gray-900 whitespace-nowrap">
-                      {% if sub_scope.total_result >= 1000000 %}
-                        {{ (sub_scope.total_result / 1000000)|round(1) }}M
-                      {% elif sub_scope.total_result >= 1000 %}
-                        {{ (sub_scope.total_result / 1000)|round(1) }}k
-                      {% else %}
-                        {{ sub_scope.total_result|round(0) }}
-                      {% endif %}
-                    </div>
-                  </div>
-                  
-                  <!-- Compact Progress Bar -->
-                  <div class="mt-1 flex items-center space-x-2">
-                    <div class="flex-1 bg-gray-100 rounded-full h-1">
-                      <div class="h-full rounded-full transition-all duration-500
-                        {% if loop.index == 1 %}bg-red-400
-                        {% elif loop.index == 2 %}bg-orange-400
-                        {% elif loop.index == 3 %}bg-yellow-400
-                        {% else %}bg-gray-300{% endif %}"
-                           style="width: {{ (sub_scope.total_result / total_emissions * 100)|round(1) }}%">
-                      </div>
-                    </div>
-                    <span class="text-xs text-gray-500 whitespace-nowrap">
-                      {{ (sub_scope.total_result / total_emissions * 100)|round(1) }}%
-                    </span>
-                  </div>
-                </div>
+                <span class="text-xs text-gray-500 whitespace-nowrap">{{ pct|round(1) }}%</span>
               </div>
             </div>
           </div>
-        {% endfor %}
-      </div>
-      
-      <!-- Minimal Summary -->
-      <div class="mt-2 bg-gray-50 rounded-lg p-2 border border-gray-100">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-medium text-gray-700">Total</span>
-          <span class="text-sm font-bold text-gray-900">
-            {% if total_emissions >= 1000000 %}
-              {{ (total_emissions / 1000000)|round(1) }}M
-            {% elif total_emissions >= 1000 %}
-              {{ (total_emissions / 1000)|round(1) }}k
-            {% else %}
-              {{ total_emissions|round(0) }}
-            {% endif %} kg CO₂e
-          </span>
         </div>
+      {% endfor %}
+    </div>
+    <div class="mt-2 bg-gray-50 rounded-lg p-2 border border-gray-100">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-medium text-gray-700">Total</span>
+        <span class="text-sm font-bold text-gray-900">
+          {% if total_emissions >= 1000000 %}
+            {{ (total_emissions / 1000000)|round(1) }}M
+          {% elif total_emissions >= 1000 %}
+            {{ (total_emissions / 1000)|round(1) }}k
+          {% else %}
+            {{ total_emissions|round(0) }}
+          {% endif %} kg CO₂e
+        </span>
       </div>
-    {% else %}
-      <div class="text-center py-4 bg-gray-50 rounded-lg">
-        <svg class="w-6 h-6 text-gray-300 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-        </svg>
-        <p class="text-xs text-gray-500">No data available</p>
-      </div>
-    {% endif %}
-  </div>
-  
+    </div>
+  {% else %}
+    <div class="text-center py-4 bg-gray-50 rounded-lg">
+      <p class="text-xs text-gray-500">No data. Pick a scope.</p>
+    </div>
+  {% endif %}
+</div>
