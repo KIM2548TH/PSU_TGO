@@ -2,6 +2,58 @@
 {% block content %}
 
 <div class="p-6">
+  <!-- Header -->
+  <div class="bg-white border border-blue-200 rounded-lg shadow-sm p-6 mb-6">
+    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
+
+      <!-- Left: Title + meta -->
+      <div class="w-full">
+        <h1 class="text-3xl md:text-4xl font-bold text-blue-800 flex items-center gap-3">
+          <i data-feather="pie-chart" class="w-7 h-7 text-blue-500"></i>
+          {{ page_meta.title }}
+        </h1>
+        
+        <div class="mt-3 text-xs md:text-sm leading-relaxed text-gray-400 font-medium">
+          มหาวิทยาลัยสงขลานครินทร์ • Campus:
+          <span class="text-gray-500">{{ page_meta.campus }}</span>
+          • Department:
+          <span class="text-gray-500">{{ page_meta.department }}</span>
+          • Year:
+          <span class="text-gray-500">{{ page_meta.selected_year }}</span>
+        </div>
+      </div>
+
+      <!-- Right: Year Dropdown only -->
+      <div class="pt-2 md:pt-1">
+        <div class="text-[11px] uppercase tracking-wide text-gray-500 mb-1">เลือกปี</div>
+        {% if years and years|length > 0 %}
+          <div class="dropdown">
+            <label tabindex="0" class="btn btn-xs md:btn-sm btn-outline">
+              {{ selected_year }}
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 ml-1" fill="none" viewBox="0 0 24 24"
+                   stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                   d="M19 9l-7 7-7-7"/></svg>
+            </label>
+            <ul tabindex="0"
+                class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-28 max-h-52 overflow-y-auto text-[11px]">
+              {% for y in years %}
+                <li>
+                  <a href="?year={{ y }}"
+                     class="flex justify-between {% if y == selected_year %}active font-semibold text-primary{% endif %}">
+                    <span>{{ y }}</span>
+                    {% if y == selected_year %}<span>✓</span>{% endif %}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% else %}
+          <div class="text-gray-400 text-[11px]">ไม่มีปี</div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
 
   {% for scope in scope_data %}
     {% set color = {1:'purple', 2:'green', 3:'blue'}[scope.scope] %}
@@ -11,14 +63,10 @@
           <i data-feather="{% if scope.scope == 1 %}layers{% elif scope.scope == 2 %}zap{% else %}globe{% endif %}" class="w-6 h-6 text-{{color}}-600"></i>
         </div>
         <h2 class="text-2xl font-bold text-{{color}}-800">
-          Scope {{scope.scope}} - 
-          {% if scope.scope == 1 %}
-            การปล่อยมลพิษทางตรง
-          {% elif scope.scope == 2 %}
-            การปล่อยมลพิษทางอ้อม
-          {% else %}
-            การปล่อยมลพิษ (อื่นๆ)
-          {% endif %}
+          Scope {{scope.scope}} -
+          {% if scope.scope == 1 %}การปล่อยมลพิษทางตรง
+          {% elif scope.scope == 2 %}การปล่อยมลพิษทางอ้อม
+          {% else %}การปล่อยมลพิษ (อื่นๆ){% endif %}
         </h2>
         <span class="badge bg-{{color}}-100 text-{{color}}-800 text-sm">
           {{scope.material_count}} รายการ
@@ -30,6 +78,7 @@
           {{scope.scope_percentage|round(2)}}% ของทั้งหมด
         </span>
       </div>
+
       {% for sub_scope in scope.sub_scopes %}
         <div class="card shadow-lg border border-{{color}}-200 bg-base-100 mb-6">
           <div class="card-header bg-{{color}}-50 p-4 border-b border-{{color}}-200">
@@ -56,28 +105,16 @@
               <table class="table w-full table-auto">
                 <thead class="bg-gray-100">
                   <tr>
-                    <!-- ✅ ให้คอลัมน์ "รายการ" กว้างกว่า -->
-                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700 min-w-[250px]">
-                      รายการ
-                    </th>
-                    <th class="px-4 py-3 text-center text-sm font-medium text-gray-700 whitespace-nowrap">
-                      TOTAL (GHG) (KG CO₂E)
-                    </th>
-                    <th class="px-4 py-3 text-center text-sm font-medium text-gray-700 whitespace-nowrap">
-                      สัดส่วน (%) (SCOPE 1)
-                    </th>
-                    <th class="px-4 py-3 text-center text-sm font-medium text-gray-700 whitespace-nowrap">
-                      สัดส่วน (%) (SCOPE 1+2)
-                    </th>
-                    <th class="px-4 py-3 text-center text-sm font-medium text-gray-700 whitespace-nowrap">
-                      สัดส่วน (%) (SCOPE 1+2+3)
-                    </th>
+                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700 min-w-[250px]">รายการ</th>
+                    <th class="px-4 py-3 text-center text-sm font-medium text-gray-700 whitespace-nowrap">TOTAL (KG CO₂E)</th>
+                    <th class="px-4 py-3 text-center text-sm font-medium text-gray-700 whitespace-nowrap">% (SCOPE 1)</th>
+                    <th class="px-4 py-3 text-center text-sm font-medium text-gray-700 whitespace-nowrap">% (SCOPE 1+2)</th>
+                    <th class="px-4 py-3 text-center text-sm font-medium text-gray-700 whitespace-nowrap">% (ALL)</th>
                   </tr>
                 </thead>
                 <tbody>
                   {% for mat in sub_scope.materials %}
                     <tr class="border-b border-gray-100 hover:bg-gray-50">
-                      <!-- ✅ ให้คอลัมน์นี้กว้างกว่า -->
                       <td class="px-4 py-3 text-sm text-gray-800 min-w-[250px]">
                         <div class="font-medium">{{mat.name}} ({{mat.year}})</div>
                       </td>
@@ -114,15 +151,18 @@
               </table>
             </div>
           </div>
-          
         </div>
       {% endfor %}
     </div>
   {% endfor %}
+
   <div class="bg-gray-400 text-white p-4 rounded-lg mt-8 flex justify-between items-center">
-    <span class="font-bold">รวมทั้งหมด</span>
+    <span class="font-bold">รวมทั้งหมด ({{ selected_year }})</span>
     <span class="text-xl font-bold">{{ '{:,.2f}'.format(grand_total) }} kg CO₂e</span>
     <span class="text-sm">100% ของทั้งหมด</span>
   </div>
 </div>
+<script>
+  if (typeof feather !== 'undefined') { feather.replace(); }
+</script>
 {% endblock content %}
