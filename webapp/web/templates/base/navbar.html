@@ -39,6 +39,9 @@
     {% elif path.startswith('/profile') %}
       {% set page_title = 'Profile' %}
       {% set page_subtitle = t.subtitle_profile %}
+    {% elif path.startswith('/proportions') %}
+      {% set page_title = t.sidebar_proportions %}
+      {% set page_subtitle = t.subtitle_proportions %}
     {% else %}
       {% set page_title = t.scope_management %}
       {% set page_subtitle = t.subtitle_scope_management %}
