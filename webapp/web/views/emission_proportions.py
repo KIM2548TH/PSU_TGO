@@ -31,14 +31,27 @@ def emission_proportions():
     user_department = current_user.department_key
 
     current_year = datetime.datetime.now().year
-    query_filter = {
+
+    # ดึงปีทั้งหมดที่มีข้อมูล
+    base_year_filter = {
         "campus": user_campus,
         "result2__ne": None,
         "result2__exists": True,
-        "year": current_year,  # เพิ่มเงื่อนไขปีปัจจุบัน
     }
     if user_department and user_department.strip():
-        query_filter["department"] = user_department
+        base_year_filter["department"] = user_department
+
+    years = Material.objects(**base_year_filter).distinct("year") or []
+    years = sorted([y for y in years if isinstance(y, int)], reverse=True)
+    selected_year = request.args.get("year", type=int)
+    if not selected_year:
+        selected_year = years[0] if years else current_year
+    if years and selected_year not in years:
+        selected_year = years[0]
+
+    # ใช้ปีที่เลือกเป็นตัวกรอง
+    query_filter = dict(base_year_filter)
+    query_filter["year"] = selected_year
 
     materials = Material.objects(**query_filter).order_by("scope", "sub_scope", "name")
 
@@ -47,19 +60,16 @@ def emission_proportions():
     grand_total = 0
     scope_totals = {}
     scope_material_counts = {}
-
     for m in materials:
         scope = m.scope
         sub_scope = m.sub_scope
         result2 = float(m.result2) if m.result2 else 0.0
-
         if scope not in scopes:
             scopes[scope] = {}
             scope_totals[scope] = 0
             scope_material_counts[scope] = 0
         if sub_scope not in scopes[scope]:
             scopes[scope][sub_scope] = []
-
         scopes[scope][sub_scope].append(m)
         scope_totals[scope] += result2
         scope_material_counts[scope] += 1
@@ -180,11 +190,42 @@ def emission_proportions():
             }
         )
 
+    # NEW: ดึงชื่อ Campus / Department ที่อ่านง่าย
+    campus_name = CampusAndDepartment.get_campus_name(user_campus) if hasattr(CampusAndDepartment, "get_campus_name") else user_campus
+    department_name = CampusAndDepartment.get_department_name(user_campus, user_department) if user_department else "-"
+
+    # NEW: สรุปข้อมูลเบื้องต้น
+    total_materials = len(materials)
+    total_scopes = len(scope_totals.keys())
+    scope_coverage = [
+        {
+            "scope": s,
+            "total": scope_totals[s],
+            "percent": (scope_totals[s] / grand_total * 100) if grand_total > 0 else 0,
+        }
+        for s in sorted(scope_totals.keys())
+    ]
+
+    page_meta = {
+        "title": f"สัดส่วนการปล่อยก๊าซเรือนกระจก ปี {selected_year}",
+        "description": "สรุปสัดส่วนการปล่อยตาม Scope / Sub-Scope และสัดส่วนต่อภาพรวมทั้งหมด",
+        "campus": campus_name,
+        "department": department_name,
+        "selected_year": selected_year,
+        "total_materials": total_materials,
+        "total_scopes": total_scopes,
+        "grand_total": grand_total,
+        "scope_coverage": scope_coverage,
+    }
+
     return render_template(
         "emission-proportions/emission-proportions.html",
         scope_data=scope_data,
         grand_total=grand_total,
         scope_totals=scope_totals,
+        years=years,
+        selected_year=selected_year,
+        page_meta=page_meta,  # NEW
     )
 
 
