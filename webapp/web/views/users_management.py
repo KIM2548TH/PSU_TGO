@@ -83,14 +83,7 @@ def load_edit_user_role():
     search_query = request.args.get("search", "").strip()  # รับค่าของ search
 
     user = User.objects.with_id(user_id)
-    user.campus = CampusAndDepartment.get_campus_name(user.campus_id)
-    user.department = CampusAndDepartment.get_department_name(
-        user.campus_id, user.department_key
-    )
-
-    campuses = CampusAndDepartment.objects()
-    for campus in campuses:
-        campus.name = campus.name.get("0", "Unknown Campus")
+    campuses = get_campuses()  # ส่ง object เต็ม
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -98,7 +91,7 @@ def load_edit_user_role():
     form = EditUserForm()
     if request.method == "POST":
         form.username.data = user.username
-        form.campus.data = request.form.get("campus")
+        form.campus.data = str(user.campus_id) if user.campus_id else "none"
         form.department.data = request.form.get("department")
         form.roles.data = request.form.get("roles")
 
@@ -153,7 +146,7 @@ def load_edit_user_role():
         if user.department_key
         else "none"
     )
-    if user_department != "none" and user.campus:
+    if user_department != "none" and user.campus_id:
         form.department.data = get_user_department_for_campus(
             user_department, user.campus_id
         )
@@ -165,7 +158,7 @@ def load_edit_user_role():
     return render_template(
         "/users-management/form-edit-user-role.html",
         user=user,
-        campuses=get_campuses(),
+        campuses=campuses,  # ส่ง object เต็ม
         departments=get_all_unique_departments(),
         roles=roles,
         form=form,

@@ -18,9 +18,8 @@
                 hx-swap="innerHTML"
                 hx-trigger="change"
                 hx-include="#campus-select-edit">
-            <option value="none" {% if not form.campus.data or form.campus.data == "none" %}selected{% endif %}>None</option>
             {% for campus in campuses %}
-            <option value="{{ campus.id }}" {% if form.campus.data == campus.id %}selected{% endif %}>
+            <option value="{{ campus.id }}" {% if form.campus.data == campus.id|string %}selected{% endif %}>
                 {{ campus.name.get("0") }}
             </option>
             {% endfor %}
@@ -29,7 +28,7 @@
     <div class="mb-2">
         <label class="block text-sm font-medium">{{ t.department }}</label>
         <select name="department" class="select select-bordered w-full" id="department-select-edit">
-            <option value="none" {% if not user.department_key or user.department_key == "none" %}selected{% endif %}>None</option>
+            
             {% for key, name in departments.items() %}
             <option value="{{ key }}" {% if user.department_key == key %}selected{% endif %}>
                 {{ name }}

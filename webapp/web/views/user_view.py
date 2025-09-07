@@ -10,7 +10,8 @@ from flask import (
 from flask_login import login_required, logout_user, current_user
 from ..forms.user_form import LoginForm, RegisterForm, EditUserForm, EditprofileForm
 from ...services.user_service import UserService
-from ...models import User, Role, Permission
+from ...models import User, Role, Permission, CampusAndDepartment
+
 
 module = Blueprint("users", __name__, url_prefix="/users")
 
@@ -59,17 +60,46 @@ def logout():
     return redirect(url_for("users.login"))
 
 
-@module.route("/register", methods=["get", "post"])
+@module.route("/register", methods=["GET", "POST"])
 def register():
     form = RegisterForm()
+    error_msg = ""
+    campuses = CampusAndDepartment.objects()
+    departments = campuses[0].departments if campuses else {}
 
-    if not form.validate_on_submit():
-        return render_template("/users/register.html", form=form)
+    if request.method == "POST":
+        campus_id = request.form.get("campus")
+        department_key = request.form.get("department")
+        form.campus_id = campus_id
+        form.department_key = department_key
 
-    register_result = UserService.register(form)
-    if register_result["success"] is False:
-        return render_template(
-            "/users/register.html", form=form, error_msg=register_result["error_msg"]
-        )
+        register_result = UserService.register(form)
+        if not register_result["success"]:
+            return render_template(
+                "/users/register.html",
+                form=form,
+                error_msg=register_result["error_msg"],
+                campuses=campuses,
+                departments=departments,
+            )
+        return redirect(url_for("users.login"))
 
-    return redirect(url_for("users.login"))
+    return render_template(
+        "/users/register.html",
+        form=form,
+        error_msg=error_msg,
+        campuses=campuses,
+        departments=departments,
+    )
+
+
+@module.route("/load-departments-for-register", methods=["GET"])
+def load_departments_for_register():
+    campus_id = request.args.get("campus")
+    print("campus_id:", campus_id)  # Debug
+    campus_obj = CampusAndDepartment.objects.with_id(campus_id)
+    departments = campus_obj.departments if campus_obj else {}
+    print("departments:", departments)  # Debug
+    return render_template(
+        "/users/partials/department_dropdown.html", departments=departments
+    )

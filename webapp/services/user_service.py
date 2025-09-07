@@ -32,8 +32,16 @@ class UserService:
         if form.password.data != form.confirm_password.data:
             return {"success": False, "error_msg": "รหัสผ่านไม่ตรงกัน"}
 
-        user = User(username=username)
-        user.set_password(form.password.data)
+        user = User(
+            username=form.username.data,
+            roles=["user"],
+            status="active",
+            created_date=datetime.datetime.now(),
+            updated_date=datetime.datetime.now(),
+            campus_id=form.campus_id,
+            department_key=form.department_key,
+        )
+        user.set_password(form.password.data)  # เข้ารหัสรหัสผ่าน
         user.save()
         return {"success": True, "error_msg": ""}
 
