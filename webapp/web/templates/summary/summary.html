@@ -34,7 +34,7 @@
           <label class="block text-sm font-medium mb-2">Scope</label>
           <div class="dropdown dropdown-bottom w-full">
             <div tabindex="0" role="button" class="btn btn-sm btn-outline w-full justify-between min-h-[2rem] text-sm">
-              <span class="truncate">Select Scopes</span>
+              <span class="truncate">{{ t.select_scopes }}</span>
               <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
@@ -58,7 +58,7 @@
                 hx-trigger="click"
                 hx-include="[name='selected_scopes']:checked"
                 onclick="document.getElementById('modal').classList.add('modal-open')">
-          <span class="truncate">Select Sub Scopes</span>
+          <span class="truncate">{{ t.select_sub_scopes }}</span>
           <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
@@ -70,7 +70,7 @@
           <label class="block text-sm font-medium mb-2">{{ t.year }}</label>
           <div class="dropdown dropdown-bottom w-full">
             <div tabindex="0" role="button" class="btn btn-sm btn-outline w-full justify-between min-h-[2rem] text-sm">
-              <span class="truncate">Select Year</span>
+              <span class="truncate">{{ t.select_year }}</span>
               <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
