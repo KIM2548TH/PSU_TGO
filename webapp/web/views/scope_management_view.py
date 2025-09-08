@@ -147,7 +147,7 @@ def update_scope(scope_id):
 
 @module.route("/load-add-form")
 @login_required
-@permissions_required_all(["เพิ่ม Ghg Scope"])
+@permissions_required_all(["เพิ่ม GHG Scope"])
 def load_add_scope_form():
     """
     โหลดฟอร์ม HTML สำหรับการ 'เพิ่ม' scope ใหม่ (สำหรับ HTMX)
@@ -172,7 +172,7 @@ def load_add_scope_form():
 
 @module.route("/load-edit-form/<scope_id>")
 @login_required
-@permissions_required_all(["แก้ไข Ghg Scope"])
+@permissions_required_all(["แก้ไข GHG Scope"])
 def load_edit_scope_form(scope_id):
     """
     โหลดฟอร์ม HTML สำหรับการ 'แก้ไข' scope ที่มีอยู่ (สำหรับ HTMX)
