@@ -8,7 +8,7 @@ module = Blueprint("scope_management", __name__, url_prefix="/scope")
 
 @module.route("/", methods=["GET"])
 @login_required
-@permissions_required_all(["เข้าถึงหน้าจัดการ Ghg Scope"])
+@permissions_required_all(["เข้าถึงหน้าจัดการ GHG Scope"])
 def scope_page():
     """
     แสดงหน้าหลักสำหรับจัดการ Scope โดยดึงข้อมูลเฉพาะ campus='base'

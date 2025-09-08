@@ -1,0 +1,2456 @@
+nohup: ignoring input
+
+> static@1.0.0 tw:watch
+> npx @tailwindcss/cli -i ./css/setup.css -o ./css/app.css --watch
+
+[2025-09-08 16:58:11 +0000] [196423] [INFO] Starting gunicorn 23.0.0
+[2025-09-08 16:58:11 +0000] [196423] [INFO] Listening at: http://0.0.0.0:5000 (196423)
+[2025-09-08 16:58:11 +0000] [196423] [INFO] Using worker: sync
+[2025-09-08 16:58:11 +0000] [196454] [INFO] Booting worker with pid: 196454
+[2025-09-08 16:58:11 +0000] [196457] [INFO] Booting worker with pid: 196457
+[2025-09-08 16:58:11 +0000] [196458] [INFO] Booting worker with pid: 196458
+[2025-09-08 16:58:11 +0000] [196460] [INFO] Booting worker with pid: 196460
+/*! 🌼 daisyUI 5.0.28 */
+[2025-09-08 17:19:30 +0000] [196454] [ERROR] Error handling request /favicon.ico
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 17:19:30 +0000] [196458] [ERROR] Error handling request /favicon.ico
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 17:19:30 +0000] [196454] [ERROR] Error handling request /favicon.ico
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 17:19:54 +0000] [196458] [ERROR] Error handling request /favicon.ico
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 17:24:16 +0000] [196458] [ERROR] Error handling request /favicon.ico
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 17:24:29 +0000] [196457] [ERROR] Error handling request /favicon.ico
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 17:38:36 +0000] [196460] [ERROR] Error handling request /version
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 17:40:39 +0000] [196454] [ERROR] Error handling request /favicon.ico
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 17:40:40 +0000] [196454] [ERROR] Error handling request /users/favicon.ico
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 17:42:51 +0000] [196457] [ERROR] Error handling request /GponForm/diag_Form?images/
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 17:47:45 +0000] [196457] [ERROR] Error handling request /aaa9
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 17:47:45 +0000] [196460] [ERROR] Error handling request /aab9
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 17:47:50 +0000] [196454] [ERROR] Error handling request /aaa9
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 17:47:51 +0000] [196457] [ERROR] Error handling request /aab9
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 17:51:03 +0000] [196460] [ERROR] Error handling request /@vite/env
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 17:51:04 +0000] [196460] [ERROR] Error handling request /actutor/env
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 17:51:05 +0000] [196460] [ERROR] Error handling request /.vscode/sftp.json
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 17:51:05 +0000] [196460] [ERROR] Error handling request /.env
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 17:51:06 +0000] [196460] [ERROR] Error handling request /.git/config
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:09:56 +0000] [196457] [ERROR] Error handling request /favicon.ico
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:10:11 +0000] [196460] [ERROR] Error handling request /wp-includes/wlwmanifest.xml
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:10:11 +0000] [196454] [ERROR] Error handling request /xmlrpc.php?rsd
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:10:12 +0000] [196460] [ERROR] Error handling request /blog/wp-includes/wlwmanifest.xml
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:10:12 +0000] [196460] [ERROR] Error handling request /web/wp-includes/wlwmanifest.xml
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:10:12 +0000] [196460] [ERROR] Error handling request /wordpress/wp-includes/wlwmanifest.xml
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:10:12 +0000] [196460] [ERROR] Error handling request /website/wp-includes/wlwmanifest.xml
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:10:12 +0000] [196457] [ERROR] Error handling request /wp/wp-includes/wlwmanifest.xml
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:10:12 +0000] [196457] [ERROR] Error handling request /news/wp-includes/wlwmanifest.xml
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:10:12 +0000] [196457] [ERROR] Error handling request /2020/wp-includes/wlwmanifest.xml
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:10:12 +0000] [196457] [ERROR] Error handling request /2019/wp-includes/wlwmanifest.xml
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:10:12 +0000] [196454] [ERROR] Error handling request /shop/wp-includes/wlwmanifest.xml
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:10:12 +0000] [196457] [ERROR] Error handling request /wp1/wp-includes/wlwmanifest.xml
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:10:12 +0000] [196457] [ERROR] Error handling request /test/wp-includes/wlwmanifest.xml
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:10:12 +0000] [196460] [ERROR] Error handling request /wp2/wp-includes/wlwmanifest.xml
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:10:12 +0000] [196457] [ERROR] Error handling request /site/wp-includes/wlwmanifest.xml
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:10:12 +0000] [196460] [ERROR] Error handling request /cms/wp-includes/wlwmanifest.xml
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:10:12 +0000] [196460] [ERROR] Error handling request /sito/wp-includes/wlwmanifest.xml
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:10:42 +0000] [196458] [ERROR] Error handling request /developmentserver/metadatauploader
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 802, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/app.py", line 777, in handle_http_exception
+    return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/utils/error_handling.py", line 17, in page_not_found
+    return render_template("error.html", error_msg="Page Not Found"), 404
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/error.html", line 1, in top-level template code
+    {% extends "base/base.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/base.html", line 39, in top-level template code
+    {% include "base/navbar.html" %}
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TEST/webapp/web/templates/base/navbar.html", line 68, in top-level template code
+    <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/webroot/PSU_TGO/venv/lib/python3.13/site-packages/jinja2/environment.py", line 471, in getitem
+    return obj[argument]
+           ~~~^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flask_login.mixins.AnonymousUserMixin object' has no attribute 'username'
+[2025-09-08 18:13:33 +0000] [196423] [INFO] Handling signal: term
+[2025-09-08 18:13:33 +0000] [196454] [INFO] Worker exiting (pid: 196454)
+[2025-09-08 18:13:33 +0000] [196460] [INFO] Worker exiting (pid: 196460)
+ 88888888888888888888888888888888888888888888888888888888888888888888888
+['hatyai', 'phuket', 'surat', 'trang', 'pattani']
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 2025
+ 88888888888888888888888888888888888888888888888888888888888888888888888
+['hatyai', 'phuket', 'surat', 'trang', 'pattani']
+[2025-09-08 18:13:33 +0000] [196457] [INFO] Worker exiting (pid: 196457)
+[2025-09-08 18:13:33 +0000] [196458] [INFO] Worker exiting (pid: 196458)
+[2025-09-08 18:13:34 +0000] [196423] [INFO] Shutting down: Master
