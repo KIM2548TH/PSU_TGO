@@ -44,7 +44,10 @@
           </select>
           <i data-feather="chevron-down" class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-500 w-4 h-4"></i>
         </div>
-        <button class="btn btn-primary gap-2" onclick="window.location.href='{{ url_for('users.register') }}'">
+        <button class="btn btn-primary gap-2"
+                hx-get="{{ url_for('users_management.modal_register') }}"
+                hx-target="body"
+                hx-swap="beforeend">
           <i data-feather="plus" class="w-[18px] h-[18px]"></i>
           {{ t.add_user }}
         </button>
