@@ -92,23 +92,20 @@ def emissions_scope():
 
 def calculate_scope_progress(scope, selected_year):
     """
-    คำนวณ Progress ของ Scope สำหรับปีที่เลือก
-    Progress = (จำนวนช่องที่กรอกแล้ว / (head_table × 12)) × 100
+    คำนวณ Progress:
+    - นับเฉพาะ Material ที่ result ไม่เป็น None / "" / 0 / "0"
+    - ไม่สนใจ result2 แล้ว
+    - ถ้า result = 0 ไม่นับตามที่ขอ
     """
-    # จำนวน head_table
     num_head_table = len(scope.head_table)
-
     if num_head_table == 0:
-        return 0  # ถ้าไม่มี head_table ให้ progress = 0
+        return 0
 
-    # จำนวนช่องทั้งหมดที่ต้องกรอก = head_table × 12 เดือน (เฉพาะปีที่เลือก)
     total_fields_required = num_head_table * 12
-
     if total_fields_required == 0:
         return 0
 
-    # ดึง Material ที่เกี่ยวข้องกับ Scope นี้ในปีที่เลือก
-    materials = Material.objects(
+    materials_qs = Material.objects(
         scope=scope.ghg_scope,
         sub_scope=scope.ghg_sup_scope,
         year=selected_year,
@@ -116,13 +113,10 @@ def calculate_scope_progress(scope, selected_year):
         department=current_user.department_key,
     )
 
-    # นับจำนวนช่องที่กรอกข้อมูลแล้ว
-    filled_fields = len(materials)
+    # นับเฉพาะ result ที่มีค่าและไม่เป็น 0
+    filled = materials_qs.filter(result__nin=[None, "", 0, "0"]).count()
 
-    # คำนวณ Progress
-    progress = (filled_fields / total_fields_required) * 100
-
-    # จำกัดไม่ให้เกิน 100%
+    progress = (filled / total_fields_required) * 100
     return min(progress, 100)
 
 
