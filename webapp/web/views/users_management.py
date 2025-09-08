@@ -74,7 +74,7 @@ def users_management():
 
 @module.route("/load-edit-user-role", methods=["GET", "POST"])
 @login_required
-@permissions_required_all(['แก้ไขข้อมูลผู้ใช้'])
+@permissions_required_all(["แก้ไขข้อมูลผู้ใช้"])
 def load_edit_user_role():
     user_id = request.args.get("user_id")
     page = int(request.args.get("page", 1))
@@ -279,4 +279,39 @@ def load_campuses():
         "/users-management/partials/campus_dropdown.html",
         campuses=campuses,
         selected_campus=selected_campus,
+    )
+
+
+@module.route("/modal-register", methods=["GET", "POST"])
+@login_required
+def modal_register():
+    form = RegisterForm()
+    campuses = get_campuses()
+    departments = campuses[0].departments if campuses else {}
+    error_msg = ""
+
+    if request.method == "POST":
+        campus_id = request.form.get("campus")
+        department_key = request.form.get("department")
+        form.campus_id = campus_id
+        form.department_key = department_key
+
+        register_result = UserService.register(form)
+        if not register_result["success"]:
+            return render_template(
+                "/users-management/partials/modal_register.html",
+                form=form,
+                error_msg=register_result["error_msg"],
+                campuses=campuses,
+                departments=departments,
+            )
+        # สมัครสำเร็จ รีโหลดตารางผู้ใช้
+        return render_template("/users-management/partials/register_success.html")
+
+    return render_template(
+        "/users-management/partials/modal_register.html",
+        form=form,
+        error_msg=error_msg,
+        campuses=campuses,
+        departments=departments,
     )

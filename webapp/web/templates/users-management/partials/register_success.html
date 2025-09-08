@@ -1,0 +1,16 @@
+<div id="register-modal"></div>
+<script>
+  // ปิด modal
+  if (window.closeRegisterModal) {
+    closeRegisterModal();
+  } else {
+    // fallback: ลบ modal ด้วย JS
+    var modal = document.getElementById('register-modal');
+    if (modal) modal.remove();
+  }
+  // รีโหลดตารางผู้ใช้
+  htmx.ajax('GET', '{{ url_for("users_management.load_users_table") }}', {
+    target: '#users-table-container',
+    swap: 'innerHTML'
+  });
+</script>
