@@ -14,7 +14,7 @@
         <h3 class="text-sm font-medium text-gray-600">{{ t.total_emissions }}</h3>
         <i data-feather="zap" class="w-4 h-4 text-gray-400"></i>
       </div>
-      <div class="text-3xl font-bold text-gray-900">{{ data.total_emissions|round(1) }} kg</div>
+      <div class="text-3xl font-bold text-gray-900">{{ data.total_emissions|round(1) }} (Ton kg CO₂)</div>
       <div class="text-xs text-gray-500">Year {{ selected_year }}</div>
     </div>
 
@@ -25,7 +25,7 @@
         <i data-feather="calendar" class="w-4 h-4 text-gray-400"></i>
       </div>
       <div class="text-3xl font-bold text-gray-900">
-        {% if data.daily_average %}{{ data.daily_average|round(2) }}{% else %}0{% endif %} kg
+        {% if data.daily_average %}{{ data.daily_average|round(2) }}{% else %}0{% endif %} (Ton kg CO₂)
       </div>
       <div class="text-xs text-gray-500">{{ data.average_label }}</div>
     </div>
@@ -53,7 +53,7 @@
       <div class="text-xs text-gray-500">
         {% if data.last_year_total > 0 %}
           {{ 'Increased' if trend=='increase' else 'Decreased' if trend=='decrease' else 'No change' }}
-          from {{ data.last_year_total|round(1) }} kg
+          from {{ data.last_year_total|round(1) }} (Ton kg CO₂)
         {% else %}
           Baseline year
         {% endif %}
