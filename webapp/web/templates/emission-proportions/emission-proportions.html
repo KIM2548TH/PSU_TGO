@@ -69,7 +69,7 @@
           {% else %}การปล่อยมลพิษ (อื่นๆ){% endif %}
         </h2>
         <span class="badge bg-{{color}}-100 text-{{color}}-800 text-sm">
-          {{scope.material_count}} รายการ
+          {{scope.sub_scopes|length}} รายการ
         </span>
         <span class="ml-auto text-xl font-bold text-{{color}}-700">
           {{ '{:,.2f}'.format(scope.scope_total) }} Ton CO₂e
