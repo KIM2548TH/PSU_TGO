@@ -20,6 +20,7 @@ from ...models.scope_model import Scope
 from ...models.campus_and_department_model import CampusAndDepartment
 from ...models.form_and_formula_model import FormAndFormula
 from ..utils.acl import permissions_required_all
+
 module = Blueprint("proportions", __name__, url_prefix="/proportions")
 
 
@@ -54,6 +55,8 @@ def emission_proportions():
     query_filter["year"] = selected_year
 
     materials = Material.objects(**query_filter).order_by("scope", "sub_scope", "name")
+    # กรองเฉพาะที่มี quantity_type
+    materials = [m for m in materials if m.quantity_type]
 
     # Group by scope/sub_scope
     scopes = {}
@@ -191,8 +194,16 @@ def emission_proportions():
         )
 
     # NEW: ดึงชื่อ Campus / Department ที่อ่านง่าย
-    campus_name = CampusAndDepartment.get_campus_name(user_campus) if hasattr(CampusAndDepartment, "get_campus_name") else user_campus
-    department_name = CampusAndDepartment.get_department_name(user_campus, user_department) if user_department else "-"
+    campus_name = (
+        CampusAndDepartment.get_campus_name(user_campus)
+        if hasattr(CampusAndDepartment, "get_campus_name")
+        else user_campus
+    )
+    department_name = (
+        CampusAndDepartment.get_department_name(user_campus, user_department)
+        if user_department
+        else "-"
+    )
 
     # NEW: สรุปข้อมูลเบื้องต้น
     total_materials = len(materials)
