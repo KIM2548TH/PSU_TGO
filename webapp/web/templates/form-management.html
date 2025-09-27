@@ -192,28 +192,14 @@
 
               <!-- Actions -->
               <div class="flex justify-between">
-                <button type="button" class="btn btn-sm btn-primary" onclick="closeFormulaCalculator()">{{ t.close }}</button>
+                <button type="button" class="btn btn-sm btn-outline" onclick="closeFormulaCalculator()">{{ t.cancel }}</button>
+                <button type="button" class="btn btn-sm btn-primary" onclick="applyFormula()">{{ t.apply }}</button>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Formula Section -->
-        <div class="mt-6">
-          <label class="text-font">{{t.formula2}}</label>
-          <div class="relative mb-4">
-            <div class="flex">
-              <input 
-                type="text" 
-                name="formula2" 
-                id="formula2" 
-                class="input input-bordered w-full" 
-                placeholder="e.g. diesel * 2.68" 
-                value="{{ form.formula2 if form else '' }}"
-                required>
-            </div>
-          </div>
-        </div>
+
 
         <!-- Formula Description -->
         <div class="sm:col-span-2 mt-4">

@@ -16,7 +16,7 @@
         {{ form.confirm_password.label }} {{ form.confirm_password(class="input input-bordered w-full", type="password") }}
       </div>
       <div class="mb-2">
-        <label>Campus</label>
+        <label>วิทยาเขต</label>
         <select name="campus" class="select select-bordered w-full"
           hx-get="{{ url_for('users.load_departments_for_register') }}"
           hx-target="#modal-department-dropdown"
@@ -28,7 +28,7 @@
         </select>
       </div>
       <div class="mb-2" id="modal-department-dropdown">
-        <label>Department</label>
+        <label>คณะ/ศูนย์/สำนัก</label>
         <select name="department" class="select select-bordered w-full">
           {% for key, name in departments.items() %}
             <option value="{{ key }}">{{ name }}</option>

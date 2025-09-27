@@ -1,0 +1,33 @@
+{% extends "/base/default_page.html" %}
+{% block content %}
+
+<div class="mb-6">
+  <label class="mr-4">
+    <input type="radio" name="scope_selector" value="1" checked x-on:change="selectedScope = 1"> Scope 1
+  </label>
+  <label class="mr-4">
+    <input type="radio" name="scope_selector" value="2" x-on:change="selectedScope = 2"> Scope 2
+  </label>
+  <label class="mr-4">
+    <input type="radio" name="scope_selector" value="3" x-on:change="selectedScope = 3"> Scope 3
+  </label>
+</div>
+
+<div x-data="{ selectedScope: 1 }">
+  <!-- Scope 1 -->
+  <div x-show="selectedScope == 1">
+    {% include "scope1_section.html" %}
+  </div>
+
+  <!-- Scope 2 -->
+  <div x-show="selectedScope == 2">
+    {% include "scope2_section.html" %}
+  </div>
+
+  <!-- Scope 3 -->
+  <div x-show="selectedScope == 3">
+    {% include "scope3_section.html" %}
+  </div>
+</div>
+
+{% endblock content %}

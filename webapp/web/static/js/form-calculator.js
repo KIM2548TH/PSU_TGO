@@ -42,12 +42,12 @@ function closeFormula2Calculator() {
     document.getElementById('formula2-calculator').classList.add('hidden');
 }
 
-function applyFormula() {
+function applyFormula(event) {
     updatePreview();
     closeFormulaCalculator();
 }
 
-function applyFormula2() {
+function applyFormula2(event) {
     updatePreview();
     closeFormula2Calculator();
 }
