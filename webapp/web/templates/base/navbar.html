@@ -42,6 +42,9 @@
     {% elif path.startswith('/proportions') %}
       {% set page_title = t.sidebar_proportions %}
       {% set page_subtitle = t.subtitle_proportions %}
+    {% elif path.startswith('/scope-progress') %}
+      {% set page_title = t.overall_progress %}
+      {% set page_subtitle = t.subtitle_overall_progress %}
     {% else %}
       {% set page_title = t.scope_management %}
       {% set page_subtitle = t.subtitle_scope_management %}

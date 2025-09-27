@@ -92,7 +92,7 @@
             <i data-feather="grid" class="w-6 h-6 text-orange-600"></i>
           </div>
           <div>
-            <p class="font-bold text-gray-800">ดูสโคปรวม</p>
+            <p class="font-bold text-gray-800">{{ t.including_scope }}</p>
             <p class="text-sm text-gray-600">แสดงทุก Scope</p>
           </div>
         </div>
@@ -122,42 +122,42 @@
 
   <!-- Progress Table -->
   <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-    <table class="w-full text-sm text-left text-gray-600">
-      <thead class="text-xs text-gray-700 uppercase bg-gray-100">
-        <tr>
-          <th scope="col" class="px-6 py-3 min-w-[200px]">คณะ/หน่วยงาน</th>
-          <th scope="col" class="px-6 py-3 min-w-[200px]">ความคืบหน้า</th>
-          <th scope="col" class="px-6 py-3 text-center">จำนวนแหล่งทั้งหมด</th>
-          <th scope="col" class="px-6 py-3 text-center">กำลังดำเนินการ</th>
-          <th scope="col" class="px-6 py-3 text-center">ยังไม่เริ่ม</th>
-          <th scope="col" class="px-6 py-3 text-center">เสร็จสิ้น</th>
+    <table class="w-full text-sm text-left text-gray-600 divide-y divide-gray-200">
+      <thead class="text-xs text-gray-700 uppercase divide-x divide-gray-200" style="background-color: #F9FAFB;">
+        <tr class="divide-x divide-gray-200">
+          <th scope="col" class="px-6 py-3 min-w-[200px]">{{ t.department }}</th>
+          <th scope="col" class="px-6 py-3 min-w-[200px]">{{ t.overall_progress }}</th>
+          <th scope="col" class="px-6 py-3 text-center">{{ t.total_sources }}</th>
+          <th scope="col" class="px-6 py-3 text-center">{{ t.in_progress }}</th>
+          <th scope="col" class="px-6 py-3 text-center">{{ t.not_started }}</th>
+          <th scope="col" class="px-6 py-3 text-center">{{ t.completed }}</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody class="divide-y divide-gray-200">
         {% for dept in departments_data %}
-        <tr class="bg-white border-b hover:bg-gray-50">
-          <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-            {{ dept.name }}
-          </td>
-          <td class="px-6 py-4">
-            <div class="flex items-center gap-2">
-              <div class="w-full bg-gray-200 rounded-full h-2.5">
-                <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ dept.progress }}%"></div>
+          <tr class="{% if loop.index0 % 2 == 1 %}bg-white{% else %}bg-[#F1F7FC]{% endif %} hover:bg-gray-50 divide-x divide-gray-200">
+            <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+              {{ dept.name }}
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2">
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                  <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ dept.progress }}%"></div>
+                </div>
+                <span class="font-medium">{{ dept.progress }}%</span>
               </div>
-              <span class="font-medium">{{ dept.progress }}%</span>
-            </div>
-          </td>
-          <td class="px-6 py-4 text-center font-medium">{{ dept.total }}</td>
-          <td class="px-6 py-4 text-center font-medium text-blue-600">{{ dept.in_progress }}</td>
-          <td class="px-6 py-4 text-center font-medium text-red-600">{{ dept.not_started }}</td>
-          <td class="px-6 py-4 text-center font-medium text-green-600">{{ dept.completed }}</td>
-        </tr>
+            </td>
+            <td class="px-6 py-4 text-center font-medium">{{ dept.total }}</td>
+            <td class="px-6 py-4 text-center font-medium text-blue-600">{{ dept.in_progress }}</td>
+            <td class="px-6 py-4 text-center font-medium text-red-600">{{ dept.not_started }}</td>
+            <td class="px-6 py-4 text-center font-medium text-green-600">{{ dept.completed }}</td>
+          </tr>
         {% else %}
-        <tr>
-          <td colspan="6" class="text-center py-8 text-gray-500">
-            ไม่พบข้อมูลหน่วยงานสำหรับวิทยาเขตนี้ หรือยังไม่ได้ตั้งค่า
-          </td>
-        </tr>
+          <tr>
+            <td colspan="6" class="text-center py-8 text-gray-500">
+              ไม่พบข้อมูลหน่วยงานสำหรับวิทยาเขตนี้ หรือยังไม่ได้ตั้งค่า
+            </td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>
