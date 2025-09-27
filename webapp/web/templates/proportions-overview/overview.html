@@ -1,0 +1,220 @@
+{% extends "/base/default_page.html" %}
+{% block content %}
+<div class="p-6">
+  <!-- Header -->
+  <div class="bg-white border border-blue-200 rounded-lg shadow-sm p-6 mb-6">
+    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
+
+      <!-- Left: Title + meta -->
+      <div class="w-full">
+        <h1 class="text-3xl md:text-4xl font-bold text-blue-800 flex items-center gap-3">
+          <i data-feather="activity" class="w-7 h-7 text-blue-500"></i>
+          ภาพรวมการปล่อย Carbon Footprint
+        </h1>
+        <div class="mt-3 text-xs md:text-sm leading-relaxed text-gray-400 font-medium">
+          มหาวิทยาลัยสงขลานครินทร์ • ปี
+          <span class="text-gray-500">{{ selected_year }}</span>
+        </div>
+      </div>
+
+      <!-- Right: Year Dropdown only -->
+      <div class="pt-2 md:pt-1">
+        <div class="text-[11px] uppercase tracking-wide text-gray-500 mb-1">เลือกปี</div>
+        {% if years and years|length > 0 %}
+          <div class="dropdown">
+            <label tabindex="0" class="btn btn-xs md:btn-sm btn-outline">
+              {{ selected_year }}
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 ml-1" fill="none" viewBox="0 0 24 24"
+                   stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                   d="M19 9l-7 7-7-7"/></svg>
+            </label>
+            <ul tabindex="0"
+                class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-28 max-h-52 overflow-y-auto text-[11px]">
+              {% for y in years %}
+                <li>
+                  <a href="?year={{ y }}"
+                     class="flex justify-between {% if y == selected_year %}active font-semibold text-primary{% endif %}">
+                    <span>{{ y }}</span>
+                    {% if y == selected_year %}<span>✓</span>{% endif %}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% else %}
+          <div class="text-gray-400 text-[11px]">ไม่มีปี</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ส่วนการ์ดอื่นๆคงเดิม -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Scope 1 -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border border-purple-200">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="bg-purple-100 p-2 rounded-full">
+          <i data-feather="layers" class="w-6 h-6 text-purple-600"></i>
+        </div>
+        <h3 class="text-lg font-bold text-purple-800">Scope 1 - การปล่อยตรง (Direct)</h3>
+      </div>
+      <div class="text-2xl font-bold text-purple-800">{{ (overall_stats.totalScope1)|round(1) }}</div>
+      <div class="text-gray-500">tonCO₂e รวม</div>
+    </div>
+    <!-- Scope 2 -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border border-green-200">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="bg-green-100 p-2 rounded-full">
+          <i data-feather="zap" class="w-6 h-6 text-green-600"></i>
+        </div>
+        <h3 class="text-lg font-bold text-green-800">Scope 2 - การปล่อยทางอ้อม (Indirect)</h3>
+      </div>
+      <div class="text-2xl font-bold text-green-800">{{ (overall_stats.totalScope2)|round(1) }}</div>
+      <div class="text-gray-500">tonCO₂e รวม</div>
+    </div>
+    <!-- Scope 3 -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border border-blue-200">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="bg-blue-100 p-2 rounded-full">
+          <i data-feather="globe" class="w-6 h-6 text-blue-600"></i>
+        </div>
+        <h3 class="text-lg font-bold text-blue-800">Scope 3 - การปล่อยทางอ้อมอื่นๆ</h3>
+      </div>
+      <div class="text-2xl font-bold text-blue-800">{{ (overall_stats.totalScope3)|round(1) }}</div>
+      <div class="text-gray-500">tonCO₂e รวม</div>
+    </div>
+    <!-- รวมทั้งหมด -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+      <h3 class="text-lg font-bold mb-2">การปล่อยรวมทั้งหมด</h3>
+      <div class="text-2xl font-bold">{{ overall_stats.total|round(1) }} tonCO₂e</div>
+      <div class="text-gray-500">ปี {{ selected_year }}</div>
+    </div>
+  </div>
+
+  <!-- ส่วน Campus Cards และ Chart & Summary คงเดิม -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Campus Cards -->
+    <div class="lg:col-span-2">
+      <h2 class="text-xl font-bold mb-4">ข้อมูลแต่ละ Campus</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for campus in campus_summaries %}
+        <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-4 h-4 rounded-full" style="background-color: {{ campus.color }}"></div>
+              <h3 class="text-lg font-bold">{{ campus.campusNameTh }}</h3>
+            </div>
+            <span class="text-sm text-gray-500">{{ campus.departments }} หน่วยงาน</span>
+          </div>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-600">การปล่อยรวม</span>
+              <span class="text-xl font-bold" style="color: {{ campus.color }}">
+                {{ campus.totalEmissions|round(2) }} tonCO₂e
+              </span>
+            </div>
+            <div class="flex gap-4 pt-3 border-t border-gray-100">
+              <div class="text-center flex-1">
+                <div class="text-xs text-gray-500 mb-1">Scope 1</div>
+                <div class="font-semibold text-purple-600">
+                  {{ campus.scope1Total|round(1) }}
+                </div>
+              </div>
+              <div class="text-center flex-1">
+                <div class="text-xs text-gray-500 mb-1">Scope 2</div>
+                <div class="font-semibold text-green-600">
+                  {{ campus.scope2Total|round(1) }}
+                </div>
+              </div>
+              <div class="text-center flex-1">
+                <div class="text-xs text-gray-500 mb-1">Scope 3</div>
+                <div class="font-semibold text-blue-600">
+                  {{ campus.scope3Total|round(1) }}
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 pt-2">
+              <div class="flex-1 bg-gray-200 rounded-full h-2">
+                <div class="h-2 rounded-full" style="background-color: {{ campus.color }}; width: {{ campus.percentageOfTotal|round(1) }}%"></div>
+              </div>
+              <span class="text-xs text-gray-600">{{ campus.percentageOfTotal|round(1) }}%</span>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Chart & Summary -->
+    <div class="lg:col-span-1">
+      <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100 mb-6 mt-11">
+        <h3 class="text-lg font-bold mb-4">เปรียบเทียบการปล่อยแต่ละ Campus</h3>
+        {% set max_emissions = campus_summaries[0].totalEmissions if campus_summaries else 1 %}
+        {% if max_emissions == 0 %}
+          {% set max_emissions = 1 %}
+        {% endif %}
+        <div class="space-y-4">
+          {% for campus in campus_summaries %}
+          <div>
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-2">
+                <div class="w-3 h-3 rounded-full" style="background-color: {{ campus.color }}"></div>
+                <span class="text-sm font-medium">{{ campus.campusNameTh }}</span>
+              </div>
+              <span class="text-sm font-bold">{{ campus.totalEmissions|round(1) }} tonCO₂e</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3">
+              <div class="h-3 rounded-full" style="background-color: {{ campus.color }}; width: {{ (campus.totalEmissions / max_emissions * 100)|round(1) }}%"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 border border-gray-100">
+        <h3 class="text-lg font-bold mb-4">สรุปภาพรวม ปี {{ selected_year }}</h3>
+        <div class="space-y-3">
+          <div class="flex justify-between">
+            <span class="text-gray-600">Campus ที่ปล่อยมากที่สุด</span>
+            <span class="font-semibold text-gray-800">
+              {{ campus_summaries[0].campusNameTh if campus_summaries else '-' }}
+            </span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Campus ที่ปล่อยน้อยที่สุด</span>
+            <span class="font-semibold text-gray-800">
+              {{ campus_summaries[-1].campusNameTh if campus_summaries else '-' }}
+            </span>
+          </div>
+          <div class="flex justify-between pt-2 border-t border-gray-200">
+            <span class="text-gray-600">ค่าเฉลี่ยต่อ Campus</span>
+            <span class="font-semibold text-green-600">
+              {{ (overall_stats.total / 5)|round(1) }} tonCO₂e
+            </span>
+          </div>
+          <div class="flex justify-between pt-2 border-t border-gray-200">
+            <span class="text-gray-600">Scope 1 รวม</span>
+            <span class="font-semibold text-green-600">
+              {{ overall_stats.totalScope1|round(1) }} tonCO₂e
+            </span>
+          </div>
+          <div class="flex justify-between pt-2 border-t border-gray-200">
+            <span class="text-gray-600">Scope 2 รวม</span>
+            <span class="font-semibold text-green-600">
+              {{ overall_stats.totalScope2|round(1) }} tonCO₂e
+            </span>
+          </div>
+          <div class="flex justify-between pt-2 border-t border-gray-200">
+            <span class="text-gray-600">Scope 3 รวม</span>
+            <span class="font-semibold text-green-600">
+              {{ overall_stats.totalScope3|round(1) }} tonCO₂e
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  if (typeof feather !== 'undefined') { feather.replace(); }
+</script>
+{% endblock content %}
