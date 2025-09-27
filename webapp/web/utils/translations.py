@@ -201,6 +201,9 @@ translations = {
         "category_breakdown": "สัดส่วนตามหมวดหมู่",
         "sidebar_proportions" : "สัดส่วนการปล่อย",
         "subtitle_proportions" : "ดูสัดส่วนและการกระจายของการปล่อยก๊าซเรือนกระจก",
+        "overall_progress": "ภาพรวมความคืบหน้า",
+        "subtitle_overall_progress": "ติดตามภาพรวมการกำเนิดและดูดซับก๊าซเรือนกระจก",
+        "including_scope": "Scope รวม",
     },
     "en": {
         "system_info": "System Information",
@@ -401,5 +404,8 @@ translations = {
         "category_breakdown": "Category Breakdown",
         "sidebar_proportions" : "Emission Proportions",
         "subtitle_proportions" : "View proportions and distribution of greenhouse gas emissions",
+        "overall_progress": "Overall Progress",
+        "subtitle_overall_progress": "Track overall greenhouse gas emissions and removals",
+        "including_scope": "Including Overall Scope",
     },
 }

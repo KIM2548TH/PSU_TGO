@@ -85,7 +85,7 @@
         <li>
           <a href="/scope-progress" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path.startswith('/scope-progress') %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
             <i data-feather="activity"></i>
-            <span class="text-md">ความคืบหน้าการกรอกข้อมูล</span>
+            <span class="text-md">{{ t.overall_progress }}</span>
           </a>
         </li>
         {% endif %}
