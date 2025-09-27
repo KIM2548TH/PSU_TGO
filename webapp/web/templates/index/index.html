@@ -80,6 +80,16 @@
             <span class="text-md">{{ t.sidebar_emissions }}</span>
           </a>
         </li>
+        <!-- ...existing code... -->
+        {% if session.get("role") in ["admin"] %}
+        <li>
+          <a href="/scope-progress" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path.startswith('/scope-progress') %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
+            <i data-feather="activity"></i>
+            <span class="text-md">ความคืบหน้าการกรอกข้อมูล</span>
+          </a>
+        </li>
+        {% endif %}
+        <!-- ...existing code... -->
         <li>
           <a href="/proportions" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/proportions' or request.path == '/proportions/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
             <i data-feather="pie-chart"></i>
@@ -92,12 +102,12 @@
             <span class="text-md">{{ t.sidebar_summary }}</span>
           </a>
         </li>
-        <li>
+        <!-- <li>
           <a href="https://g.co/gemini/share/26ec7fb8617d" target="_blank" rel="noopener" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
             <i data-feather="map"></i>
             <span class="text-md">Pathway</span>
           </a>
-        </li>
+        </li> -->
          {% endif %} 
         {% if session.get("role") in ["admin"] %}
         <li>
