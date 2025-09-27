@@ -53,7 +53,6 @@
         {% endif %}
       </div>
     </div>
-    
     <!-- Progress Section -->
     <div class="mt-4 flex items-center gap-4">
       {% if mockup_data.overall_progress == 0 %}
@@ -84,9 +83,45 @@
       </div>
     </div>
   </div>
+</div>
+    <!-- ✅ Label -->
+<label class="block mb-4 text-lg font-semibold text-gray-700">เลือก Scope:</label>
 
+<!-- ✅ Scope Cards as Radio Buttons -->
+<div class="flex gap-6 mb-6">
   {% for scope_name, scope_items in mockup_data.scopes.items() %}
-  <div class="mt-12">
+  <div class="cursor-pointer p-4 rounded-xl shadow-md border flex-1
+              {% if loop.first %}bg-purple-100{% else %}bg-gray-100{% endif %}"
+       onclick="toggleScope('{{ scope_name }}')">
+    {% if scope_name.endswith('1') %}
+    <div class="flex items-center gap-3">
+      <div class="bg-purple-200 p-2 rounded-full">
+        <i data-feather="layers" class="w-5 h-5 text-purple-600"></i>
+      </div>
+      <span class="font-bold text-purple-800">{{ scope_name }} - {{ t.direct_emission }}</span>
+    </div>
+    {% elif scope_name.endswith('2') %}
+    <div class="flex items-center gap-3">
+      <div class="bg-green-200 p-2 rounded-full">
+        <i data-feather="zap" class="w-5 h-5 text-green-600"></i>
+      </div>
+      <span class="font-bold text-green-800">{{ scope_name }} - {{ t.indirect_emission }}</span>
+    </div>
+    {% elif scope_name.endswith('3') %}
+    <div class="flex items-center gap-3">
+      <div class="bg-blue-200 p-2 rounded-full">
+        <i data-feather="globe" class="w-5 h-5 text-blue-600"></i>
+      </div>
+      <span class="font-bold text-blue-800">{{ scope_name }} - {{ t.indirect_emission_other }}</span>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<div class="flex gap-6 mb-6">
+  {% for scope_name, scope_items in mockup_data.scopes.items() %}
+  <div id="{{ scope_name }}" class="mt-12">
     {% if scope_name.endswith('1') %}
     <div class="flex items-center gap-3 mb-6">
       <div class="bg-purple-100 p-3 rounded-full">
@@ -202,6 +237,7 @@
           </div>
           
           <div class="flex items-center gap-2 flex-shrink-0">
+            {% if session.get("role") in ["admin"] %}
             <button 
               class="text-blue-500 hover:text-blue-700 btn btn-ghost btn-sm btn-circle"
               title="{{ t.edit_scope }}"
@@ -212,7 +248,7 @@
               title="{{ t.edit_scope }}">
               <i data-feather="settings" class="w-5 h-5"></i>
             </button>
-            
+            {% endif %}
             <form action="{{ url_for('emissions.view_emissions') }}" method="POST" style="display: inline;">
               <input type="hidden" name="scope_id" value="{{ scope.ghg_scope }}">
               <input type="hidden" name="sub_scope_id" value="{{ scope.ghg_sup_scope }}">
@@ -229,4 +265,23 @@
   </div>
   {% endfor %}
 </div>
+<script>
+  function toggleScope(scopeId) {
+    const scopes = ["Scope 1", "Scope 2", "Scope 3"];
+
+    scopes.forEach(id => {
+      const div = document.getElementById(id);
+      if (id === scopeId) {
+        div.classList.remove("hidden"); // แสดง
+      } else {
+        div.classList.add("hidden");    // ซ่อน
+      }
+    });
+  }
+    // ✅ ตั้งค่า default = Scope1
+  document.addEventListener("DOMContentLoaded", function () {
+    toggleScope("Scope 1");
+  });
+</script>
+
 {% endblock content %}

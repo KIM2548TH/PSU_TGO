@@ -1,0 +1,46 @@
+{% if departments %}
+  {% for dept_key, dept_name in departments.items() %}
+  <li onclick="event.stopPropagation();">
+    <label class="label cursor-pointer justify-start w-full p-2 hover:bg-base-200" 
+           onclick="event.stopPropagation();">
+      <input type="radio" class="radio radio-sm mr-2" 
+             name="selected_department" value="{{ dept_key }}"
+             {% if dept_key == current_user.department_key %}checked{% endif %}
+             hx-post="/summary/scopes" 
+             hx-target="#scope-list"
+             hx-vals='{"department_name": "{{ dept_name }}"}'
+             hx-include="[name='selected_campus']:checked, [name='selected_department']:checked"
+             hx-trigger="change"
+             onclick="event.stopPropagation();">
+      <span class="label-text" onclick="event.stopPropagation();">{{ dept_name }}</span>
+    </label>
+  </li>
+  {% endfor %}
+  
+  <!-- Reset เมื่อ department เปลี่ยน -->
+  <div hx-get="/summary/reset-display" 
+       hx-target="#stats-container"
+       hx-trigger="change from:[name='selected_department']">
+  </div>
+  
+  <div hx-get="/summary/reset-display" 
+       hx-target="#charts-container"
+       hx-trigger="change from:[name='selected_department']">
+  </div>
+  
+  <div hx-post="/summary/years" 
+       hx-target="#year-list"
+       hx-include="[name='selected_campus']:checked, [name='selected_department']:checked"
+       hx-trigger="change from:[name='selected_department']">
+  </div>
+  
+  <!-- Reset sub scope list -->
+  <div hx-swap-oob="innerHTML:#sub-scope-list" 
+       hx-trigger="change from:[name='selected_department']">
+    <li><span class="text-gray-500 p-2 text-sm">Select Scope first</span></li>
+  </div>
+{% else %}
+  <li onclick="event.stopPropagation();">
+    <span class="text-gray-500 p-2">No departments available</span>
+  </li>
+{% endif %}

@@ -675,26 +675,6 @@ def delete_material():
         # Calculate and update the result
         calculate_result(material)
 
-        # อัปเดต Material ที่ลิงก์ (is_linked=True) ที่ linked_material_name = material.name
-        linked_materials = Material.objects(
-            month=int(month_id),
-            name__in=[
-                lf.material_name
-                for lf in FormAndFormula.objects(
-                    linked_material_name=material.name, is_linked=True
-                )
-            ],
-            year=int(year),
-            department=current_user.department_key,
-            campus=current_user.campus_id,
-        )
-        for linked_material in linked_materials:
-            linked_material.quantity_type = []
-            linked_material.edit_by_id = str(current_user.id)
-            linked_material.update_date = datetime.datetime.now()
-            linked_material.save()
-            calculate_result(linked_material)
-
     # Refresh the table after deletion
     scope = Scope.objects(
         ghg_scope=int(scope_id),
@@ -773,27 +753,9 @@ def delete_all_materials():
             material.edit_by_id = str(current_user.id)  # Update edit_by_id
             material.update_date = datetime.datetime.now()  # Update update_date
             material.save()
-            calculate_result(material)
 
-            # อัปเดต Material ที่ลิงก์ (is_linked=True) ที่ linked_material_name = material.name
-            linked_materials = Material.objects(
-                month=int(month_id),
-                name__in=[
-                    lf.material_name
-                    for lf in FormAndFormula.objects(
-                        linked_material_name=material.name, is_linked=True
-                    )
-                ],
-                year=int(year),
-                department=current_user.department_key,
-                campus=current_user.campus_id,
-            )
-            for linked_material in linked_materials:
-                linked_material.quantity_type = []
-                linked_material.edit_by_id = str(current_user.id)
-                linked_material.update_date = datetime.datetime.now()
-                linked_material.save()
-                calculate_result(linked_material)
+            # Calculate and update the result
+            calculate_result(material)
 
     # Refresh the table after deletion
     scope = Scope.objects(
@@ -836,7 +798,7 @@ def delete_all_materials():
             sub_scope_id=sub_scope_id,
             materials=materials,
             head_table=current_headers,
-            head_table_info=head_table_info,
+            head_table_info=head_table_info,  # เพิ่มบรรทัดนี้
             total_pages=total_pages,
             page=page,
             user=current_user,

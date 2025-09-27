@@ -16,7 +16,7 @@
                     </div>
                     <div>
                       <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                        {{scope_id}}.{{sub_scope_id}} {{ghg_name}}
+                        {{ghg_name}}
                         <button class="info-btn hover:bg-gray-200 p-1 rounded-full transition-colors"
                           hx-get="{{ url_for('emissions_scope.scope_description', ghg_scope=scope_id, ghg_sup_scope=sub_scope_id) }}"
                           hx-target="#modal-content"

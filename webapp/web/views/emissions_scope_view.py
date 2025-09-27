@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request, jsonify
+from flask import Blueprint, render_template, redirect, url_for, request, jsonify, session
 from flask_login import login_required, current_user
 from ...models import FormAndFormula, Scope, Material, CampusAndDepartment
 from datetime import datetime

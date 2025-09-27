@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request, jsonify
+from flask import Blueprint, render_template, redirect, url_for, request, jsonify,flash
 from flask_login import login_required, logout_user, current_user
 from ..forms.user_form import LoginForm, RegisterForm, EditUserForm, EditprofileForm
 from ...services.user_service import UserService
@@ -134,9 +134,9 @@ def edit_form_and_formula():
         form.material_name = request.form.get("material_name")
         form.desc_form = request.form.get("desc_form")
         form.desc_formula = request.form.get("desc_formula")
-        form.desc_formula2 = ""
+        form.desc_formula2 = request.form.get("desc_formula2")
         form.formula = request.form.get("formula")
-        form.formula2 = ""
+        form.formula2 = request.form.get("formula2")
 
         ghg_scope = request.form.get("scope")
         ghg_sup_scope = request.form.get("sup_scope")
@@ -236,13 +236,18 @@ def edit_form_and_formula():
 
         form.save()
 
-        return jsonify(
-            {
-                "success": True,
-                "message": "บันทึกการแก้ไขสำเร็จ!",
-                "redirect_url": url_for("form_management.form_management"),
-            }
-        )
+        # Flash message if you want it shown in the template
+        flash("บันทึกการแก้ไขสำเร็จ!", "success")
+
+        return redirect(url_for("form_management.form_management"))
+
+        # return jsonify(
+        #     {
+        #         "success": True,
+        #         "message": "บันทึกการแก้ไขสำเร็จ!",
+        #         "redirect_url": url_for("form_management.form_management"),
+        #     }
+        #)
     except Exception as e:
         import traceback
 
