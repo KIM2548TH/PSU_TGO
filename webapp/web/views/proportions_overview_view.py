@@ -6,20 +6,33 @@ from ...models.campus_and_department_model import CampusAndDepartment
 
 module = Blueprint("proportions_overview", __name__, url_prefix="/proportions/overview")
 
-CAMPUS_INFO = {
-    "hatyai": {"nameTh": "หาดใหญ่", "color": "#10B981"},
-    "pattani": {"nameTh": "ปัตตานี", "color": "#3B82F6"},
-    "suratthani": {"nameTh": "สุราษฎร์ธานี", "color": "#8B5CF6"},
-    "phuket": {"nameTh": "ภูเก็ต", "color": "#F59E0B"},
-    "trang": {"nameTh": "ตรัง", "color": "#EF4444"},
-}
+# สีสำหรับแต่ละวิทยาเขตตามลำดับ
+CAMPUS_COLORS = ["#10B981", "#3B82F6", "#8B5CF6", "#F59E0B", "#EF4444", "#FFA2CF"]
+
+
+def get_campus_color(index):
+    """Get color for campus by index"""
+    return CAMPUS_COLORS[index % len(CAMPUS_COLORS)]
 
 
 @module.route("/", methods=["GET"])
 @login_required
 def overview():
     selected_year = int(request.args.get("year", datetime.datetime.now().year))
-    campus_keys = list(CAMPUS_INFO.keys())
+    
+    # Query campus data from DB and build campus_keys and campus_info
+    campus_objs = CampusAndDepartment.objects()
+    campus_keys = []
+    campus_info = {}
+    
+    for index, c in enumerate(campus_objs):
+        key = c.name.get("0")
+        if key:
+            campus_keys.append(key)
+            campus_info[key] = {
+                "nameTh": key,
+                "color": get_campus_color(index)
+            }
 
     # ดึงข้อมูล Material เฉพาะปีที่เลือก
     materials = Material.objects(
@@ -75,14 +88,14 @@ def overview():
         campus_summaries.append(
             {
                 "campus": campus,
-                "campusNameTh": CAMPUS_INFO[campus]["nameTh"],
+                "campusNameTh": campus_info[campus]["nameTh"],
                 "departments": len(departments),
                 "scope1Total": scope1_total,
                 "scope2Total": scope2_total,
                 "scope3Total": scope3_total,
                 "totalEmissions": total_emissions,
                 "percentageOfTotal": percentage_of_total,
-                "color": CAMPUS_INFO[campus]["color"],
+                "color": campus_info[campus]["color"],
             }
         )
 
@@ -104,6 +117,6 @@ def overview():
         campus_summaries=campus_summaries,
         overall_stats=overall_stats,
         selected_year=selected_year,
-        campus_info=CAMPUS_INFO,
+        campus_info=campus_info,
         years=years,
     )
