@@ -90,8 +90,10 @@
 <!-- ✅ Scope Cards as Radio Buttons -->
 <div class="flex gap-6 mb-6">
   {% for scope_name, scope_items in mockup_data.scopes.items() %}
-  <div class="cursor-pointer p-4 rounded-xl shadow-md border flex-1
-              {% if loop.first %}bg-purple-100{% else %}bg-gray-100{% endif %}"
+  <div id="scope-card-{{ scope_name.replace(' ', '-') }}" class="cursor-pointer p-4 rounded-xl shadow-md border border-gray-300 flex-1 transition-all duration-200
+    {% if scope_name.endswith('1') %}hover:bg-purple-50 hover:border-purple-300{% endif %}
+    {% if scope_name.endswith('2') %}hover:bg-green-50 hover:border-green-300{% endif %}
+    {% if scope_name.endswith('3') %}hover:bg-blue-50 hover:border-blue-300{% endif %}"
        onclick="toggleScope('{{ scope_name }}')">
     {% if scope_name.endswith('1') %}
     <div class="flex items-center gap-3">
@@ -271,10 +273,28 @@
 
     scopes.forEach(id => {
       const div = document.getElementById(id);
+      const card = document.getElementById("scope-card-" + id.replace(' ', '-'));
+      
       if (id === scopeId) {
         div.classList.remove("hidden"); // แสดง
+        
+        // เพิ่มสีที่แสดงว่าเลือกอยู่
+        if (id.endsWith('1')) {
+          card.classList.add("bg-purple-100", "border-purple-400");
+          card.classList.remove("border-gray-300");
+        } else if (id.endsWith('2')) {
+          card.classList.add("bg-green-100", "border-green-400");
+          card.classList.remove("border-gray-300");
+        } else if (id.endsWith('3')) {
+          card.classList.add("bg-blue-100", "border-blue-400");
+          card.classList.remove("border-gray-300");
+        }
       } else {
         div.classList.add("hidden");    // ซ่อน
+        
+        // รีเซ็ตสีกลับเป็นปกติ
+        card.classList.remove("bg-purple-100", "border-purple-400", "bg-green-100", "border-green-400", "bg-blue-100", "border-blue-400");
+        card.classList.add("border-gray-300");
       }
     });
   }

@@ -204,6 +204,8 @@ translations = {
         "overall_progress": "ภาพรวมความคืบหน้า",
         "subtitle_overall_progress": "ติดตามภาพรวมการกำเนิดและดูดซับก๊าซเรือนกระจก",
         "including_scope": "Scope รวม",
+        "Manage_campuses_departments": "จัดการวิทยาเขตและหน่วยงาน",
+        "subtitle_campus_department": "สร้างและจัดการวิทยาเขตและหน่วยงาน",
     },
     "en": {
         "system_info": "System Information",
@@ -407,5 +409,7 @@ translations = {
         "overall_progress": "Overall Progress",
         "subtitle_overall_progress": "Track overall greenhouse gas emissions and removals",
         "including_scope": "Including Overall Scope",
+        "Manage_campuses_departments": "Manage Organization",
+        "subtitle_campus_department": "Create and manage campuses and departments",
     },
 }

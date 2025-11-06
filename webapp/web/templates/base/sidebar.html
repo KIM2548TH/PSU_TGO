@@ -41,6 +41,12 @@
         <span class="text-md">{{t.scope_management}}</span>
       </a>
     </li>
+    <li>
+      <a href="/campus-department" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path.startswith('/campus-department') %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
+        <i data-feather="map-pin"></i>
+        <span class="text-md">{{ t.Manage_campuses_departments }}</span>
+      </a>
+    </li>
     {% endif %}
     <!-- Show for both admin & editor -->
     {% if session.get("role") in ["admin", "user"] %}

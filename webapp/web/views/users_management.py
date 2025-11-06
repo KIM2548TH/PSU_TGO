@@ -265,10 +265,6 @@ def load_departments_edit():
 def load_campuses():
     """Load campus dropdown"""
     selected_campus = request.args.get("campus", "")
-    print(
-        selected_campus,
-        88888888888888888888888888888888888888888888888888888888888888888888888,
-    )
     campuses_obj = get_campuses()
     campuses = []
     for campus in campuses_obj:
