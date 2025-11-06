@@ -1,0 +1,88 @@
+<!-- Campus List Fragment สำหรับ HTMX Update -->
+{% for campus in campuses %}
+<div class="card bg-base-100 shadow-md border border-base-300">
+  <div class="card-body p-4">
+    <div class="flex justify-between items-start mb-3">
+      <div class="flex-1">
+        <h2 class="card-title text-lg font-bold text-primary flex items-center gap-2">
+          <i data-feather="map-pin" class="w-5 h-5"></i>
+          {{ campus.name.get('0', 'ไม่ระบุ') }}
+        </h2>
+        {% if campus.description %}
+        <p class="text-base-content/80 mt-1 mb-5">
+          {{ campus.description }}
+        </p>
+        {% endif %}
+        <p class="text-sm text-base-content/80 mt-1 flex items-center gap-1">
+          <i data-feather="calendar" class="w-4 h-4"></i>
+          วันที่สร้าง: {{ campus.created_date.strftime('%d/%m/%Y %H:%M') if campus.created_date else 'ไม่ระบุ' }}
+        </p>
+        <p class="text-sm text-base-content/80 mt-1 mb-1"></p>
+        {% if campus.updated_date %}
+        <p class="text-sm text-base-content/70 flex items-center gap-1">
+          <i data-feather="edit-3" class="w-4 h-4"></i>
+          แก้ไขล่าสุด: {{ campus.updated_date.strftime('%d/%m/%Y %H:%M') }}
+        </p>
+        {% endif %}
+      </div>
+      
+      <div class="flex gap-2">
+        <button class="btn btn-sm btn-primary btn-outline" 
+                hx-get="{{ url_for('campus_department.add_department', campus_id=campus.id) }}"
+                hx-target="body"
+                hx-swap="beforeend">
+          <i data-feather="plus" class="w-4 h-4"></i>
+          เพิ่มหน่วยงาน
+        </button>
+        <button class="text-blue-500 hover:text-blue-700 btn btn-ghost btn-sm" 
+                title="แก้ไขวิทยาเขต"
+                hx-get="{{ url_for('campus_department.edit_campus', campus_id=campus.id) }}"
+                hx-target="body"
+                hx-swap="beforeend">
+          <i data-feather="edit" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- <div class="divider my-0"></div> -->
+    
+    <div>
+      <div class="flex justify-between items-center mb-2 text-blue-950 ">
+        <h3 class="font-semibold text-base-content">หน่วยงาน:</h3>
+        <span class="badge badge-outline">{{ campus.departments|length }} หน่วยงาน</span>
+      </div>
+      
+      <!-- Details/Summary สำหรับแสดง/ซ่อนหน่วยงาน -->
+      <div class="relative w-full">
+        <details class="w-full">
+          <summary class="btn btn-outline w-full justify-between cursor-pointer list-none border-base-300">
+            <span>ดูหน่วยงานทั้งหมด</span>
+            <i data-feather="chevron-down" class="w-4 h-4 transition-transform duration-200 details-chevron"></i>
+          </summary>
+          
+          <!-- รายการหน่วยงานแบบ absolute positioning ไม่ยืด card -->
+          <div class="absolute top-full left-0 right-0 mt-1 bg-base-100 rounded-lg shadow-lg border border-base-300 z-10 max-h-48 overflow-y-auto">
+            <div class="p-3 space-y-2">
+              {% for dept_key, dept_name in campus.departments.items() %}
+              <div class="flex justify-between items-center p-2 bg-base-200 rounded">
+                <span class="flex-1 text-sm">{{ dept_name }}</span>
+                <button class="text-blue-500 hover:text-blue-700 btn btn-ghost btn-xs ml-2"
+                        title="แก้ไขหน่วยงาน"
+                        hx-get="{{ url_for('campus_department.edit_department', campus_id=campus.id, dept_key=dept_key) }}"
+                        hx-target="body"
+                        hx-swap="beforeend">
+                  <i data-feather="edit" class="w-4 h-4"></i>
+                </button>
+              </div>
+              {% endfor %}
+              {% if campus.departments|length == 0 %}
+              <div class="text-center text-base-content/50 py-4">ไม่มีหน่วยงาน</div>
+              {% endif %}
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}

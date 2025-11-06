@@ -1,0 +1,62 @@
+<!-- Modal Fragment สำหรับแก้ไขหน่วยงาน -->
+<div class="modal modal-open" id="edit-department-modal">
+  <div class="modal-box w-11/12 max-w-2xl">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="font-bold text-lg">แก้ไขหน่วยงาน</h3>
+      <button class="btn btn-sm btn-circle btn-ghost" onclick="document.getElementById('edit-department-modal').remove()">✕</button>
+    </div>
+    
+    <div class="mb-4 p-3 bg-base-200 rounded-lg">
+      <p class="text-sm text-base-content/70">วิทยาเขต:</p>
+      <p class="font-semibold">{{ campus.name.get('0', 'ไม่ระบุ') }}</p>
+    </div>
+    
+    <form hx-post="{{ url_for('campus_department.edit_department', campus_id=campus.id, dept_key=department.key) }}" 
+          hx-target="#campus-list" 
+          hx-swap="innerHTML"
+          hx-on::after-request="if(event.detail.successful) document.getElementById('edit-department-modal').remove()"
+          class="space-y-4">
+      {{ form.hidden_tag() }}
+      
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">{{ form.department_name.label.text }}</span>
+        </label>
+        {{ form.department_name(class="input input-bordered w-full") }}
+        {% if form.department_name.errors %}
+          <label class="label">
+            {% for error in form.department_name.errors %}
+              <span class="label-text-alt text-error">{{ error }}</span>
+            {% endfor %}
+          </label>
+        {% endif %}
+      </div>
+      
+      <div class="modal-action justify-between">
+        {% if can_delete %}
+        <button type="button" 
+                class="btn btn-error"
+                hx-post="{{ url_for('campus_department.delete_department', campus_id=campus.id, dept_key=department.key) }}"
+                hx-target="#campus-list"
+                hx-swap="innerHTML"
+                hx-confirm="คุณแน่ใจหรือไม่ที่จะลบหน่วยงาน '{{ department.name }}'?"
+                hx-on::after-request="if(event.detail.successful) document.getElementById('edit-department-modal').remove()">
+          <i data-feather="trash-2" class="w-4 h-4"></i>
+          ลบหน่วยงาน
+        </button>
+        {% else %}
+        <div class="tooltip tooltip-right" data-tip="ไม่สามารถลบได้เนื่องจากมีข้อมูลที่เกี่ยวข้องหรือเป็นหน่วยงานสุดท้าย">
+          <button type="button" class="btn btn-error btn-disabled" disabled>
+            <i data-feather="trash-2" class="w-4 h-4"></i>
+            ลบหน่วยงาน
+          </button>
+        </div>
+        {% endif %}
+        <div class="flex gap-2">
+          <button type="button" class="btn btn-ghost" onclick="document.getElementById('edit-department-modal').remove()">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary">บันทึกการแก้ไข</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

@@ -42,6 +42,9 @@
     {% elif path.startswith('/proportions') %}
       {% set page_title = t.sidebar_proportions %}
       {% set page_subtitle = t.subtitle_proportions %}
+    {% elif path.startswith('/campus-department') %}
+      {% set page_title = t.Manage_campuses_departments %}
+      {% set page_subtitle = t.subtitle_campus_department %}
     {% elif path.startswith('/scope-progress') %}
       {% set page_title = t.overall_progress %}
       {% set page_subtitle = t.subtitle_overall_progress %}

@@ -1,0 +1,78 @@
+{% extends "/base/default_page.html" %}
+{% block content %}
+
+<style>
+  /* CSS สำหรับ details/summary dropdown */
+  details[open] .details-chevron {
+    transform: rotate(180deg);
+  }
+  
+  details summary {
+    outline: none;
+  }
+  
+  details summary::-webkit-details-marker {
+    display: none;
+  }
+  
+  details summary::marker {
+    display: none;
+  }
+  
+  /* Dropdown content แบบ overlay ไม่ยืด card */
+  details:not([open]) > div {
+    display: none;
+  }
+  
+  details[open] > div {
+    display: block;
+  }
+  
+  /* เพิ่ม z-index สูงเพื่อแสดงทับ element อื่น */
+  .card {
+    overflow: visible; /* ให้ dropdown แสดงทับได้ */
+  }
+</style>
+
+<div class="p-1">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800"></h1>
+    <button class="btn btn-primary flex items-center gap-2"
+            hx-get="{{ url_for('campus_department.add_campus') }}"
+            hx-target="body"
+            hx-swap="beforeend">
+      <i data-feather="plus-circle" class="w-5 h-5"></i>
+      <span>เพิ่มวิทยาเขตใหม่</span>
+    </button>
+  </div>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="mb-6">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'success' if category == 'success' else 'error' }} mb-2">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div id="campus-list" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+    {% include 'campus-and-department/partials/campus-list.html' %}
+  </div>
+</div>
+
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+<script>
+  // Initialize Feather icons
+  feather.replace();
+  
+  // Re-initialize Feather icons after HTMX updates
+  document.body.addEventListener('htmx:afterSettle', function() {
+    feather.replace();
+  });
+</script>
+
+{% endblock %}

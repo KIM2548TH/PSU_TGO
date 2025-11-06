@@ -1,0 +1,50 @@
+<!-- Modal Fragment สำหรับเพิ่มวิทยาเขต -->
+<div class="modal modal-open" id="add-campus-modal">
+  <div class="modal-box w-11/12 max-w-2xl">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="font-bold text-lg">เพิ่มวิทยาเขตใหม่</h3>
+      <button class="btn btn-sm btn-circle btn-ghost" onclick="document.getElementById('add-campus-modal').remove()">✕</button>
+    </div>
+    
+    <form hx-post="{{ url_for('campus_department.add_campus') }}" 
+          hx-target="#campus-list" 
+          hx-swap="innerHTML"
+          hx-on::after-request="if(event.detail.successful) document.getElementById('add-campus-modal').remove()"
+          class="space-y-4">
+      {{ form.hidden_tag() }}
+      
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">{{ form.campus_name.label.text }}</span>
+        </label>
+        {{ form.campus_name(class="input input-bordered w-full", placeholder="ระบุชื่อวิทยาเขต") }}
+        {% if form.campus_name.errors %}
+          <label class="label">
+            {% for error in form.campus_name.errors %}
+              <span class="label-text-alt text-error">{{ error }}</span>
+            {% endfor %}
+          </label>
+        {% endif %}
+      </div>
+      
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">{{ form.description.label.text }}</span>
+        </label>
+        {{ form.description(class="textarea textarea-bordered w-full h-20", placeholder="อธิบายเกี่ยวกับวิทยาเขตนี้ (ไม่บังคับ)") }}
+        {% if form.description.errors %}
+          <label class="label">
+            {% for error in form.description.errors %}
+              <span class="label-text-alt text-error">{{ error }}</span>
+            {% endfor %}
+          </label>
+        {% endif %}
+      </div>
+      
+      <div class="modal-action">
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('add-campus-modal').remove()">ยกเลิก</button>
+        <button type="submit" class="btn btn-primary">เพิ่มวิทยาเขต</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,71 @@
+<!-- Modal Fragment สำหรับแก้ไขวิทยาเขต -->
+<div class="modal modal-open" id="edit-campus-modal">
+  <div class="modal-box w-11/12 max-w-2xl">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="font-bold text-lg">แก้ไขวิทยาเขต</h3>
+      <button class="btn btn-sm btn-circle btn-ghost" onclick="document.getElementById('edit-campus-modal').remove()">✕</button>
+    </div>
+    
+    <form hx-post="{{ url_for('campus_department.edit_campus', campus_id=campus.id) }}" 
+          hx-target="#campus-list" 
+          hx-swap="innerHTML"
+          hx-on::after-request="if(event.detail.successful) document.getElementById('edit-campus-modal').remove()"
+          class="space-y-4">
+      {{ form.hidden_tag() }}
+      
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">{{ form.campus_name.label.text }}</span>
+        </label>
+        {{ form.campus_name(class="input input-bordered w-full") }}
+        {% if form.campus_name.errors %}
+          <label class="label">
+            {% for error in form.campus_name.errors %}
+              <span class="label-text-alt text-error">{{ error }}</span>
+            {% endfor %}
+          </label>
+        {% endif %}
+      </div>
+      
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">{{ form.description.label.text }}</span>
+        </label>
+        {{ form.description(class="textarea textarea-bordered w-full h-20", placeholder="อธิบายเกี่ยวกับวิทยาเขตนี้ (ไม่บังคับ)") }}
+        {% if form.description.errors %}
+          <label class="label">
+            {% for error in form.description.errors %}
+              <span class="label-text-alt text-error">{{ error }}</span>
+            {% endfor %}
+          </label>
+        {% endif %}
+      </div>
+      
+      <div class="modal-action justify-between">
+        {% if can_delete %}
+        <button type="button" 
+                class="btn btn-error"
+                hx-post="{{ url_for('campus_department.delete_campus', campus_id=campus.id) }}"
+                hx-target="#campus-list"
+                hx-swap="innerHTML"
+                hx-confirm="คุณแน่ใจหรือไม่ที่จะลบวิทยาเขต '{{ campus.name.get('0', 'ไม่ระบุ') }}' และหน่วยงานทั้งหมด?"
+                hx-on::after-request="if(event.detail.successful) document.getElementById('edit-campus-modal').remove()">
+          <i data-feather="trash-2" class="w-4 h-4"></i>
+          ลบวิทยาเขต
+        </button>
+        {% else %}
+        <div class="tooltip tooltip-right" data-tip="ไม่สามารถลบได้เนื่องจากมีข้อมูลที่เกี่ยวข้อง">
+          <button type="button" class="btn btn-error btn-disabled" disabled>
+            <i data-feather="trash-2" class="w-4 h-4"></i>
+            ลบวิทยาเขต
+          </button>
+        </div>
+        {% endif %}
+        <div class="flex gap-2">
+          <button type="button" class="btn btn-ghost" onclick="document.getElementById('edit-campus-modal').remove()">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary">บันทึกการแก้ไข</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

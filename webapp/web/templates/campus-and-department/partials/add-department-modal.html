@@ -1,0 +1,49 @@
+<!-- Modal Fragment สำหรับเพิ่มหน่วยงาน -->
+<div class="modal modal-open" id="add-department-modal">
+  <div class="modal-box w-11/12 max-w-2xl">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="font-bold text-lg">เพิ่มหน่วยงานใหม่</h3>
+      <button class="btn btn-sm btn-circle btn-ghost" onclick="document.getElementById('add-department-modal').remove()">✕</button>
+    </div>
+    
+    <div class="mb-4 p-3 bg-base-200 rounded-lg">
+      <p class="text-sm text-base-content/70">วิทยาเขต:</p>
+      <p class="font-semibold">{{ campus.name.get('0', 'ไม่ระบุ') }}</p>
+    </div>
+    
+    <form hx-post="{{ url_for('campus_department.add_department', campus_id=campus.id) }}" 
+          hx-target="#campus-list" 
+          hx-swap="innerHTML"
+          hx-on::after-request="if(event.detail.successful) document.getElementById('add-department-modal').remove()"
+          class="space-y-4">
+      {{ form.hidden_tag() }}
+      
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">{{ form.department_name.label.text }}</span>
+        </label>
+        {{ form.department_name(class="input input-bordered w-full", placeholder="ระบุชื่อหน่วยงาน") }}
+        {% if form.department_name.errors %}
+          <label class="label">
+            {% for error in form.department_name.errors %}
+              <span class="label-text-alt text-error">{{ error }}</span>
+            {% endfor %}
+          </label>
+        {% endif %}
+      </div>
+      
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text-alt text-base-content/60">
+            📋 Scope จะถูกคัดลอกจากหน่วยงาน "base" อัตโนมัติ
+          </span>
+        </label>
+      </div>
+      
+      <div class="modal-action">
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('add-department-modal').remove()">ยกเลิก</button>
+        <button type="submit" class="btn btn-primary">เพิ่มหน่วยงาน</button>
+      </div>
+    </form>
+  </div>
+</div>
