@@ -1,4 +1,4 @@
-from flask import abort, Flask, request, redirect, url_for, jsonify, render_template
+from flask import abort, Flask, request, redirect, url_for, jsonify, render_template, make_response
 from flask_login import current_user, LoginManager, login_url
 from functools import wraps
 from ...models import User, Role, Permission
@@ -8,6 +8,27 @@ login_manager = LoginManager()
 
 def init_acl(app: Flask):
     login_manager.init_app(app)
+    
+    # เพิ่ม context processor สำหรับ template
+    @app.context_processor
+    def inject_permission_checker():
+        def has_permission(required_permission):
+            """
+            ฟังก์ชันสำหรับเช็ค permission ใน template
+            """
+            if not current_user or not current_user.is_authenticated:
+                return False
+            
+            if not current_user.roles:
+                return False
+            
+            try:
+                user_permissions = _get_user_permissions()
+                return required_permission in user_permissions
+            except:
+                return False
+        
+        return {'has_permission': has_permission}
 
 
 def roles_required(required_roles: list[str]):
@@ -128,14 +149,21 @@ def _handle_permission_denied(message):
     Helper function: จัดการเมื่อไม่มี permission
     """
     # ตรวจสอบว่าเป็น HTMX request หรือไม่
-    if request.headers.get('HX-Request'):
-        # สำหรับ HTMX request ให้ return modal popup
-        return render_template(
+    is_htmx = request.headers.get('HX-Request') or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
+    if is_htmx:
+        # สำหรับ HTMX request ให้ return content ที่จะใส่ใน modal
+        response = render_template(
             '/shared/permission-denied-modal.html',
             message=message,
             user_permissions=_get_user_permissions() if current_user.is_authenticated else [],
             user_roles=current_user.roles if current_user.is_authenticated else []
         )
+        # ใช้ HX-Retarget เพื่อให้ HTMX ใส่ content ใน body แทน
+        resp = make_response(response)
+        resp.headers['HX-Retarget'] = 'body'
+        resp.headers['HX-Reswap'] = 'beforeend'
+        return resp
     else:
         # สำหรับ regular request ให้ return หน้า permission denied
         return render_template(

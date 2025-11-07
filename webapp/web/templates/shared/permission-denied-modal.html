@@ -1,5 +1,6 @@
 <!-- Modal สำหรับ HTMX Request -->
-<div class="modal-box max-w-2xl">
+<div class="modal modal-open" id="permission-denied-modal">
+  <div class="modal-box max-w-2xl">
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-3">
         <div class="w-12 h-12 flex items-center justify-center bg-red-100 rounded-full">
@@ -11,7 +12,7 @@
         </div>
       </div>
       <button class="btn btn-sm btn-circle btn-ghost hover:bg-gray-200" 
-        onclick="document.getElementById('modal').classList.remove('modal-open')">
+        onclick="document.getElementById('permission-denied-modal').remove()">
         <i data-feather="x" class="w-5 h-5"></i>
       </button>
     </div>
@@ -103,7 +104,7 @@
     <!-- Modal Actions -->
     <div class="modal-action mt-6">
       <button class="btn btn-outline" 
-        onclick="document.getElementById('modal').classList.remove('modal-open')">
+        onclick="document.getElementById('permission-denied-modal').remove()">
         <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
         ปิด
       </button>
@@ -115,13 +116,14 @@
       </button>
     </div>
   </div>
+</div>
   
-  <script>
-    // เรียกใช้ Feather icons สำหรับ modal
-    if (typeof feather !== 'undefined') {
-      feather.replace();
-    }
-    
-    // เปิด modal อัตโนมัติ
-    document.getElementById('modal').classList.add('modal-open');
-  </script>
+<script>
+  // เรียกใช้ Feather icons สำหรับ modal
+  if (typeof feather !== 'undefined') {
+    feather.replace();
+  }
+  
+  // เพิ่ม modal ไปที่ body
+  document.body.appendChild(document.getElementById('permission-denied-modal'));
+</script>

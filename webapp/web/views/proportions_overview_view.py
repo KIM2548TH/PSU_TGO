@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request
 from flask_login import login_required, current_user
+from ..utils.acl import permissions_required_all
 import datetime
 from ...models.materail_model import Material
 from ...models.campus_and_department_model import CampusAndDepartment
@@ -17,6 +18,7 @@ CAMPUS_INFO = {
 
 @module.route("/", methods=["GET"])
 @login_required
+@permissions_required_all(["เข้าถึงหน้าภาพรวมสัดส่วนการปล่อย"])
 def overview():
     selected_year = int(request.args.get("year", datetime.datetime.now().year))
     campus_keys = list(CAMPUS_INFO.keys())

@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, jsonify, flash, redirect,
 from flask_login import login_required, current_user
 from ...models.campus_and_department_model import CampusAndDepartment
 from ..forms.campus_form import CampusForm, DepartmentForm
+from ..utils.acl import permissions_required_all
 import datetime
 
 module = Blueprint("campus_department", __name__, url_prefix="/campus-department")
@@ -9,6 +10,7 @@ module = Blueprint("campus_department", __name__, url_prefix="/campus-department
 
 @module.route("/", methods=["GET"])
 @login_required
+@permissions_required_all(["เข้าถึงหน้าจัดการวิทยาเขตและหน่วยงาน"])
 def index():
     """แสดงหน้า management campus และ department"""
     campuses = CampusAndDepartment.objects
@@ -20,6 +22,7 @@ def index():
 
 @module.route("/add-campus", methods=["GET", "POST"])
 @login_required
+@permissions_required_all(["เพิ่มวิทยาเขตใหม่"])
 def add_campus():
     """เพิ่มวิทยาเขตใหม่"""
     form = CampusForm()
@@ -55,6 +58,7 @@ def add_campus():
 
 @module.route("/edit-campus/<campus_id>", methods=["GET", "POST"])
 @login_required
+@permissions_required_all(["แก้ไขวิทยาเขต"])
 def edit_campus(campus_id):
     """แก้ไขวิทยาเขต"""
     campus = CampusAndDepartment.objects(id=campus_id).first()
@@ -102,6 +106,7 @@ def edit_campus(campus_id):
 
 @module.route("/add-department/<campus_id>", methods=["GET", "POST"])
 @login_required
+@permissions_required_all(["เพิ่มหน่วยงานในวิทยาเขต"])
 def add_department(campus_id):
     """เพิ่มหน่วยงานในวิทยาเขต"""
     campus = CampusAndDepartment.objects(id=campus_id).first()
@@ -133,6 +138,7 @@ def add_department(campus_id):
 
 @module.route("/edit-department/<campus_id>/<dept_key>", methods=["GET", "POST"])
 @login_required
+@permissions_required_all(["แก้ไขหน่วยงาน"])
 def edit_department(campus_id, dept_key):
     """แก้ไขหน่วยงาน"""
     campus = CampusAndDepartment.objects(id=campus_id).first()
@@ -183,6 +189,7 @@ def edit_department(campus_id, dept_key):
 
 @module.route("/delete-campus/<campus_id>", methods=["GET", "POST"])
 @login_required
+@permissions_required_all(["ลบวิทยาเขต"])
 def delete_campus(campus_id):
     """ลบวิทยาเขต"""
     campus = CampusAndDepartment.objects(id=campus_id).first()
@@ -211,6 +218,7 @@ def delete_campus(campus_id):
 
 @module.route("/delete-department/<campus_id>/<dept_key>", methods=["GET", "POST"])
 @login_required
+@permissions_required_all(["ลบหน่วยงาน"])
 def delete_department(campus_id, dept_key):
     """ลบหน่วยงาน"""
     campus = CampusAndDepartment.objects(id=campus_id).first()

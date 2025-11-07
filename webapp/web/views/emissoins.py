@@ -13,6 +13,7 @@ from ...services.user_service import UserService
 from ...models import User, Role, Permission, Scope, FormAndFormula
 from ...models.materail_model import Material, QuantityType  # เพิ่ม import QuantityType
 from ..forms.material_form import MaterialForm
+from ..utils.acl import permissions_required_all
 import datetime
 import re
 from ...models.file_model import ReferenceDocument, UploadedFile
@@ -66,6 +67,7 @@ def calculate_grouped_input_types(head_table, page):
 
 @module.route("/emissions-table", methods=["POST"])
 @login_required
+@permissions_required_all(["เข้าถึงหน้าข้อมูลการปล่อย"])
 def view_emissions():
     # รับค่า scope_id และ sub_scope_id จาก POST request
     scope_id = request.form.get("scope_id")
@@ -490,6 +492,7 @@ def save_material(scope_id, sub_scope_id, month_id, year, material_data):
 
 @module.route("/save-materials", methods=["POST"])
 @login_required
+@permissions_required_all(["เซฟข้อมูลการปล่อย"])
 def save_materials():
     scope_id = request.form.get("scope_id")
     sub_scope_id = request.form.get("sub_scope_id")
@@ -645,6 +648,7 @@ def save_materials():
 
 @module.route("/delete-material", methods=["POST"])
 @login_required
+@permissions_required_all(["ลบข้อมูลการปล่อย"])
 def delete_material():
     scope_id = request.form.get("scope_id")
     sub_scope_id = request.form.get("sub_scope_id")
@@ -728,6 +732,7 @@ def delete_material():
 
 @module.route("/delete-all-materials", methods=["POST"])
 @login_required
+@permissions_required_all(["ลบข้อมูลการปล่อยกทั้งหมด"])
 def delete_all_materials():
     scope_id = request.form.get("scope_id")
     sub_scope_id = request.form.get("sub_scope_id")
@@ -863,6 +868,7 @@ def load_upload_modal(
 
 @module.route("/upload-file", methods=["POST"])
 @login_required
+@permissions_required_all(["อัปโหลดไฟล์ข้อมูลการปล่อย"])
 def upload_file():
     file = request.files.get("file")
     if not file:
@@ -919,6 +925,7 @@ def upload_file():
 
 @module.route("/download-file/<file_id>", methods=["GET"])
 @login_required
+@permissions_required_all(["โหลดข้อมูลการปล่อย"])
 def download_file(file_id):
     document = ReferenceDocument.objects(files__id=file_id).first()
     print(f"Downloading file with ID: {file_id}")
@@ -942,6 +949,7 @@ def download_file(file_id):
 
 @module.route("/delete-file/<file_id>", methods=["POST"])
 @login_required
+@permissions_required_all(["ลบไฟล์ข้อมูลการปล่อย"])
 def delete_file(file_id):
     print(f"Deleting file with ID: {file_id}")
     scope_id = request.form.get("scope_id")

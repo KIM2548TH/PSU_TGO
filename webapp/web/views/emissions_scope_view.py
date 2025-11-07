@@ -9,7 +9,7 @@ module = Blueprint("emissions_scope", __name__, url_prefix="/emissions-scope")
 
 @module.route("/", methods=["GET"])
 @login_required
-@permissions_required_all(["เข้าถึงข้อมูลการปล่อย"])
+@permissions_required_all(["เข้าถึงหน้าข้อมูลการปล่อย"])
 def emissions_scope():
     # รับปีที่เลือกจาก query parameter หรือใช้ปีปัจจุบันเป็นค่าเริ่มต้น
     selected_year = request.args.get("year", default=datetime.now().year, type=int)
