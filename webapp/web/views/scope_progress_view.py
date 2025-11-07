@@ -1,12 +1,14 @@
 from flask import Blueprint, render_template, request
 from flask_login import login_required
 from ...models import Scope, Material, CampusAndDepartment
+from ..utils.acl import permissions_required_all
 from datetime import datetime
 
 module = Blueprint("scope_process", __name__, url_prefix="/scope-progress")
 
 @module.route("/", methods=["GET"])
 @login_required
+@permissions_required_all(["เข้าถึงหน้าภาพรวมความคืบหน้า"])
 def progress_dashboard():
     """
     หน้าแดชบอร์ดสำหรับติดตามความคืบหน้าการกรอกข้อมูล

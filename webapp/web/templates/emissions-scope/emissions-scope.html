@@ -157,15 +157,15 @@
     </h3>
     {% endif %}
     
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
       {% for scope in scope_items %}
-      <div class="card shadow-lg border 
+      <div class="card shadow-lg border w-full h-auto min-w-0
         {% if scope_name.endswith('1') %}border-purple-200 bg-base-100{% endif %}
         {% if scope_name.endswith('2') %}border-green-200 bg-base-100{% endif %}
         {% if scope_name.endswith('3') %}border-blue-200 bg-base-100{% endif %}
         p-6">
         <!-- แถวที่ 1: ชื่อ + status badge -->
-        <div class="flex justify-between items-start mb-4">
+        <div class="flex justify-between items-start mb-4 w-full">
           <div class="flex items-center gap-3 min-w-0 flex-1">
             <div class="
               {% if scope_name.endswith('1') %}bg-purple-100 text-purple-600{% endif %}
@@ -176,7 +176,7 @@
             </div>
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2 mb-1">
-                <h3 class="text-lg font-semibold break-words break-all leading-snug">{{ scope.ghg_name }}</h3>
+                <h3 class="text-lg font-semibold break-words break-all leading-snug flex-1">{{ scope.ghg_name }}</h3>
                 {% if scope.ghg_desc %}
                 <button class="info-btn hover:bg-gray-200 p-1 rounded-full transition-colors flex-shrink-0"
                   hx-get="{{ url_for('emissions_scope.scope_description', ghg_scope=scope.ghg_scope, ghg_sup_scope=scope.ghg_sup_scope) }}"
@@ -209,7 +209,7 @@
         </div>
         
         <!-- แถวที่ 2: Progress Circle (ซ้าย) + Settings & Edit Buttons (ขวา) -->
-        <div class="flex justify-between items-center">
+        <div class="flex justify-between items-center w-full">
           <div class="relative w-12 h-12">
             <svg class="w-full h-full transform -rotate-90">
               <circle cx="50%" cy="50%" r="18" stroke="#e5e7eb" stroke-width="3" fill="none"></circle>
