@@ -222,8 +222,15 @@ def scope_description(ghg_scope, ghg_sup_scope):
                 error="ไม่พบข้อมูล Scope ที่ต้องการ",
             )
 
+        # สำหรับ base scope ให้แสดงข้อความเป็น "Template"
+        campus_name = "Template"
+        department_name = "Base"
+
         return render_template(
-            "/emissions-scope/partials/scope-description-modal.html", scope=scope
+            "/emissions-scope/partials/scope-description-modal.html", 
+            scope=scope,
+            campus_name=campus_name,
+            department_name=department_name
         )
 
     except Exception as e:

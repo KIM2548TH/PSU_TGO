@@ -68,12 +68,12 @@
       <div class="flex items-center gap-2 py-1 sm:py-2">
         <i data-feather="map-pin" class="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0"></i>
         <span class="font-bold">{{ t.campus }}:</span>
-        <span class="ml-1 text-gray-800 break-words min-w-0">{{ scope.campus | capitalize }}</span>
+        <span class="ml-1 text-gray-800 break-words min-w-0">{{ campus_name | capitalize if campus_name else scope.campus }}</span>
       </div>
       <div class="flex items-center gap-2 py-1 sm:py-2">
         <i data-feather="briefcase" class="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0"></i>
         <span class="font-bold">{{ t.department }}:</span>
-        <span class="ml-1 text-gray-800 break-words min-w-0">{{ scope.department }}</span>
+        <span class="ml-1 text-gray-800 break-words min-w-0">{{ department_name if department_name else scope.department }}</span>
       </div>
     </div>
     

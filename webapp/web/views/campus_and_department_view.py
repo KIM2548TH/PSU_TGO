@@ -35,7 +35,6 @@ def add_campus():
                 form.description.data
             )
             
-            flash("เพิ่มวิทยาเขตสำเร็จ", "success")
             # สำหรับ HTMX: ส่งข้อมูลใหม่กลับไป
             campuses = CampusAndDepartment.objects
             return render_template("campus-and-department/partials/campus-list.html", campuses=campuses)
@@ -74,7 +73,6 @@ def edit_campus(campus_id):
                 form.description.data
             )
             
-            flash("แก้ไขวิทยาเขตสำเร็จ", "success")
             # สำหรับ HTMX: ส่งข้อมูลใหม่กลับไป
             campuses = CampusAndDepartment.objects
             return render_template("campus-and-department/partials/campus-list.html", campuses=campuses)
@@ -119,7 +117,6 @@ def add_department(campus_id):
             # เพิ่ม department ใหม่ และ copy scope จาก 'base' อัตโนมัติ
             campus.add_department(form.department_name.data)
             
-            flash("เพิ่มหน่วยงานสำเร็จ", "success")
             # สำหรับ HTMX: ส่งข้อมูลใหม่กลับไป
             campuses = CampusAndDepartment.objects
             return render_template("campus-and-department/partials/campus-list.html", campuses=campuses)
@@ -157,7 +154,6 @@ def edit_department(campus_id, dept_key):
             # ใช้ Model method แทน
             campus.update_department(dept_key, form.department_name.data)
             
-            flash("แก้ไขหน่วยงานสำเร็จ", "success")
             # สำหรับ HTMX: ส่งข้อมูลใหม่กลับไป
             campuses = CampusAndDepartment.objects
             return render_template("campus-and-department/partials/campus-list.html", campuses=campuses)
@@ -200,7 +196,6 @@ def delete_campus(campus_id):
         try:
             # ใช้ Model method แทน
             campus.safe_delete()
-            flash("ลบวิทยาเขตสำเร็จ", "success")
             
         except ValueError as e:
             flash(str(e), "error")
@@ -234,7 +229,6 @@ def delete_department(campus_id, dept_key):
         try:
             # ใช้ Model method แทน
             campus.delete_department(dept_key)
-            flash("ลบหน่วยงานสำเร็จ", "success")
             
         except ValueError as e:
             flash(str(e), "error")

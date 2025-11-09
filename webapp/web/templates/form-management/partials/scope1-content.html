@@ -128,18 +128,18 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {% for form in scope1_forms %}
           {% if form.ghg_sup_scope == sub_scope %}
-          <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
-            <div class="flex justify-between items-start mb-3">
-              <div class="flex items-center gap-3 min-w-0 flex-1">
-                <div class="bg-purple-100 text-purple-600 p-2 rounded-lg flex-shrink-0 relative">
+          <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div class="flex justify-between items-start mb-4">
+              <div class="flex items-center gap-4 min-w-0 flex-1">
+                <div class="bg-purple-100 text-purple-600 p-3 rounded-lg flex-shrink-0 relative">
                   <i data-feather="file-text" class="w-5 h-5"></i>
                   {% if form.is_linked %}
                     <div class="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full border-2 border-white"></div>
                   {% endif %}
                 </div>
                 <div class="min-w-0 flex-1">
-                  <h4 class="text-base font-semibold text-gray-800 break-words leading-snug">{{ form.material_name }}</h4>
-                  <p class="text-sm text-gray-500 break-words">{{ form.desc_form[:50] }}{% if form.desc_form and form.desc_form|length > 50 %}...{% endif %}</p>
+                  <h4 class="text-base font-semibold text-gray-800 break-words leading-relaxed mb-1">{{ form.material_name }}</h4>
+                  <p class="text-sm text-gray-500 break-words leading-relaxed">{{ form.desc_form[:50] }}{% if form.desc_form and form.desc_form|length > 50 %}...{% endif %}</p>
                 </div>
               </div>
               <button class="text-blue-500 hover:text-blue-700 p-1 rounded-md hover:bg-blue-50 transition-colors" 
@@ -154,44 +154,44 @@
             
             <!-- Linked Form Information -->
             {% if form.is_linked %}
-            <div class="mb-3 p-2 bg-orange-50 border border-orange-200 rounded-lg">
-              <div class="flex items-center gap-2">
-                <i data-feather="link" class="w-3 h-3 text-orange-600"></i>
-                <span class="text-xs font-medium text-orange-700 break-words">เชื่อมโยงจาก: {{ form.linked_material_name }}</span>
+            <div class="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+              <div class="flex items-center gap-3">
+                <i data-feather="link" class="w-4 h-4 text-orange-600"></i>
+                <span class="text-sm font-medium text-orange-700 break-words">เชื่อมโยงจาก: {{ form.linked_material_name }}</span>
               </div>
             </div>
             {% endif %}
             
             <!-- Variables -->
             {% if form.variables %}
-            <div class="mb-3">
-              <p class="text-xs font-medium text-gray-600 mb-2">ตัวแปร</p>
-              <div class="space-y-1">
+            <div class="mb-4">
+              <p class="text-sm font-medium text-gray-600 mb-3">ตัวแปร</p>
+              <div class="flex flex-wrap gap-2">
                 {% for var in form.variables %}
-                <div class="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded font-medium mr-1 mb-1 break-all">{{ var }}</div>
+                <div class="bg-yellow-100 text-yellow-800 text-sm px-3 py-1.5 rounded-md font-medium break-all">{{ var }}</div>
                 {% endfor %}
               </div>
             </div>
             {% endif %}
             
             <!-- Formula -->
-            <div class="bg-gray-50 p-3 rounded-lg space-y-2">
+            <div class="bg-gray-50 p-4 rounded-lg space-y-3">
               <div>
-                <p class="text-xs font-medium text-gray-600 mb-1">สูตรคำนวณ</p>
-                <p class="text-xs text-gray-800 font-mono break-all">{{ form.formula or "ไม่ได้กำหนด" }}</p>
+                <p class="text-sm font-medium text-gray-600 mb-2">สูตรคำนวณ</p>
+                <p class="text-sm text-gray-800 font-mono break-all leading-relaxed">{{ form.formula or "ไม่ได้กำหนด" }}</p>
               </div>
               {% if form.formula2 %}
-              <div class="border-t border-gray-200 pt-2">
-                <p class="text-xs font-medium text-blue-600 mb-1">สูตรคำนวณ tonCO₂e</p>
-                <div class="bg-blue-50 p-2 rounded">
-                  <p class="text-xs text-blue-800 font-mono break-all">{{ form.formula2 or "ไม่ได้กำหนด" }}</p>
+              <div class="border-t border-gray-200 pt-3">
+                <p class="text-sm font-medium text-blue-600 mb-2">สูตรคำนวณ tonCO₂e</p>
+                <div class="bg-blue-50 p-3 rounded">
+                  <p class="text-sm text-blue-800 font-mono break-all leading-relaxed">{{ form.formula2 or "ไม่ได้กำหนด" }}</p>
                 </div>
               </div>
               {% else %}
-              <div class="border-t border-gray-200 pt-2">
-                <p class="text-xs font-medium text-blue-600 mb-1">สูตรคำนวณ tonCO₂e</p>
-                <div class="bg-blue-50 p-2 rounded">
-                  <p class="text-xs text-blue-500 font-mono break-all">ไม่ได้กำหนด</p>
+              <div class="border-t border-gray-200 pt-3">
+                <p class="text-sm font-medium text-blue-600 mb-2">สูตรคำนวณ tonCO₂e</p>
+                <div class="bg-blue-50 p-3 rounded">
+                  <p class="text-sm text-blue-500 font-mono break-all leading-relaxed">ไม่ได้กำหนด</p>
                 </div>
               </div>
               {% endif %}
