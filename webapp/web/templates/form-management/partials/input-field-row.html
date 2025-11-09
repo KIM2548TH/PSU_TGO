@@ -1,0 +1,40 @@
+<!-- Input Field Row - แทน JavaScript addInputField() -->
+<div class="border border-gray-300 rounded-xl p-4 bg-gray-50 shadow-sm" data-index="input-{{ field_index }}">
+    <div class="flex justify-between items-center mb-3">
+        <h4 class="text-md font-semibold text-gray-600">Field #{{ field_number }}</h4>
+        <button type="button" class="btn btn-sm btn-error"
+                hx-delete="/form-management/form-builder/remove-input-field"
+                hx-target="closest [data-index]"
+                hx-swap="delete"
+                hx-confirm="ต้องการลบฟิลด์นี้หรือไม่?">✕</button>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <input name="field" class="input input-bordered w-full" 
+               placeholder="Field" required
+               hx-post="/form-management/calculator/load-variables"
+               hx-target="#variables-buttons"
+               hx-trigger="change delay:500ms, keyup delay:800ms"
+               hx-include="closest form">
+        <input name="label" class="input input-bordered w-full" 
+               placeholder="Label"
+               hx-post="/form-management/form-builder/preview"
+               hx-target="#preview-content"  
+               hx-trigger="change delay:500ms, keyup delay:800ms"
+               hx-include="closest form">
+        <select name="input_type" class="select select-bordered w-full"
+                hx-post="/form-management/form-builder/preview"
+                hx-target="#preview-content"
+                hx-trigger="change"
+                hx-include="closest form">
+            <option value="number">Number</option>
+            <option value="text">Text</option>
+            <option value="select">Select</option>
+        </select>
+        <input name="unit" class="input input-bordered w-full" 
+               placeholder="Unit"
+               hx-post="/form-management/form-builder/preview"
+               hx-target="#preview-content"
+               hx-trigger="change delay:500ms, keyup delay:800ms"
+               hx-include="closest form">
+    </div>
+</div>

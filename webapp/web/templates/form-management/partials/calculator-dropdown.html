@@ -1,0 +1,125 @@
+<!-- Calculator Dropdown - Pure HTMX (แก้ไขให้ปิดได้จริง) -->
+<div class="bg-white border border-gray-300 rounded-lg shadow-lg p-4 z-50" id="calculator-dropdown">
+  <div class="flex justify-between items-center mb-3">
+    <h4 class="text-lg font-semibold text-gray-700">เครื่องคิดเลข</h4>
+    <!-- ปุ่มปิด - ลบ parent container ทั้งหมด -->
+    <button type="button" class="btn btn-sm btn-ghost hover:bg-red-100"
+            hx-post="/form-management/calculator/hide"
+            hx-target="#calculator-dropdown"
+            hx-swap="delete"
+            title="ปิดเครื่องคิดเลข">
+      <i data-feather="x" class="w-4 h-4"></i>
+    </button>
+  </div>
+
+  <!-- Variables Section -->
+  <div class="mb-4">
+    <h5 class="text-sm font-medium text-gray-600 mb-2">ตัวแปร</h5>
+    <div class="grid grid-cols-3 gap-2 mb-4">
+      {% if variables %}
+        {% for variable in variables %}
+          <button type="button" class="btn btn-xs btn-outline {{ variable.color }}"
+                  hx-post="/form-management/calculator/add-value"
+                  hx-vals='{"value": "{{ variable.field }}"}'
+                  hx-target="#formula"
+                  hx-swap="outerHTML"
+                  hx-include="[name='formula']"
+                  title="{{ variable.label }}">
+            {{ variable.field }}
+          </button>
+        {% endfor %}
+      {% else %}
+        <div class="col-span-3 text-center text-gray-500 text-sm py-2">
+          ไม่มีตัวแปรให้เลือก กรุณาเพิ่ม Input Fields
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Numbers Section -->
+  <div class="mb-4">
+    <h5 class="text-sm font-medium text-gray-600 mb-2">ตัวเลข</h5>
+    <div class="grid grid-cols-5 gap-2">
+      {% for i in range(1, 10) %}
+        <button type="button" class="btn btn-xs btn-outline"
+                hx-post="/form-management/calculator/add-value"
+                hx-vals='{"value": "{{ i }}"}'
+                hx-target="#formula"
+                hx-swap="outerHTML"
+                hx-include="[name='formula']">{{ i }}</button>
+      {% endfor %}
+      <button type="button" class="btn btn-xs btn-outline"
+              hx-post="/form-management/calculator/add-value"
+              hx-vals='{"value": "0"}'
+              hx-target="#formula"
+              hx-swap="outerHTML"
+              hx-include="[name='formula']">0</button>
+    </div>
+  </div>
+
+  <!-- Operators Section -->
+  <div class="mb-4">
+    <h5 class="text-sm font-medium text-gray-600 mb-2">ตัวดำเนินการ</h5>
+    <div class="grid grid-cols-5 gap-2">
+      <button type="button" class="btn btn-xs btn-outline"
+              hx-post="/form-management/calculator/add-value"
+              hx-vals='{"value": " + "}'
+              hx-target="#formula"
+              hx-swap="outerHTML"
+              hx-include="[name='formula']">+</button>
+      <button type="button" class="btn btn-xs btn-outline"
+              hx-post="/form-management/calculator/add-value"
+              hx-vals='{"value": " - "}'
+              hx-target="#formula"
+              hx-swap="outerHTML"
+              hx-include="[name='formula']">-</button>
+      <button type="button" class="btn btn-xs btn-outline"
+              hx-post="/form-management/calculator/add-value"
+              hx-vals='{"value": " * "}'
+              hx-target="#formula"
+              hx-swap="outerHTML"
+              hx-include="[name='formula']">×</button>
+      <button type="button" class="btn btn-xs btn-outline"
+              hx-post="/form-management/calculator/add-value"
+              hx-vals='{"value": " / "}'
+              hx-target="#formula"
+              hx-swap="outerHTML"
+              hx-include="[name='formula']">÷</button>
+      <button type="button" class="btn btn-xs btn-outline"
+              hx-post="/form-management/calculator/add-value"
+              hx-vals='{"value": "."}'
+              hx-target="#formula"
+              hx-swap="outerHTML"
+              hx-include="[name='formula']">.</button>
+      <button type="button" class="btn btn-xs btn-outline"
+              hx-post="/form-management/calculator/add-value"
+              hx-vals='{"value": "("}'
+              hx-target="#formula"
+              hx-swap="outerHTML"
+              hx-include="[name='formula']">(</button>
+      <button type="button" class="btn btn-xs btn-outline"
+              hx-post="/form-management/calculator/add-value"
+              hx-vals='{"value": ")"}'
+              hx-target="#formula"
+              hx-swap="outerHTML"
+              hx-include="[name='formula']">)</button>
+      <button type="button" class="btn btn-xs btn-error"
+              hx-post="/form-management/calculator/remove-last"
+              hx-target="#formula"
+              hx-swap="outerHTML"
+              hx-include="[name='formula']">⌫</button>
+      <button type="button" class="btn btn-xs btn-warning"
+              hx-post="/form-management/calculator/clear"
+              hx-target="#formula"
+              hx-swap="outerHTML">C</button>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex justify-end">
+    <button type="button" class="btn btn-sm btn-primary"
+            hx-post="/form-management/calculator/hide"
+            hx-target="#calculator-dropdown"
+            hx-swap="delete">เสร็จสิ้น</button>
+  </div>
+</div>

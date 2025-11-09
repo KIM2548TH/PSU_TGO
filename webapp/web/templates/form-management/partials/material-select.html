@@ -1,4 +1,11 @@
-<select name="linked_material_name" class="select select-bordered w-full mt-1" onchange="updatePreview(); onLinkedMaterialChange();">
+<select name="linked_material_name" class="select select-bordered w-full mt-1"
+        hx-get="/form-management/form-builder/load-linked-fields"
+        hx-target="#linked-fields-preview"
+        hx-trigger="change"
+        hx-include="[name='linked_material_name']"
+        hx-post="/form-management/form-builder/preview"
+        hx-target="#preview-content"
+        hx-include="closest form">
   <option value="">🔍 เลือก Material ที่ต้องการลิงก์</option>
   
   {% if available_form and available_form|length > 0 %}

@@ -1,0 +1,20 @@
+<!-- Calculator Variables Buttons - Pure HTMX -->
+<div class="grid grid-cols-4 gap-2 mb-4">
+  {% if variables %}
+    {% for variable in variables %}
+      <button type="button" class="btn btn-xs btn-outline {{ variable.color }}"
+              hx-post="/form-management/calculator/add-value"
+              hx-vals='{"value": "{{ variable.field }}"}'
+              hx-target="#formula"
+              hx-swap="outerHTML"
+              hx-include="[name='formula']"
+              title="{{ variable.label }}">
+        {{ variable.field }}
+      </button>
+    {% endfor %}
+  {% else %}
+    <div class="col-span-4 text-center text-gray-500 text-sm">
+      ไม่มีตัวแปรให้เลือก กรุณาเพิ่ม Input Fields
+    </div>
+  {% endif %}
+</div>

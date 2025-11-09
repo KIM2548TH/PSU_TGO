@@ -1,0 +1,41 @@
+<!-- Normal Form Section -->
+<div class="space-y-4">
+    <div class="flex justify-between items-center">
+        <h3 class="text-lg font-semibold text-gray-800">Input Fields</h3>
+    </div>
+    
+    <div id="input-fields-container" class="space-y-3">
+        <!-- HTMX จะเพิ่ม input fields ที่นี่ -->
+    </div>
+    
+    <!-- ปุ่มเพิ่มฟิลด์แยกเป็นการ์ด -->
+    <div class="card border border-dashed border-gray-300 bg-gray-50 p-6 flex items-center justify-center">
+        <button type="button" class="btn btn-primary btn-sm"
+                hx-post="/form-management/form-builder/add-input-field"
+                hx-target="#input-fields-container"
+                hx-swap="beforeend"
+                hx-vals='{"field_index": "0"}'
+                hx-on:htmx:after-request="updateFieldCounter()">
+            <i data-feather="plus" class="w-4 h-4 mr-1"></i>
+            เพิ่มฟิลด์ใหม่
+        </button>
+    </div>
+    
+    <div class="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
+        <i data-feather="info" class="inline w-4 h-4 mr-1"></i>
+        กรุณาเพิ่ม input fields เพื่อกำหนดข้อมูลที่ต้องการรับจากผู้ใช้
+    </div>
+</div>
+
+<script>
+// Function สำหรับอัปเดต field counter
+function updateFieldCounter() {
+    const container = document.getElementById('input-fields-container');
+    const addButton = document.querySelector('button[hx-post*="add-input-field"]');
+    
+    if (container && addButton) {
+        const fieldCount = container.querySelectorAll('[data-index^="input-"]').length;
+        addButton.setAttribute('hx-vals', JSON.stringify({field_index: fieldCount}));
+    }
+}
+</script>

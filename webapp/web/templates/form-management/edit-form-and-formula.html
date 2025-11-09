@@ -1,18 +1,19 @@
 <div class="max-w-6xl mx-auto px-6 py-8">
-  <!-- ปุ่มปิดป็อปอัพทั้งหมด -->
+  <!-- ปุ่มปิดป็อปอัพ -->
   <div class="flex justify-end mb-4">
-  <button type="button" 
-          class="btn btn-sm btn-ghost text-gray-700 hover:text-gray-900 hover:bg-gray-100" 
-          onclick="document.getElementById('modal').classList.remove('modal-open');"
-          title="ปิดป็อปอัพ">
-    <i data-feather="x" class="h-5 w-5 mr-1"></i>
-  </button>
-</div>
+    <button type="button" 
+            class="btn btn-sm btn-ghost text-gray-700 hover:text-gray-900 hover:bg-gray-100" 
+            onclick="document.getElementById('modal').classList.remove('modal-open')"
+            title="ปิดป็อปอัพ">
+      <i data-feather="x" class="h-5 w-5 mr-1"></i>
+      ปิด
+    </button>
+  </div>
 
   <!-- Checkbox สำหรับ toggle preview (ซ่อนไว้) -->
   <input type="checkbox" id="preview-toggle" class="hidden" checked>
 
-  <!-- เปลี่ยนจาก grid เป็น main-container -->
+  <!-- Main container -->
   <div class="main-container">
     <!-- Left: Edit Form Field -->
     <div class="bg-white rounded-[7px] border border-gray-300 shadow-md p-6">
@@ -21,37 +22,39 @@
         <!-- ปุ่ม toggle พรีวิว -->
         <label for="preview-toggle" class="btn btn-sm btn-ghost text-gray-600 hover:text-gray-800 hover:bg-gray-100 cursor-pointer" title="เปิด/ปิดพรีวิว">
           <i data-feather="eye" class="h-5 w-5 mr-1"></i>
-          ซ่อนพรีวิว
+          <span class="toggle-text">ซ่อนพรีวิว</span>
         </label>
       </div>
       
-      <!-- ฟอร์มเนื้อหาเดิมทั้งหมดไม่เปลี่ยน... -->
-      <form method="POST" action="{{ url_for('form_management.edit_form_and_formula') }}" onsubmit="submitEditForm(event)">
+      <form method="POST" action="{{ url_for('form_management.edit_form_and_formula') }}"
+            hx-post="{{ url_for('form_management.edit_form_and_formula') }}"
+            hx-target="#modal-content"
+            hx-swap="innerHTML"
+            hx-headers='{"X-Requested-With": "XMLHttpRequest"}'>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}"/>
         <input type="hidden" name="form_id" value="{{ form.id if form else '' }}">
 
         <!-- Form Metadata -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
           <div>
             <label class="text-font">{{ t.material_name }}</label>
-            <input 
-              type="text" 
-              name="material_name" 
-              class="input input-bordered w-full mt-1" 
-              placeholder="Enter material name" 
-              value="{{ form.material_name if form else '' }}" 
-              oninput="updatePreview()" 
-              required>
+            <input type="text" name="material_name" 
+                   class="input input-bordered w-full mt-1" 
+                   placeholder="Enter material name" 
+                   value="{{ form.material_name if form else '' }}"
+                   hx-post="/form-management/form-builder/preview"
+                   hx-target="#preview-content"
+                   hx-trigger="keyup delay:800ms, change"
+                   hx-include="closest form"
+                   required>
           </div>
 
-          <!-- Main Scope Selection -->
+          <!-- Main Scope Selection (Disabled) -->
           <div>
             <label class="text-font">Main Scope</label>
-            <select 
-              name="scope" 
-              id="main-scope"
-              class="select select-bordered w-full mt-1 cursor-not-allowed bg-gray-50" 
-              disabled>
+            <select name="scope" id="main-scope"
+                    class="select select-bordered w-full mt-1 cursor-not-allowed bg-gray-50" 
+                    disabled>
               <option value="">เลือก Main Scope</option>
               <option value="1" {{ 'selected' if form and form.ghg_scope == 1 else '' }}>Scope 1</option>
               <option value="2" {{ 'selected' if form and form.ghg_scope == 2 else '' }}>Scope 2</option>
@@ -60,183 +63,160 @@
             <input type="hidden" name="scope" value="{{ form.ghg_scope if form else '' }}">
           </div>
 
-          <!-- Sub Scope Selection -->
+          <!-- Sub Scope Selection (Disabled) -->
           <div>
             <label class="text-font">Sub Scope</label>
             <div id="sub-scope-container">
-              <select name="sup_scope" id="sub-scope-select" class="select select-bordered w-full mt-1 cursor-not-allowed bg-gray-50" disabled>
-  <option value="">กำลังโหลด Sub Scope...</option>
-</select>
+              <select name="sup_scope" id="sub-scope-select" 
+                      class="select select-bordered w-full mt-1 cursor-not-allowed bg-gray-50" 
+                      disabled>
+                <option value="{{ form.ghg_sup_scope if form else '' }}" selected>
+                  Scope {{ form.ghg_scope if form else '' }}.{{ form.ghg_sup_scope if form else '' }}
+                </option>
+              </select>
               <input type="hidden" name="sup_scope" value="{{ form.ghg_sup_scope if form else '' }}">
             </div>
           </div>
 
           <div class="sm:col-span-2">
             <label class="text-font">{{ t.form_description }}</label>
-            <textarea 
-              name="desc_form" 
-              class="textarea textarea-bordered w-full mt-1" 
-              placeholder="Enter form description" 
-              oninput="updatePreview()"
-            >{{ form.desc_form if form else '' }}</textarea>
+            <textarea name="desc_form" 
+                      class="textarea textarea-bordered w-full mt-1" 
+                      placeholder="Enter form description"
+                      hx-post="/form-management/form-builder/preview"
+                      hx-target="#preview-content"
+                      hx-trigger="keyup delay:800ms, change"
+                      hx-include="closest form">{{ form.desc_form if form else '' }}</textarea>
           </div>
         </div>
 
-        <!-- Define Input Fields -->
-        {% if not (form and form.is_linked) %}
-        <div class="mt-6">
-          <label class="text-font">{{ t.define_input_fields }}</label>
-          <div id="input-fields-container" class="space-y-4">
-            <!-- ฟิลด์ที่เพิ่มจะถูกแทรกที่นี่ -->
-          </div>
-          <!-- ปุ่ม Add Input Field -->
-          <button 
-            type="button" 
-            class="btn btn-outline btn-lg mt-2 w-full border-dashed flex items-center justify-center gap-3 py-4 bg-gray-50 hover:bg-gray-100 text-gray-600 text-sm" 
-            onclick="addInputField()">
-            <i data-feather="plus" class="w-6 h-6"></i>
-            {{ t.add_input_field }}
-          </button>
-        </div>
-        {% else %}
-        <div class="mt-6">
-          <div class="alert bg-blue-50 border border-blue-300 text-blue-800">
-            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <div>
-              <h3 class="font-bold text-blue-800">ข้อมูลการเชื่อมโยง</h3>
-              <div class="text-sm mt-2" id="linked-info">
-                <p><strong>เชื่อมโยงกับ Material:</strong> <span class="font-mono bg-gray-100 border border-gray-300 px-2 py-1 rounded text-gray-800">{{ form.linked_material_name }}</span></p>
-                <p class="mt-1"><strong>Scope:</strong> <span class="text-blue-700" id="linked-scope">{{ form.ghg_scope }}</span> | <strong>Sub-Scope:</strong> <span class="text-blue-700" id="linked-sub-scope">{{ form.ghg_sup_scope }}</span></p>
-                <p class="text-xs text-blue-700 mt-2">ระบบจะดึงข้อมูลจาก Material ดังกล่าวโดยอัตโนมัติ</p>
+        <!-- Form Type Display -->
+        {% if form and form.is_linked %}
+          <div class="mt-6">
+            <div class="alert bg-blue-50 border border-blue-300 text-blue-800">
+              <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <div>
+                <h3 class="font-bold text-blue-800">ข้อมูลการเชื่อมโยง</h3>
+                <div class="text-sm mt-2" id="linked-info">
+                  <p><strong>เชื่อมโยงกับ Material:</strong> 
+                    <span class="font-mono bg-gray-100 border border-gray-300 px-2 py-1 rounded text-gray-800">
+                      {{ form.linked_material_name }}
+                    </span>
+                  </p>
+                  <p class="mt-1">
+                    <strong>Scope:</strong> <span class="text-blue-700">{{ form.ghg_scope }}</span> | 
+                    <strong>Sub-Scope:</strong> <span class="text-blue-700">{{ form.ghg_sup_scope }}</span>
+                  </p>
+                  <p class="text-xs text-blue-700 mt-2">ระบบจะดึงข้อมูลจาก Material ดังกล่าวโดยอัตโนมัติ</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- แสดงฟิลด์ที่จะถูกสร้างอัตโนมัติ -->
+            <div class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <h4 class="text-sm font-medium text-gray-800 mb-3">ฟิลด์ที่สร้างอัตโนมัติ</h4>
+              <div id="linked-fields-preview"
+                   hx-get="/form-management/form-builder/load-linked-fields"
+                   hx-vals='{"material_name": "{{ form.linked_material_name }}"}'
+                   hx-trigger="load"
+                   hx-target="this"
+                   hx-swap="innerHTML">
+                <div class="text-center text-gray-500">กำลังโหลดฟิลด์...</div>
               </div>
             </div>
           </div>
-          
-          <!-- แสดงฟิลด์ที่จะถูกสร้างอัตโนมัติ -->
-          <div class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-            <h4 class="text-sm font-medium text-gray-800 mb-3">ฟิลด์ที่สร้างอัตโนมัติ</h4>
-            <div id="linked-fields-preview">
-              <!-- ฟิลด์จะถูกโหลดจาก JavaScript -->
-            </div>
+        {% else %}
+          <!-- Define Input Fields (สำหรับฟอร์มปกติ) -->
+          <div class="mt-6" id="form-fields-container"
+               hx-get="/form-management/form-builder/load-edit-fields"
+               hx-vals='{"form_id": "{{ form.id if form else '' }}"}'
+               hx-trigger="load"
+               hx-target="this"
+               hx-swap="innerHTML">
+            {% include "form-management/partials/normal-form-section.html" %}
           </div>
-        </div>
         {% endif %}
 
         <!-- Formula Section -->
         <div class="mt-6">
-          <label class="text-font">{{t.formula}}</label>
-          <div class="relative mb-4">
+          <label class="text-font">{{ t.formula }}</label>
+          <div class="relative mb-4" id="formula-container">
             <div class="flex">
-              <input 
-                type="text" 
-                name="formula" 
-                id="formula" 
-                class="input input-bordered w-full" 
-                placeholder="e.g. diesel * 2.68" 
-                value="{{ form.formula if form else '' }}"
-                required
-                onclick="toggleFormulaCalculator()">
+              <input type="text" name="formula" id="formula" 
+                     class="input input-bordered w-full" 
+                     placeholder="e.g. diesel * 2.68" 
+                     value="{{ form.formula if form else '' }}"
+                     hx-post="/form-management/form-builder/preview"
+                     hx-target="#preview-content"
+                     hx-trigger="keyup delay:800ms, change"
+                     hx-include="closest form"
+                     required>
               
-              <!-- Dropdown Button -->
-              <button type="button" 
-                      id="formula-dropdown-btn"
+              <!-- Calculator Button -->
+              <button type="button" id="formula-dropdown-btn"
                       class="btn btn-outline ml-2 px-3"
-                      onclick="toggleFormulaCalculator()"
-                      title="Open Formula Calculator">
+                      hx-post="/form-management/calculator/show"
+                      hx-target="#formula-container"
+                      hx-swap="beforeend"
+                      hx-include="closest form"
+                      title="{{ t.open_formula_calculator }}">
                 <i data-feather="grid" class="w-4 h-4 mr-1"></i>
                 <i data-feather="chevron-down" class="w-4 h-4"></i>
               </button>
             </div>
-            
-            <!-- Formula Calculator Dropdown -->
-            <div id="formula-calculator" class="absolute top-full left-0 right-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-4 hidden mt-2">
-              <div class="flex justify-between items-center mb-3">
-                <h4 class="text-lg font-semibold text-gray-700">{{t.formula_builder}}</h4>
-                <button type="button" class="btn btn-sm btn-ghost" onclick="closeFormulaCalculator()">
-                  <i data-feather="x" class="w-4 h-4"></i>
-                </button>
-              </div>
-
-              <!-- Variables Section -->
-              <div class="mb-4">
-                <h5 class="text-sm font-medium text-gray-700 mb-2">{{ t.variables }}</h5>
-                <div class="grid grid-cols-4 gap-2" id="variables-buttons">
-                  <!-- ปุ่มตัวแปรจะถูกเพิ่มที่นี่ -->
-                </div>
-                <!-- แสดงข้อความแจ้งเตือนแบบไดนามิกผ่าน JavaScript -->
-                <div id="linked-material-notice" class="hidden">
-                  <p class="text-xs text-blue-600 mt-2">
-                    ใช้ตัวแปรจาก Material: <strong class="text-blue-700" id="linked-material-name-display"></strong>
-                  </p>
-                </div>
-              </div>
-
-              <!-- Numbers Section -->
-              <div class="mb-4">
-                <h5 class="text-sm font-medium text-gray-600 mb-2">{{ t.numbers }}</h5>
-                <div class="grid grid-cols-5 gap-2" id="numbers-buttons">
-                  <!-- ปุ่มตัวเลขจะถูกเพิ่มที่นี่ -->
-                </div>
-              </div>
-
-              <!-- Operators Section -->
-              <div class="mb-4">
-                <h5 class="text-sm font-medium text-gray-600 mb-2">{{ t.operators }}</h5>
-                <div class="grid grid-cols-5 gap-2" id="operators-buttons">
-                  <!-- ปุ่มสัญลักษณ์ทางคณิตศาสตร์จะถูกเพิ่มที่นี่ -->
-                </div>
-              </div>
-
-
-              <!-- Actions -->
-              <div class="flex justify-between">
-                <button type="button" class="btn btn-sm btn-primary" onclick="closeFormulaCalculator()">{{ t.close }}</button>
-              </div>
-            </div>
           </div>
         </div>
 
-        <!-- Formula Section -->
+        <!-- Hidden Storage สำหรับเก็บ Calculator (ซ่อนไว้) -->
+        <div id="calculator-storage" class="hidden">
+          <!-- Calculator จะถูกย้ายมาเก็บที่นี่เมื่อปิด -->
+        </div>
+
+        <!-- Formula 2 Section -->
         <div class="mt-6">
-          <label class="text-font">{{t.formula2}}</label>
+          <label class="text-font">{{ t.formula2 }}</label>
           <div class="relative mb-4">
-            <div class="flex">
-              <input 
-                type="text" 
-                name="formula2" 
-                id="formula2" 
-                class="input input-bordered w-full" 
-                placeholder="e.g. diesel * 2.68" 
-                value="{{ form.formula2 if form else '' }}"
-                required>
-            </div>
+            <input type="text" name="formula2" id="formula2" 
+                   class="input input-bordered w-full" 
+                   placeholder="e.g. diesel * 2.68" 
+                   value="{{ form.formula2 if form else '' }}"
+                   hx-post="/form-management/form-builder/preview"
+                   hx-target="#preview-content"
+                   hx-trigger="keyup delay:800ms, change"
+                   hx-include="closest form">
           </div>
         </div>
 
         <!-- Formula Description -->
         <div class="sm:col-span-2 mt-4">
           <label class="text-font">{{ t.formula_description }}</label>
-          <textarea 
-            name="desc_formula" 
-            class="textarea textarea-bordered w-full mt-1" 
-            placeholder="{{ t.enter_formula_description }}" 
-            oninput="updatePreview()"
-          >{{ form.desc_formula if form else '' }}</textarea>
+          <textarea name="desc_formula" 
+                    class="textarea textarea-bordered w-full mt-1" 
+                    placeholder="{{ t.enter_formula_description }}"
+                    hx-post="/form-management/form-builder/preview"
+                    hx-target="#preview-content"
+                    hx-trigger="keyup delay:800ms, change"
+                    hx-include="closest form">{{ form.desc_formula if form else '' }}</textarea>
         </div>
 
-
+        <!-- Action Buttons -->
         <div class="mt-6 flex justify-between">
           <!-- ปุ่มลบ -->
-          <button type="button" class="btn btn-outline btn-error" onclick="confirmDelete('{{ form.id }}', '{{ form.material_name }}')">
-            {{t.delete_form}}
+          <button type="button" class="btn btn-outline btn-error"
+                  hx-delete="/form-management/delete-form/{{ form.id }}"
+                  hx-confirm="คุณต้องการลบฟอร์ม '{{ form.material_name }}' หรือไม่?"
+                  hx-target="body"
+                  hx-swap="outerHTML">
+            {{ t.delete_form }}
           </button>
           
           <!-- ปุ่มบันทึกและยกเลิก -->
           <div class="flex gap-3">
-            <button type="button" class="btn btn-outline" onclick="document.getElementById('modal').classList.remove('modal-open')">{{t.cancel}}</button>
-            <button type="submit" class="btn btn-primary">{{t.save_changes}}</button>
+            <button type="button" class="btn btn-outline"
+                    onclick="document.getElementById('modal').classList.remove('modal-open')">{{ t.cancel }}</button>
+            <button type="submit" class="btn btn-primary">{{ t.save_changes }}</button>
           </div>
         </div>
       </form>
@@ -247,19 +227,21 @@
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-gray-800 font-bold text-lg">{{ t.form_preview }}</h3>
         <label for="preview-toggle" class="btn btn-sm btn-ghost text-gray-500 hover:text-gray-700 hover:bg-gray-100 cursor-pointer" title="ปิดพรีวิว">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <i data-feather="x" class="h-5 w-5"></i>
         </label>
       </div>
-      <div id="form-preview" class="bg-white rounded-[7px] border border-gray-300 shadow-md p-6">
-        <!-- พรีวิวเนื้อหาเดิม -->
+      <div id="preview-content" 
+           hx-post="/form-management/form-builder/preview"
+           hx-trigger="load"
+           hx-include="closest form"
+           class="bg-white rounded-[7px] border border-gray-300 shadow-md p-6">
+        <p class="italic text-sm text-gray-500">กำลังโหลดตัวอย่างฟอร์ม...</p>
       </div>
     </div>
   </div>
 </div>
 
-<!-- เพิ่ม CSS สำหรับปุ่มซ่อนพรีวิว -->
+<!-- เก็บ CSS เดิมทั้งหมด -->
 <style>
 /* Grid layout หลัก */
 .main-container {
@@ -324,846 +306,3 @@
   max-width: none !important;
 }
 </style>
-
-<!-- JavaScript เดิมทั้งหมดไม่เปลี่ยน -->
-<script>
-// ป้องกันการประกาศตัวแปรซ้ำ
-window.editFormInitialized = window.editFormInitialized || false;
-
-if (!window.linkedMaterialData) {
-    window.linkedMaterialData = null;
-}
-if (!window.currentFormId) {
-    window.currentFormId = null;
-}
-
-// ป้องกันการ override ฟังก์ชันซ้ำ
-if (!window.editFormFunctionsLoaded) {
-    window.editFormFunctionsLoaded = true;
-
-    // ปรับปรุงฟังก์ชัน clearCachedData
-    window.clearCachedData = function() {
-        console.log("Clearing all cached data...");
-        window.linkedMaterialData = null;
-        window.currentFormId = null;
-        
-        // ล้างทุกฟิลด์ในฟอร์ม
-        const materialInput = document.querySelector("input[name='material_name']");
-        const descFormTextarea = document.querySelector("textarea[name='desc_form']");
-        const formulaInput = document.querySelector("input[name='formula']");
-        const formula_carbonInput = document.querySelector("input[name='formula_carbon']");
-        const descFormulaTextarea = document.querySelector("textarea[name='desc_formula']");
-        
-        if (materialInput) materialInput.value = '';
-        if (descFormTextarea) descFormTextarea.value = '';
-        if (formulaInput) formulaInput.value = '';
-        if (formula_carbonInput) formulaInput.value = '';
-        if (descFormulaTextarea) descFormulaTextarea.value = '';
-        
-        // ล้าง preview
-        const preview = document.getElementById("form-preview");
-        if (preview) {
-            preview.innerHTML = '<p class="italic text-sm text-gray-500">Loading...</p>';
-        }
-        
-        // ล้าง linked fields preview
-        const linkedPreview = document.getElementById('linked-fields-preview');
-        if (linkedPreview) {
-            linkedPreview.innerHTML = '';
-        }
-        
-        // ล้าง input fields container
-        const container = document.getElementById("input-fields-container");
-        if (container) {
-            container.innerHTML = "";
-        }
-        
-        // ล้าง calculator buttons
-        const variablesButtons = document.getElementById("variables-buttons");
-        const numbersButtons = document.getElementById("numbers-buttons");
-        const operatorsButtons = document.getElementById("operators-buttons");
-        
-        if (variablesButtons) variablesButtons.innerHTML = "";
-        if (numbersButtons) numbersButtons.innerHTML = "";
-        if (operatorsButtons) operatorsButtons.innerHTML = "";
-        
-        // ปิด formula calculator ถ้าเปิดอยู่
-        const formulaCalculator = document.getElementById('formula-calculator');
-        if (formulaCalculator) {
-            formulaCalculator.classList.add('hidden');
-        }
-    }
-
-    // Override ฟังก์ชัน updateCalculatorButtons สำหรับ edit form
-    window.updateCalculatorButtonsEdit = function() {
-        console.log("=== updateCalculatorButtons (Edit Form) ===");
-        
-        const variablesButtons = document.getElementById("variables-buttons");
-        const numbersButtons = document.getElementById("numbers-buttons");
-        const operatorsButtons = document.getElementById("operators-buttons");
-        const linkedNotice = document.getElementById("linked-material-notice");
-        const linkedMaterialNameDisplay = document.getElementById("linked-material-name-display");
-        
-        if (!variablesButtons || !numbersButtons || !operatorsButtons) {
-            console.log("Calculator button containers not found");
-            return;
-        }
-        
-        // ล้างปุ่มเก่า
-        variablesButtons.innerHTML = "";
-        numbersButtons.innerHTML = "";
-        operatorsButtons.innerHTML = "";
-        
-        // สร้างปุ่มตัวแปร
-        let variables = [];
-        let isLinkedForm = false;
-        
-        // ตรวจสอบว่าเป็นฟอร์มลิงก์หรือไม่
-        if (window.linkedMaterialData && window.linkedMaterialData.input_types && window.linkedMaterialData.input_types.length > 0) {
-            // ใช้ตัวแปรจาก linked material
-            variables = window.linkedMaterialData.input_types.map(field => field.field);
-            isLinkedForm = true;
-            console.log("Using linked variables:", variables);
-            
-            // แสดงข้อความแจ้งเตือน
-            if (linkedNotice && linkedMaterialNameDisplay) {
-                linkedNotice.classList.remove('hidden');
-                linkedMaterialNameDisplay.textContent = window.linkedMaterialData.material_name || 'ไม่ระบุ';
-            }
-        } else {
-            // ใช้ตัวแปรจากฟอร์มปกติ
-            const container = document.getElementById("input-fields-container");
-            if (container) {
-                const fieldInputs = container.querySelectorAll("input[name='field']");
-                fieldInputs.forEach(input => {
-                    if (input.value.trim()) {
-                        variables.push(input.value.trim());
-                    }
-                });
-            }
-            console.log("Using normal form variables:", variables);
-            
-            // ซ่อนข้อความแจ้งเตือน
-            if (linkedNotice) {
-                linkedNotice.classList.add('hidden');
-            }
-        }
-        
-        console.log("Creating buttons for variables:", variables);
-        
-        // สร้างปุ่มตัวแปร
-        variables.forEach((variable, index) => {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'btn btn-xs btn-outline bg-pink-100 text-pink-800 hover:bg-pink-200';
-            button.textContent = variable;
-            button.onclick = () => {
-                console.log(`Variable button clicked: ${variable}`);
-                addToFormulaEdit(variable);
-            };
-            variablesButtons.appendChild(button);
-        });
-        
-        // สร้างปุ่มตัวเลข (0-9)
-        for (let i = 0; i <= 9; i++) {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'btn btn-xs btn-outline hover:bg-gray-100';
-            button.textContent = i;
-            button.onclick = () => {
-                addToFormulaEdit(i);
-            };
-            numbersButtons.appendChild(button);
-        }
-        
-        // สร้างปุ่มตัวดำเนินการ
-        const operators = ["+", "-", "*", "/", "^", "(", ")", ".", "⌫", "C"];
-        operators.forEach(op => {
-            const button = document.createElement('button');
-            button.type = 'button';
-            
-            if (op === "⌫") {
-                button.className = 'btn btn-xs btn-error hover:bg-red-100';
-                button.onclick = () => removeLastCharacterEdit();
-            } else if (op === "C") {
-                button.className = 'btn btn-xs btn-warning hover:bg-yellow-100';
-                button.onclick = () => clearFormulaEdit();
-            } else {
-                button.className = 'btn btn-xs btn-outline hover:bg-gray-100';
-                button.onclick = () => addToFormulaEdit(op);
-            }
-            
-            button.textContent = op;
-            operatorsButtons.appendChild(button);
-        });
-        
-        console.log(`Calculator buttons created: ${variables.length} variables, 10 numbers, 10 operators`);
-    }
-
-    // ฟังก์ชันสำหรับจัดการ formula input - edit version
-    window.addToFormulaEdit = function(value) {
-        const formulaInput = document.querySelector("input[name='formula']");
-        if (!formulaInput) return;
-        
-        formulaInput.value += value;
-        updatePreviewEdit();
-    }
-
-    window.removeLastCharacterEdit = function() {
-        const formulaInput = document.querySelector("input[name='formula']");
-        if (!formulaInput) return;
-        
-        formulaInput.value = formulaInput.value.slice(0, -1);
-        updatePreviewEdit();
-    }
-
-    window.clearFormulaEdit = function() {
-        const formulaInput = document.querySelector("input[name='formula']");
-        if (!formulaInput) return;
-        
-        formulaInput.value = "";
-        updatePreviewEdit();
-    }
-
-    // ฟังก์ชัน toggleFormulaCalculator สำหรับ edit form
-    window.toggleFormulaCalculatorEdit = function() {
-        console.log("🔧 Toggle formula calculator (Edit Form)");
-        const calculator = document.getElementById('formula-calculator');
-        if (!calculator) {
-            console.error("❌ Calculator element not found");
-            return;
-        }
-        
-        calculator.classList.toggle('hidden');
-        
-        if (!calculator.classList.contains('hidden')) {
-            console.log("📂 Calculator opened");
-            
-            setTimeout(() => {
-                window.updateCalculatorButtonsEdit();
-                if (typeof feather !== 'undefined') {
-                    feather.replace();
-                }
-            }, 50);
-        } else {
-            console.log("❌ Calculator closed");
-        }
-    }
-
-    window.closeFormulaCalculatorEdit = function() {
-        const calculator = document.getElementById('formula-calculator');
-        if (calculator) {
-            calculator.classList.add('hidden');
-        }
-    }
-
-    window.applyFormulaEdit = function() {
-        updatePreviewEdit();
-        window.closeFormulaCalculatorEdit();
-    }
-
-    // ฟังก์ชัน addInputField สำหรับ edit form
-    window.addInputFieldEdit = function(fieldData = {}) {
-        const container = document.getElementById("input-fields-container");
-        if (!container) return;
-
-        const currentIndex = container.children.length;
-        const fieldId = `input-${currentIndex}`;
-        const fieldNumber = currentIndex + 1;
-
-        const html = `
-        <div class="border border-gray-300 rounded-xl p-4 bg-gray-50 shadow-sm" data-index="${fieldId}">
-            <div class="flex justify-between items-center mb-3">
-                <h4 class="text-md font-semibold text-gray-600">Field #${fieldNumber}</h4>
-                <button type="button" class="btn btn-sm btn-error" onclick="removeFieldEdit(this)">✕</button>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input 
-                    name="field" 
-                    class="input input-bordered w-full" 
-                    placeholder="Field" 
-                    value="${fieldData.field || ''}" 
-                    onchange="updatePreviewEdit(); window.updateCalculatorButtonsEdit();" 
-                    required
-                >
-                <input 
-                    name="label" 
-                    class="input input-bordered w-full" 
-                    placeholder="Label" 
-                    value="${fieldData.label || ''}" 
-                    onchange="updatePreviewEdit(); window.updateCalculatorButtonsEdit();"
-                >
-                <select 
-                    name="input_type" 
-                    class="select select-bordered w-full" 
-                    onchange="updatePreviewEdit(); window.updateCalculatorButtonsEdit();"
-                >
-                    <option value="number" ${fieldData.input_type === 'number' ? 'selected' : ''}>Number</option>
-                    <option value="text" ${fieldData.input_type === 'text' ? 'selected' : ''}>Text</option>
-                    <option value="select" ${fieldData.input_type === 'select' ? 'selected' : ''}>Select</option>
-                </select>
-                <input 
-                    name="unit" 
-                    class="input input-bordered w-full" 
-                    placeholder="Unit" 
-                    value="${fieldData.unit || ''}" 
-                    onchange="updatePreviewEdit(); window.updateCalculatorButtonsEdit();"
-                >
-            </div>
-        </div>`;
-
-        container.insertAdjacentHTML("beforeend", html);
-    }
-
-    window.removeFieldEdit = function(button) {
-        button.closest("[data-index]").remove();
-        updatePreviewEdit();
-        window.updateCalculatorButtonsEdit();
-    }
-
-    // ฟังก์ชัน initialization
-    window.initializeEditForm = function() {
-        if (window.editFormInitialized) {
-            console.log("Edit form already initialized, skipping...");
-            return;
-        }
-        
-        console.log("=== Initializing Edit Form ===");
-        window.editFormInitialized = true;
-        
-        window.clearCachedData();
-        
-        setTimeout(() => {
-            const formIdInput = document.querySelector("input[name='form_id']");
-            const formId = formIdInput ? formIdInput.value : null;
-            
-            console.log("Form ID from input:", formId);
-            
-            if (formId) {
-                console.log("Form ID found, fetching fresh data from server");
-                fetchFormDataEdit(formId);
-            } else {
-                console.log("No form ID, creating new form");
-                window.currentFormId = null;
-                window.addInputFieldEdit();
-                setTimeout(() => {
-                    updatePreviewEdit();
-                    window.updateCalculatorButtonsEdit();
-                    if (typeof feather !== 'undefined') feather.replace();
-                }, 100);
-            }
-        }, 50);
-    }
-
-    // ฟังก์ชัน fetch data
-    window.fetchFormDataEdit = async function(formId) {
-        try {
-            console.log("Fetching form data from server for ID:", formId);
-            
-            const timestamp = new Date().getTime();
-            const random = Math.random().toString(36).substring(7);
-            
-            const response = await fetch(`/form-management/get-form-data/${formId}?t=${timestamp}&r=${random}`, {
-                method: 'GET',
-                cache: 'no-cache',
-                headers: {
-                    'Cache-Control': 'no-cache',
-                    'Pragma': 'no-cache'
-                }
-            });
-            
-            if (response.ok) {
-                const result = await response.json();
-                if (result.success) {
-                    console.log("Received fresh form data from server:", result.form);
-                    window.currentFormId = formId;
-                    loadFormDataEdit(result.form);
-                } else {
-                    console.error("Failed to get form data:", result.message);
-                }
-            } else {
-                console.error("HTTP error:", response.status);
-            }
-        } catch (error) {
-            console.error('Error fetching form data:', error);
-        }
-    }
-
-    window.loadFormDataEdit = async function(formData) {
-        console.log("=== Loading form data ===", formData);
-        
-        if (!formData || !formData.id) {
-            console.error("Invalid form data received");
-            return;
-        }
-        
-        window.linkedMaterialData = null;
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        if (formData.is_linked && formData.linked_material_name) {
-            console.log("Loading linked material data for:", formData.linked_material_name);
-            await loadLinkedMaterialDataEdit(formData.linked_material_name);
-        }
-        
-        if (!formData.is_linked && formData.input_types && formData.input_types.length > 0) {
-            console.log("Loading normal form input fields:", formData.input_types);
-            
-            const container = document.getElementById("input-fields-container");
-            if (container) {
-                container.innerHTML = "";
-            }
-            
-            formData.input_types.forEach(inputField => {
-                window.addInputFieldEdit({
-                    field: inputField.field,
-                    label: inputField.label,
-                    input_type: inputField.input_type,
-                    unit: inputField.unit
-                });
-            });
-        } else if (!formData.is_linked) {
-            const container = document.getElementById("input-fields-container");
-            if (container) {
-                container.innerHTML = "";
-            }
-            window.addInputFieldEdit();
-        }
-        
-        setTimeout(() => {
-            console.log("Filling form fields with fresh data...");
-            
-            const materialInput = document.querySelector("input[name='material_name']");
-            const descFormTextarea = document.querySelector("textarea[name='desc_form']");
-            const formulaInput = document.querySelector("input[name='formula']");
-            const descFormulaTextarea = document.querySelector("textarea[name='desc_formula']");
-            const mainScopeSelect = document.querySelector("select[name='scope']");
-            const hiddenScopeInput = document.querySelector("input[name='scope']");
-            const hiddenSubScopeInput = document.querySelector("input[name='sup_scope']");
-            
-            if (materialInput) {
-                materialInput.value = formData.material_name || '';
-                console.log("Set material name:", formData.material_name);
-            }
-            if (descFormTextarea) {
-                descFormTextarea.value = formData.desc_form || '';
-                console.log("Set form description:", formData.desc_form);
-            }
-            if (formulaInput) {
-                formulaInput.value = formData.formula || '';
-                console.log("Set formula:", formData.formula);
-            }
-            if (descFormulaTextarea) {
-                descFormulaTextarea.value = formData.desc_formula || '';
-                console.log("Set formula description:", formData.desc_formula);
-            }
-            if (mainScopeSelect) {
-                mainScopeSelect.value = formData.ghg_scope || '';
-                console.log("Set scope select:", formData.ghg_scope);
-            }
-            if (hiddenScopeInput) {
-                hiddenScopeInput.value = formData.ghg_scope || '';
-                console.log("Set hidden scope:", formData.ghg_scope);
-            }
-            if (hiddenSubScopeInput) {
-                hiddenSubScopeInput.value = formData.ghg_sup_scope || '';
-                console.log("Set hidden sub scope:", formData.ghg_sup_scope);
-            }
-            
-            const subScopeSelect = document.getElementById("sub-scope-select");
-            if (subScopeSelect && formData.ghg_scope && formData.ghg_sup_scope) {
-                subScopeSelect.innerHTML = `<option value="${formData.ghg_sup_scope}" selected>Scope ${formData.ghg_scope}.${formData.ghg_sup_scope}</option>`;
-                console.log("Sub scope display updated:", `Scope ${formData.ghg_scope}.${formData.ghg_sup_scope}`);
-            }
-            
-            const formIdInput = document.querySelector("input[name='form_id']");
-            if (formIdInput) {
-                formIdInput.value = formData.id;
-            }
-            
-            updatePreviewEdit();
-            window.updateCalculatorButtonsEdit();
-            if (typeof feather !== 'undefined') feather.replace();
-            console.log("=== Form initialization completed with fresh data ===");
-        }, 150);
-    }
-
-    window.loadLinkedMaterialDataEdit = async function(materialName) {
-        try {
-            console.log("Fetching fresh linked material data for:", materialName);
-            
-            window.linkedMaterialData = null;
-            
-            const timestamp = new Date().getTime();
-            const random = Math.random().toString(36).substring(7);
-            const response = await fetch(`/form-management/get-linked-material-data/${encodeURIComponent(materialName)}?t=${timestamp}&r=${random}`, {
-                cache: 'no-cache',
-                headers: {
-                    'Cache-Control': 'no-cache',
-                    'Pragma': 'no-cache'
-                }
-            });
-            
-            if (response.ok) {
-                const newData = await response.json();
-                console.log("Received fresh linked material data:", newData);
-                console.log("Input types in linked data:", newData.input_types);
-                
-                window.linkedMaterialData = newData;
-                updateLinkedDisplayEdit();
-                
-                return window.linkedMaterialData;
-            } else {
-                console.error("Failed to fetch linked material data:", response.status);
-            }
-        } catch (error) {
-            console.error('Error loading linked material data:', error);
-        }
-        return null;
-    }
-
-    window.updateLinkedDisplayEdit = function() {
-        console.log("Updating linked display with data:", window.linkedMaterialData);
-        
-        const linkedPreview = document.getElementById('linked-fields-preview');
-        if (!linkedPreview) {
-            console.log("linked-fields-preview element not found");
-            return;
-        }
-        
-        if (!window.linkedMaterialData || !window.linkedMaterialData.input_types) {
-            linkedPreview.innerHTML = '<p class="text-sm text-gray-500">ไม่มีข้อมูลฟิลด์</p>';
-            return;
-        }
-        
-        let html = '';
-        window.linkedMaterialData.input_types.forEach((field, index) => {
-            html += `
-                <div class="flex items-center justify-between py-2 px-3 bg-white border border-gray-200 rounded mb-2">
-                    <div class="flex-1">
-                        <span class="font-medium text-gray-800">${field.label || field.field}</span>
-                        <span class="text-xs text-gray-500 ml-2">(${field.field})</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="badge badge-sm bg-blue-100 text-blue-800">${field.input_type}</span>
-                        ${field.unit ? `<span class="text-xs text-gray-600">${field.unit}</span>` : ''}
-                    </div>
-                </div>
-            `;
-        });
-        
-        linkedPreview.innerHTML = html;
-        
-        const linkedInfo = document.getElementById('linked-info');
-        if (linkedInfo && window.linkedMaterialData) {
-            linkedInfo.innerHTML = `
-                <p><strong>เชื่อมโยงกับ Material:</strong> <span class="font-mono bg-gray-100 border border-gray-300 px-2 py-1 rounded text-gray-800">${window.linkedMaterialData.material_name}</span></p>
-                <p class="mt-1"><strong>Scope:</strong> <span class="text-blue-700">${window.linkedMaterialData.ghg_scope}</span> | <strong>Sub-Scope:</strong> <span class="text-blue-700">${window.linkedMaterialData.ghg_sup_scope}</span></p>
-                <p class="text-xs text-blue-700 mt-2">ระบบจะดึงข้อมูลจาก Material ดังกล่าวโดยอัตโนมัติ</p>
-            `;
-        }
-    }
-
-    window.updatePreviewEdit = function() {
-        console.log("Updating preview...");
-        
-        const preview = document.getElementById("form-preview");
-        if (!preview) {
-            console.log("form-preview element not found");
-            return;
-        }
-        
-        const materialNameInput = document.querySelector("input[name='material_name']");
-        const descFormTextarea = document.querySelector("textarea[name='desc_form']");
-        const formulaInput = document.querySelector("input[name='formula']");
-        const descFormulaTextarea = document.querySelector("textarea[name='desc_formula']");
-        const mainScopeSelect = document.querySelector("select[name='scope']");
-        const hiddenSubScopeInput = document.querySelector("input[name='sup_scope']");
-        
-        const materialName = (materialNameInput?.value || "NO MATERIAL NAME").toUpperCase();
-        const descForm = descFormTextarea?.value || "No Description";
-        const formula = formulaInput?.value || "No Formula";
-        const descFormula = descFormulaTextarea?.value || "No Formula Description";
-        const mainScope = mainScopeSelect?.value || "-";
-        const subScope = hiddenSubScopeInput?.value || "-";
-        
-        let html = `
-            <div class="mb-6">
-                <p class="text-sm text-gray-400"><strong>MATERIAL NAME:</strong> ${materialName}</p>
-            </div>
-            
-            <div class="mb-4">
-                <p class="text-sm text-gray-600"><strong>คำอธิบาย:</strong> ${descForm}</p>
-                <p class="text-sm text-gray-600 mt-1"><strong>Scope:</strong> ${mainScope} | <strong>Sub-Scope:</strong> ${subScope}</p>
-            </div>
-        `;
-        
-        const isLinkedForm = window.linkedMaterialData && window.linkedMaterialData.input_types;
-        
-        if (isLinkedForm) {
-            html += '<div class="space-y-3">';
-            window.linkedMaterialData.input_types.forEach((field, index) => {
-                const inputId = `preview_${field.field}_${index}`;
-                let inputHtml = '';
-                
-                switch (field.input_type) {
-                    case 'number':
-                        inputHtml = `<input type="number" id="${inputId}" class="input input-sm input-bordered w-full" placeholder="กรอกค่า ${field.label}" step="any">`;
-                        break;
-                    case 'select':
-                        inputHtml = `<select id="${inputId}" class="select select-sm select-bordered w-full">
-                            <option value="">เลือก ${field.label}</option>
-                        </select>`;
-                        break;
-                    case 'textarea':
-                        inputHtml = `<textarea id="${inputId}" class="textarea textarea-sm textarea-bordered w-full" placeholder="กรอก ${field.label}"></textarea>`;
-                        break;
-                    default:
-                        inputHtml = `<input type="text" id="${inputId}" class="input input-sm input-bordered w-full" placeholder="กรอก ${field.label}">`;
-                }
-                
-                html += `
-                    <div class="form-control">
-                        <label class="text-sm font-medium text-gray-700">${field.label || field.field}</label>
-                        <div class="flex items-center gap-2">
-                            ${inputHtml}
-                            ${field.unit ? `<span class="text-xs text-gray-500">${field.unit}</span>` : ''}
-                        </div>
-                    </div>
-                `;
-            });
-            html += '</div>';
-            
-            html += `
-                <div class="alert bg-blue-50 border border-blue-300 text-blue-800 mt-4">
-                    <div class="text-xs">
-                        <strong>หมายเหตุ:</strong> ฟิลด์เหล่านี้ถูกเชื่อมโยงจาก Material: <strong>${window.linkedMaterialData.material_name}</strong>
-                    </div>
-                </div>
-            `;
-        } else {
-            const container = document.getElementById("input-fields-container");
-            if (container) {
-                const fieldInputs = container.querySelectorAll("input[name='field']");
-                const labelInputs = container.querySelectorAll("input[name='label']");
-                const typeSelects = container.querySelectorAll("select[name='input_type']");
-                const unitInputs = container.querySelectorAll("input[name='unit']");
-                
-                if (fieldInputs.length > 0) {
-                    html += '<div class="space-y-3">';
-                    fieldInputs.forEach((fieldInput, index) => {
-                        const field = fieldInput.value.trim();
-                        const label = labelInputs[index]?.value.trim() || field;
-                        const inputType = typeSelects[index]?.value || 'text';
-                        const unit = unitInputs[index]?.value.trim() || '';
-                        
-                        if (field) {
-                            const inputId = `preview_${field}_${index}`;
-                            let inputHtml = '';
-                            
-                            switch (inputType) {
-                                case 'number':
-                                    inputHtml = `<input type="number" id="${inputId}" class="input input-sm input-bordered w-full" placeholder="กรอกค่า ${label}" step="any">`;
-                                    break;
-                                case 'select':
-                                    inputHtml = `<select id="${inputId}" class="select select-sm select-bordered w-full">
-                                        <option value="">เลือก ${label}</option>
-                                    </select>`;
-                                    break;
-                                case 'textarea':
-                                    inputHtml = `<textarea id="${inputId}" class="textarea textarea-sm textarea-bordered w-full" placeholder="กรอก ${label}"></textarea>`;
-                                    break;
-                                default:
-                                    inputHtml = `<input type="text" id="${inputId}" class="input input-sm input-bordered w-full" placeholder="กรอก ${label}">`;
-                            }
-                            
-                            html += `
-                                <div class="form-control">
-                                    <label class="text-sm font-medium text-gray-700">${label}</label>
-                                    <div class="flex items-center gap-2">
-                                        ${inputHtml}
-                                        ${unit ? `<span class="text-xs text-gray-500">${unit}</span>` : ''}
-                                    </div>
-                                </div>
-                            `;
-                        }
-                    });
-                    html += '</div>';
-                } else {
-                    html += '<p class="text-sm text-gray-500 italic">ยังไม่มีฟิลด์ข้อมูล</p>';
-                }
-            }
-        }
-        
-        html += `
-            <div class="mt-6">
-                <h4 class="text-sm font-semibold text-gray-800 mb-2">สูตรคำนวณ</h4>
-                <div class="bg-gray-50 border border-gray-200 rounded p-3">
-                    <code class="text-sm text-gray-800">${formula}</code>
-                </div>
-                <p class="text-xs text-gray-600 mt-2">${descFormula}</p>
-            </div>
-        `;
-        
-        const currentTime = new Date().toLocaleString();
-        html += `
-            <div class="mt-6 text-xs text-gray-500 border-t border-gray-200 pt-3">
-                <p><strong>สร้างโดย:</strong> {{ current_user.username if current_user else 'Unknown User' }}</p>
-                <p><strong>เวลา:</strong> ${currentTime}</p>
-            </div>
-        `;
-        
-        preview.innerHTML = html;
-        
-        if (typeof feather !== 'undefined') {
-            feather.replace();
-        }
-        
-        console.log("Preview updated successfully");
-    }
-
-    window.submitEditForm = function(event) {
-        event.preventDefault();
-        
-        if (typeof Swal === 'undefined') {
-            console.error('SweetAlert2 is not loaded');
-            return false;
-        }
-        
-        const form = event.target;
-        const formData = new FormData(form);
-        
-        const container = document.getElementById("input-fields-container");
-        if (container) {
-            const fieldInputs = container.querySelectorAll("input[name='field']");
-            const labelInputs = container.querySelectorAll("input[name='label']");
-            const typeSelects = container.querySelectorAll("select[name='input_type']");
-            const unitInputs = container.querySelectorAll("input[name='unit']");
-            
-            formData.delete('field');
-            formData.delete('label');
-            formData.delete('input_type');
-            formData.delete('unit');
-            
-            fieldInputs.forEach((input, index) => {
-                if (input.value.trim()) {
-                    formData.append('field', input.value.trim());
-                    formData.append('label', labelInputs[index] ? labelInputs[index].value.trim() : '');
-                    formData.append('input_type', typeSelects[index] ? typeSelects[index].value : 'text');
-                    formData.append('unit', unitInputs[index] ? unitInputs[index].value.trim() : '');
-                }
-            });
-        }
-        
-        const submitButton = form.querySelector('button[type="submit"]');
-        const originalText = submitButton.textContent;
-        submitButton.textContent = 'กำลังบันทึก...';
-        submitButton.disabled = true;
-        
-        fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            cache: 'no-cache',
-            headers: {
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                Swal.fire({
-                    title: 'สำเร็จ!',
-                    text: data.message,
-                    icon: 'success',
-                    confirmButtonText: 'ตกลง'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        document.getElementById('modal').classList.remove('modal-open');
-                        if (data.redirect_url) {
-                            window.location.href = data.redirect_url;
-                        } else {
-                            window.location.reload();
-                        }
-                    }
-                });
-            } else {
-                Swal.fire({
-                    title: 'เกิดข้อผิดพลาด!',
-                    text: data.message,
-                    icon: 'error',
-                    confirmButtonText: 'ตกลง'
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            Swal.fire({
-                title: 'เกิดข้อผิดพลาด!',
-                text: 'ไม่สามารถบันทึกข้อมูลได้',
-                icon: 'error',
-                confirmButtonText: 'ตกลง'
-            });
-        })
-        .finally(() => {
-            submitButton.textContent = originalText;
-            submitButton.disabled = false;
-        });
-        
-        return false;
-    }
-}
-
-// Alias functions สำหรับใช้ใน HTML
-function toggleFormulaCalculator() {
-    window.toggleFormulaCalculatorEdit();
-}
-
-function closeFormulaCalculator() {
-    window.closeFormulaCalculatorEdit();
-}
-
-function applyFormula() {
-    window.applyFormulaEdit();
-}
-
-function addInputField(fieldData) {
-    window.addInputFieldEdit(fieldData);
-}
-
-function removeField(button) {
-    window.removeFieldEdit(button);
-}
-
-function updatePreview() {
-    window.updatePreviewEdit();
-}
-
-function submitEditForm(event) {
-    return window.submitEditForm(event);
-}
-
-// Event listeners
-document.addEventListener('htmx:beforeSwap', function(event) {
-    if (event.detail.target.id === 'modal-content') {
-        console.log("=== Before modal swap - clearing all data ===");
-        window.editFormInitialized = false;
-        window.clearCachedData();
-    }
-});
-
-document.addEventListener('htmx:afterSettle', function(event) {
-    const editFormIndicator = event.detail.target.querySelector('input[name="form_id"]');
-    
-    if (editFormIndicator) {
-        console.log("=== Edit form modal loaded ===");
-        const formId = editFormIndicator.value;
-        console.log("Form ID:", formId);
-        
-        console.log("Forcing fresh data load");
-        
-        setTimeout(() => {
-            if (typeof feather !== 'undefined') feather.replace();
-            window.initializeEditForm();
-        }, 100);
-    }
-});
