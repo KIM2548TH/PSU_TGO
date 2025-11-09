@@ -15,6 +15,7 @@
   <script src="{{ 'node_modules/htmx.org/dist/htmx.min.js' | static_url }}"></script>
   <script src="{{ 'node_modules/cally/dist/cally.js' | static_url }}"></script>
   <script src="{{ 'js/date-picker.js' | static_url }}"></script>
+  <script src="{{ 'js/toast.js' | static_url }}"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <!-- เพิ่มใน head section -->
@@ -60,16 +61,61 @@
         feather.replace();
       }
       
-      // เรียก feather.replace() ทุกครั้งที่ HTMX อัปเดต content
+      // ใช้ event listener เดียวสำหรับ HTMX events
       document.addEventListener('htmx:afterSwap', function(e) {
-        if (typeof feather !== 'undefined') {
-          feather.replace();
-        }
+        // เรียก feather.replace() เฉพาะเมื่อจำเป็น
+        setTimeout(() => {
+          if (typeof feather !== 'undefined') {
+            feather.replace();
+          }
+        }, 50);
       });
       
-      document.addEventListener('htmx:afterSettle', function(e) {
-        if (typeof feather !== 'undefined') {
-          feather.replace();
+      // HTMX Event Listener สำหรับ Toast Notifications (ใช้ตัวเดียว)
+      document.addEventListener('htmx:afterRequest', function(event) {
+        const xhr = event.detail.xhr;
+        
+        // ตรวจสอบ HX-Trigger headers จาก server
+        const hxTrigger = xhr.getResponseHeader('HX-Trigger');
+        if (hxTrigger) {
+          try {
+            const triggers = JSON.parse(hxTrigger);
+            
+            // แสดง success toast
+            if (triggers.showSuccess) {
+              const message = decodeURIComponent(triggers.showSuccess);
+              showSuccess(message);
+            }
+            
+            // แสดง error toast
+            if (triggers.showError) {
+              const message = decodeURIComponent(triggers.showError);
+              showError(message);
+            }
+            
+            // แสดง warning toast
+            if (triggers.showWarning) {
+              const message = decodeURIComponent(triggers.showWarning);
+              showWarning(message);
+            }
+            
+            // แสดง info toast
+            if (triggers.showInfo) {
+              const message = decodeURIComponent(triggers.showInfo);
+              showInfo(message);
+            }
+            
+            // ปิด modal
+            if (triggers.closeModal) {
+              const modal = document.getElementById('modal');
+              if (modal) {
+                modal.checked = false;
+                modal.classList.remove('modal-open');
+              }
+            }
+          } catch (e) {
+            console.log('Could not parse HX-Trigger header:', e);
+          }
         }
       });
     });

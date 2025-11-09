@@ -158,14 +158,16 @@
               <button type="button" id="formula-dropdown-btn"
                       class="btn btn-outline ml-2 px-3"
                       hx-post="/form-management/calculator/show"
-                      hx-target="#formula-container"
-                      hx-swap="beforeend"
+                      hx-target="#calculator-placeholder"
+                      hx-swap="innerHTML"
                       hx-include="closest form"
                       title="{{ t.open_formula_calculator }}">
                 <i data-feather="grid" class="w-4 h-4 mr-1"></i>
                 <i data-feather="chevron-down" class="w-4 h-4"></i>
               </button>
             </div>
+            <!-- Placeholder สำหรับ calculator -->
+            <div id="calculator-placeholder"></div>
           </div>
         </div>
 

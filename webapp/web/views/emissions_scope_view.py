@@ -3,6 +3,9 @@ from flask_login import login_required, current_user
 from ...models import FormAndFormula, Scope, Material, CampusAndDepartment
 from datetime import datetime
 from ..utils.acl import permissions_required_all
+from flask import make_response
+import json
+import urllib.parse
 
 module = Blueprint("emissions_scope", __name__, url_prefix="/emissions-scope")
 
@@ -174,7 +177,20 @@ def edit_scope(ghg_scope, ghg_sup_scope):
         scope.head_table = head_table if head_table else []
         scope.save()
 
-        return render_template("/success/success.html", success="แก้ไข Scope สำเร็จ!")
+        # ใช้ toast notification แทน popup
+
+        
+        response = make_response('')
+        encoded_message = urllib.parse.quote("แก้ไข Scope สำเร็จ!")
+        
+        trigger_data = {
+            "closeModal": True,
+            "showSuccess": encoded_message,
+            "refreshPage": True
+        }
+        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+        
+        return response
 
     # กรณี GET: แสดงฟอร์มแก้ไข
     # ดึง material_names จาก FormAndFormula ที่ตรงกับ scope และ sub_scope
