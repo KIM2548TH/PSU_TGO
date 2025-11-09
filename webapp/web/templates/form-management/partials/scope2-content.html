@@ -1,0 +1,221 @@
+<!-- Scope 2 Content -->
+<div class="mb-8">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="bg-green-100 p-3 rounded-full">
+      <i data-feather="zap" class="w-6 h-6 text-green-600"></i>
+    </div>
+    <div class="flex-1">
+      <h2 class="text-2xl font-bold text-green-800">Scope 2 - การปล่อยก๊าซ(พลังงาน)</h2>
+      <p class="text-sm text-gray-600">การปล่อยก๊าซเรือนกระจกทางอ้อมจากการใช้พลังงานที่ซื้อมา</p>
+    </div>
+    <span class="ml-auto badge bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">
+      {{ forms|selectattr('ghg_scope', 'equalto', 2)|list|length }} ฟอร์ม
+    </span>
+  </div>
+  
+  {% set scope2_forms = forms|selectattr('ghg_scope', 'equalto', 2)|list %}
+  {% set scope2_sub_scopes = scope2_forms|map(attribute='ghg_sup_scope')|unique|sort %}
+
+  <!-- Sub Scope Dropdown - แสดงเสมอ -->
+  <div class="mb-6 bg-green-50 rounded-lg p-4">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-sm font-semibold text-green-700">
+        <i data-feather="filter" class="w-4 h-4 inline mr-1"></i>
+        เลือก Sub Scope
+      </h3>
+      <button class="text-xs text-green-600 hover:text-green-800" 
+              hx-get="/form-management/scope/2?show_all=true"
+              hx-target="#scope-content-area"
+              hx-swap="innerHTML">แสดงทั้งหมด</button>
+    </div>
+    
+    <div class="dropdown w-full">
+      <div tabindex="0" role="button" class="btn btn-outline btn-green w-full justify-between">
+        <span>
+          {% if filter_sub_scope %}
+            {% set scope_key = "2." + filter_sub_scope|string %}
+            Sub Scope {{ filter_sub_scope }}
+            {% if scope_names.get(scope_key) %} - {{ scope_names.get(scope_key) }}{% endif %}
+          {% elif show_all %}
+            แสดงทั้งหมด
+          {% elif scope2_sub_scopes|length > 0 %}
+            {% set first_sub_scope = scope2_sub_scopes|first %}
+            {% set scope_key = "2." + first_sub_scope|string %}
+            Sub Scope {{ first_sub_scope }}
+            {% if scope_names.get(scope_key) %} - {{ scope_names.get(scope_key) }}{% endif %}
+          {% else %}
+            เลือก Sub Scope
+          {% endif %}
+        </span>
+        <i data-feather="chevron-down" class="w-4 h-4"></i>
+      </div>
+      <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-full p-2 shadow border border-green-200">
+        <li>
+          <button class="w-full text-left {{ 'bg-green-100 text-green-800' if show_all else '' }}"
+                  hx-get="/form-management/scope/2?show_all=true"
+                  hx-target="#scope-content-area"
+                  hx-swap="innerHTML">
+            <i data-feather="list" class="w-4 h-4"></i>
+            แสดงทั้งหมด
+          </button>
+        </li>
+        {% for sub_scope in scope2_sub_scopes %}
+        {% set scope_key = "2." + sub_scope|string %}
+        <li>
+          <button class="w-full text-left {{ 'bg-green-100 text-green-800' if (filter_sub_scope == sub_scope) or (not filter_sub_scope and not show_all and loop.first) else '' }}"
+                  hx-get="/form-management/scope/2?filter_sub_scope={{ sub_scope }}"
+                  hx-target="#scope-content-area"
+                  hx-swap="innerHTML">
+            <i data-feather="folder" class="w-4 h-4"></i>
+            <div class="flex-1">
+              <div class="font-medium">Sub Scope {{ sub_scope }}</div>
+              {% if scope_names.get(scope_key) %}
+              <div class="text-xs text-gray-500">{{ scope_names.get(scope_key) }}</div>
+              {% endif %}
+            </div>
+          </button>
+        </li>
+        {% endfor %}
+        <li class="border-t border-gray-200 mt-2 pt-2">
+          <button class="w-full text-left text-green-600"
+                  hx-get="{{ url_for('form_management.load_add_form_and_formula') }}?default_scope=2" 
+                  hx-target="#modal-content" 
+                  hx-swap="innerHTML"
+                  hx-on:htmx:after-request="document.getElementById('modal').classList.add('modal-open')">
+            <i data-feather="plus-circle" class="w-4 h-4"></i>
+            เพิ่มฟอร์มใหม่ใน subscope ที่ยังไม่มีฟอร์ม
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Forms Content -->
+  {% if scope2_sub_scopes|length == 0 %}
+  <!-- แสดงเมื่อไม่มี Sub Scope -->
+  <div class="text-center py-12 bg-green-50 rounded-lg border-2 border-dashed border-green-300">
+    <div class="bg-green-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+      <i data-feather="plus-circle" class="w-8 h-8 text-green-600"></i>
+    </div>
+    <h3 class="text-lg font-semibold text-green-700 mb-2">ยังไม่มี Sub Scope</h3>
+    <p class="text-green-600 mb-4">เริ่มต้นสร้างฟอร์มแรกใน Scope 2</p>
+    <button class="btn btn-primary"
+            hx-get="{{ url_for('form_management.load_add_form_and_formula') }}?default_scope=2" 
+            hx-target="#modal-content" 
+            hx-swap="innerHTML"
+            hx-on:htmx:after-request="document.getElementById('modal').classList.add('modal-open')">
+      <i data-feather="plus" class="w-4 h-4 mr-2"></i>
+      เพิ่มฟอร์มใหม่
+    </button>
+  </div>
+  {% else %}
+  
+  {% for sub_scope in scope2_sub_scopes %}
+    {% set scope_key = "2." + sub_scope|string %}
+    {% set should_show = show_all or (filter_sub_scope == sub_scope) or (not filter_sub_scope and loop.first) %}
+    
+    {% if should_show %}
+    <div class="mb-8">
+      <!-- Sub Scope Header -->
+      <div class="border-l-4 border-green-400 pl-4 mb-4">
+        <h3 class="text-lg font-semibold text-green-700">
+          {% if scope_names.get(scope_key) %}{{ scope_names.get(scope_key) }}{% else %}Sub Scope {{ sub_scope }}{% endif %}
+        </h3>
+        <p class="text-sm text-gray-500">รายการฟอร์มใน Sub Scope {{ sub_scope }}</p>
+      </div>
+
+      <!-- Forms Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for form in scope2_forms %}
+          {% if form.ghg_sup_scope == sub_scope %}
+          <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div class="flex justify-between items-start mb-3">
+              <div class="flex items-center gap-3 min-w-0 flex-1">
+                <div class="bg-green-100 text-green-600 p-2 rounded-lg flex-shrink-0 relative">
+                  <i data-feather="file-text" class="w-5 h-5"></i>
+                  {% if form.is_linked %}
+                    <div class="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full border-2 border-white"></div>
+                  {% endif %}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <h4 class="text-base font-semibold text-gray-800 break-words leading-snug">{{ form.material_name }}</h4>
+                  <p class="text-sm text-gray-500 break-words">{{ form.desc_form[:50] }}{% if form.desc_form and form.desc_form|length > 50 %}...{% endif %}</p>
+                </div>
+              </div>
+              <button class="text-blue-500 hover:text-blue-700 p-1 rounded-md hover:bg-blue-50 transition-colors" 
+                      title="แก้ไข"
+                      hx-get="{{ url_for('form_management.load_edit_form_and_formula') }}?form_id={{ form.id }}"
+                      hx-target="#modal-content"
+                      hx-swap="innerHTML"
+                      hx-on:htmx:after-request="document.getElementById('modal').classList.add('modal-open')">
+                <i data-feather="edit" class="w-4 h-4"></i>
+              </button>
+            </div>
+            
+            <!-- Linked Form Information -->
+            {% if form.is_linked %}
+            <div class="mb-3 p-2 bg-orange-50 border border-orange-200 rounded-lg">
+              <div class="flex items-center gap-2">
+                <i data-feather="link" class="w-3 h-3 text-orange-600"></i>
+                <span class="text-xs font-medium text-orange-700 break-words">เชื่อมโยงจาก: {{ form.linked_material_name }}</span>
+              </div>
+            </div>
+            {% endif %}
+            
+            <!-- Variables -->
+            {% if form.variables %}
+            <div class="mb-3">
+              <p class="text-xs font-medium text-gray-600 mb-2">ตัวแปร</p>
+              <div class="space-y-1">
+                {% for var in form.variables %}
+                <div class="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded font-medium mr-1 mb-1 break-all">{{ var }}</div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+            
+            <!-- Formula -->
+            <div class="bg-gray-50 p-3 rounded-lg space-y-2">
+              <div>
+                <p class="text-xs font-medium text-gray-600 mb-1">สูตรคำนวณ</p>
+                <p class="text-xs text-gray-800 font-mono break-all">{{ form.formula or "ไม่ได้กำหนด" }}</p>
+              </div>
+              {% if form.formula2 %}
+              <div class="border-t border-gray-200 pt-2">
+                <p class="text-xs font-medium text-blue-600 mb-1">สูตรคำนวณ tonCO₂e</p>
+                <div class="bg-blue-50 p-2 rounded">
+                  <p class="text-xs text-blue-800 font-mono break-all">{{ form.formula2 or "ไม่ได้กำหนด" }}</p>
+                </div>
+              </div>
+              {% else %}
+              <div class="border-t border-gray-200 pt-2">
+                <p class="text-xs font-medium text-blue-600 mb-1">สูตรคำนวณ tonCO₂e</p>
+                <div class="bg-blue-50 p-2 rounded">
+                  <p class="text-xs text-blue-500 font-mono break-all">ไม่ได้กำหนด</p>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+        {% endfor %}
+        
+        <!-- Add New Form Card - แสดงเสมอ -->
+        <div class="border-2 border-dashed border-green-200 rounded-xl p-8 flex flex-col items-center justify-center text-center hover:border-green-400 hover:bg-green-50 transition-colors duration-200 cursor-pointer"
+             hx-get="{{ url_for('form_management.load_add_form_and_formula') }}?default_scope=2&default_sub_scope={{ sub_scope }}" 
+             hx-target="#modal-content" 
+             hx-swap="innerHTML"
+             hx-on:htmx:after-request="document.getElementById('modal').classList.add('modal-open')">
+          <div class="bg-green-100 p-3 rounded-full mb-3">
+            <i data-feather="plus" class="w-6 h-6 text-green-600"></i>
+          </div>
+          <h4 class="text-sm font-medium text-green-700">เพิ่มฟอร์มใหม่</h4>
+          <p class="text-xs text-green-500 mt-1">Sub Scope {{ sub_scope }}</p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+  
+  {% endif %}
+</div>

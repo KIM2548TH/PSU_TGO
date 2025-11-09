@@ -3,7 +3,7 @@
   <div class="flex justify-end mb-4">
     <button type="button" 
             class="btn btn-sm btn-ghost text-gray-700 hover:text-gray-900 hover:bg-gray-100" 
-            onclick="document.getElementById('modal').classList.remove('modal-open');"
+            onclick="document.getElementById('modal').classList.remove('modal-open')"
             title="ปิดป็อปอัพ">
       <i data-feather="x" class="h-5 w-5 mr-1"></i>
       ปิด
@@ -13,7 +13,7 @@
   <!-- Checkbox สำหรับ toggle preview (ซ่อนไว้) -->
   <input type="checkbox" id="preview-toggle" class="hidden" checked>
 
-  <!-- เปลี่ยนจาก grid เป็น main-container -->
+  <!-- Main container -->
   <div class="main-container">
     <!-- Left: Create Form Field -->
     <div class="bg-white rounded-[7px] border border-gray-300 shadow-md p-6">
@@ -26,40 +26,40 @@
         </label>
       </div>
       
-      <form id="add-form" method="POST" action="{{ url_for('form_management.add_form_and_formula') }}" onsubmit="submitForm(event)">
-        <!-- เนื้อหาฟอร์มเดิมทั้งหมดไม่เปลี่ยน... -->
+      <form method="POST" action="{{ url_for('form_management.add_form_and_formula') }}"
+            hx-post="{{ url_for('form_management.add_form_and_formula') }}"
+            hx-target="#modal-content"
+            hx-swap="innerHTML"
+            hx-headers='{"X-Requested-With": "XMLHttpRequest"}'>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}"/>
         
         <!-- Form Metadata -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
           <div>
             <label class="text-font">{{ t.material_name }}</label>
-            <input 
-              type="text" 
-              name="material_name" 
-              class="input input-bordered w-full mt-1" 
-              placeholder="{{ t.enter_material_name }}" 
-              value="{{ form_data.material_name if form_data else '' }}"
-              oninput="updatePreview()"
-              required>
+            <input type="text" name="material_name" 
+                   class="input input-bordered w-full mt-1" 
+                   placeholder="{{ t.enter_material_name }}"
+                   hx-post="/form-management/form-builder/preview"
+                   hx-target="#preview-content"
+                   hx-trigger="keyup delay:800ms, change"
+                   hx-include="closest form"
+                   required>
           </div>
 
-          <!-- แก้ไขส่วน Main Scope -->
+          <!-- Main Scope -->
           <div>
-            <label class="text-font"> Main Scope </label>
-            <select 
-              name="scope" 
-              id="main-scope"
-              class="select select-bordered w-full mt-1" 
-              hx-get="/form-management/get-sub-scopes/"
-              hx-target="#sub-scope-container"
-              hx-trigger="change"
-              hx-include="[name='scope']"
-              {% if default_sub_scope %}
-              hx-vals='{"selected": "{{ default_sub_scope }}"}'
-              {% endif %}
-              onchange="updatePreview(); triggerLinkedMaterialsLoad();"
-              required>
+            <label class="text-font">Main Scope</label>
+            <select name="scope" id="main-scope"
+                    class="select select-bordered w-full mt-1" 
+                    hx-get="/form-management/get-sub-scopes/"
+                    hx-target="#sub-scope-container"
+                    hx-trigger="change"
+                    hx-include="[name='scope']"
+                    {% if default_sub_scope %}
+                    hx-vals='{"selected": "{{ default_sub_scope }}"}'
+                    {% endif %}
+                    required>
               <option value="">เลือก Main Scope</option>
               <option value="1" {{ 'selected' if default_scope == '1' else '' }}>Scope 1</option>
               <option value="2" {{ 'selected' if default_scope == '2' else '' }}>Scope 2</option>
@@ -67,27 +67,27 @@
             </select>
           </div>
 
-          <!-- แก้ไขส่วน Sub Scope -->
+          <!-- Sub Scope -->
           <div>
             <label class="text-font">{{ t.sub_scope }}</label>
             <div id="sub-scope-container">
               {% if default_scope %}
-                <!-- ถ้ามี default scope ให้โหลด sub-scopes ทันที พร้อมส่ง selected -->
                 <div hx-get="/form-management/get-sub-scopes/{{ default_scope }}{% if default_sub_scope %}?selected={{ default_sub_scope }}{% endif %}"
                      hx-trigger="load"
                      hx-target="this"
                      hx-swap="outerHTML">
-                  <select name="sup_scope" class="select select-bordered w-full mt-1" required onchange="updatePreview(); triggerLinkedMaterialsLoad();">
+                  <select name="sup_scope" class="select select-bordered w-full mt-1" required>
                     <option value="">กำลังโหลด Sub Scopes...</option>
                   </select>
                 </div>
               {% else %}
-                <select 
-                  name="sup_scope" 
-                  id="sub-scope"
-                  class="select select-bordered w-full mt-1"
-                  onchange="updatePreview(); triggerLinkedMaterialsLoad();"
-                  required>
+                <select name="sup_scope" id="sub-scope"
+                        class="select select-bordered w-full mt-1"
+                        hx-post="/form-management/form-builder/preview"
+                        hx-target="#preview-content"
+                        hx-trigger="change"
+                        hx-include="closest form"
+                        required>
                   <option value="">เลือก Main Scope ก่อน</option>
                 </select>
               {% endif %}
@@ -96,130 +96,71 @@
 
           <div class="sm:col-span-2">
             <label class="text-font">{{ t.form_description }}</label>
-            <textarea 
-              name="desc_form" 
-              class="textarea textarea-bordered w-full mt-1" 
-              placeholder="{{ t.enter_form_description }}"
-              oninput="updatePreview()"
-            >{{ form_data.desc_form if form_data else '' }}</textarea>
+            <textarea name="desc_form" 
+                      class="textarea textarea-bordered w-full mt-1" 
+                      placeholder="{{ t.enter_form_description }}"
+                      hx-post="/form-management/form-builder/preview"
+                      hx-target="#preview-content"
+                      hx-trigger="keyup delay:800ms, change"
+                      hx-include="closest form"></textarea>
           </div>
         </div>
 
-        <!-- เพิ่มส่วนเลือกประเภทฟอร์ม -->
+        <!-- Form Type Toggle -->
         <div class="mt-6">
           <label class="text-font">ประเภทฟอร์ม</label>
           <div class="mt-2">
             <label class="flex items-center gap-3 cursor-pointer">
-              <input 
-                type="radio" 
-                name="form_type" 
-                value="normal" 
-                class="radio radio-primary" 
-                checked
-                onchange="toggleFormType()">
+              <input type="radio" name="form_type" value="normal" 
+                     class="radio radio-primary" checked
+                     hx-post="/form-management/form-builder/toggle-form-type"
+                     hx-target="#form-fields-container"
+                     hx-trigger="change"
+                     hx-include="closest form">
               <span>ฟอร์มปกติ (กรอกข้อมูลเอง)</span>
             </label>
             <label class="flex items-center gap-3 cursor-pointer mt-2">
-              <input 
-                type="radio" 
-                name="form_type" 
-                value="linked" 
-                class="radio radio-primary"
-                onchange="toggleFormType()">
+              <input type="radio" name="form_type" value="linked" 
+                     class="radio radio-primary"
+                     hx-post="/form-management/form-builder/toggle-form-type"
+                     hx-target="#form-fields-container"
+                     hx-trigger="change"
+                     hx-include="closest form">
               <span>ฟอร์มลิงก์ (ดึงข้อมูลจากฟอร์มอื่น)</span>
             </label>
           </div>
         </div>
 
-        <!-- ส่วนเลือก Material สำหรับลิงก์ -->
-        <div id="linked-material-section" class="mt-6 hidden">
-          <label class="text-font">เลือก Material ที่ต้องการลิงก์</label>
-          <div id="available-materials-container">
-            <select name="linked_material_name" class="select select-bordered w-full mt-1">
-              <option value="">เลือก Scope และ Sub Scope ก่อน</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Define Input Fields - จะซ่อนเมื่อเป็นฟอร์มลิงก์ -->
-        <div id="input-fields-section" class="mt-6">
-          <label class="text-font">{{ t.define_input_fields }}</label>
-          <div id="input-fields-container" class="space-y-4">
-            <!-- ฟิลด์ที่เพิ่มจะถูกแทรกที่นี่ -->
-          </div>
-          <!-- ปุ่ม Add Input Field -->
-          <button 
-            type="button" 
-            class="btn btn-outline btn-lg mt-2 w-full border-dashed flex items-center justify-center gap-3 py-4 bg-gray-50 hover:bg-gray-100 text-gray-600 text-sm" 
-            onclick="addInputField()">
-            <i data-feather="plus" class="w-6 h-6"></i>
-            {{ t.add_input_field }}
-          </button>
+        <!-- Dynamic Form Fields Container -->
+        <div id="form-fields-container" class="mt-6">
+          {% include "form-management/partials/normal-form-section.html" %}
         </div>
 
         <!-- Formula Section -->
         <div class="mt-6">
           <label class="text-font">{{ t.formula }}</label>
-          <div class="relative mb-4">
+          <div class="relative mb-4" id="formula-container">
             <div class="flex">
-              <input 
-                type="text" 
-                name="formula" 
-                id="formula" 
-                class="input input-bordered w-full" 
-                placeholder="e.g. diesel * 2.68" 
-                required
-                onclick="toggleFormulaCalculator()">
+              <input type="text" name="formula" id="formula" 
+                     class="input input-bordered w-full" 
+                     placeholder="e.g. diesel * 2.68"
+                     hx-post="/form-management/form-builder/preview"
+                     hx-target="#preview-content"
+                     hx-trigger="keyup delay:800ms, change"
+                     hx-include="closest form"
+                     required>
               
-              <!-- Dropdown Button -->
-              <button type="button" 
-                      id="formula-dropdown-btn"
+              <!-- Calculator Button -->
+              <button type="button" id="formula-dropdown-btn"
                       class="btn btn-outline ml-2 px-3"
-                      onclick="toggleFormulaCalculator()"
+                      hx-post="/form-management/calculator/show"
+                      hx-target="#formula-container"
+                      hx-swap="beforeend"
+                      hx-include="closest form"
                       title="{{ t.open_formula_calculator }}">
                 <i data-feather="grid" class="w-4 h-4 mr-1"></i>
                 <i data-feather="chevron-down" class="w-4 h-4"></i>
               </button>
-            </div>
-            
-            <!-- Formula Calculator Dropdown -->
-            <div id="formula-calculator" class="absolute top-full left-0 right-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-4 hidden mt-2">
-              <div class="flex justify-between items-center mb-3">
-                <h4 class="text-lg font-semibold text-gray-700">{{ t.formula_builder }}</h4>
-                <button type="button" class="btn btn-sm btn-ghost" onclick="closeFormulaCalculator()">
-                  <i data-feather="x" class="w-4 h-4"></i>
-                </button>
-              </div>
-
-              <!-- Variables Section -->
-              <div class="mb-4">
-                <h5 class="text-sm font-medium text-gray-600 mb-2">{{ t.variables }}</h5>
-                <div class="grid grid-cols-4 gap-2" id="variables-buttons">
-                  <!-- ปุ่มตัวแปรจะถูกเพิ่มที่นี่ -->
-                </div>
-              </div>
-
-              <!-- Numbers Section -->
-              <div class="mb-4">
-                <h5 class="text-sm font-medium text-gray-600 mb-2">{{ t.numbers }}</h5>
-                <div class="grid grid-cols-5 gap-2" id="numbers-buttons">
-                  <!-- ปุ่มตัวเลขจะถูกเพิ่มที่นี่ -->
-                </div>
-              </div>
-
-              <!-- Operators Section -->
-              <div class="mb-4">
-                <h5 class="text-sm font-medium text-gray-600 mb-2">{{ t.operators }}</h5>
-                <div class="grid grid-cols-5 gap-2" id="operators-buttons">
-                  <!-- ปุ่มสัญลักษณ์ทางคณิตศาสตร์จะถูกเพิ่มที่นี่ -->
-                </div>
-              </div>
-
-              <!-- Actions -->
-              <div class="flex justify-between">
-                <button type="button" class="btn btn-sm btn-outline" onclick="closeFormulaCalculator()">{{ t.cancel }}</button>
-                <button type="button" class="btn btn-sm btn-primary" onclick="applyFormula()">{{ t.apply }}</button>
-              </div>
             </div>
           </div>
         </div>
@@ -227,27 +168,22 @@
         <!-- Formula Description -->
         <div class="sm:col-span-2 mt-4">
           <label class="text-font">{{ t.formula_description }}</label>
-          <textarea 
-            name="desc_formula" 
-            class="textarea textarea-bordered w-full mt-1" 
-            placeholder="{{ t.enter_formula_description }}" 
-            oninput="updatePreview()"
-          ></textarea>
+          <textarea name="desc_formula" 
+                    class="textarea textarea-bordered w-full mt-1" 
+                    placeholder="{{ t.enter_formula_description }}"
+                    hx-post="/form-management/form-builder/preview"
+                    hx-target="#preview-content"
+                    hx-trigger="keyup delay:800ms, change"
+                    hx-include="closest form"></textarea>
         </div>
 
-        <!-- Hidden inputs สำหรับลิงก์ -->
+        <!-- Hidden inputs -->
         <input type="hidden" name="is_linked" id="is_linked" value="false">
 
-        <!-- เพิ่มส่วนนี้ที่ด้านบนของฟอร์ม -->
-        {% if error_msg %}
-        <div class="alert alert-error mb-4">
-          <i data-feather="alert-circle" class="stroke-current shrink-0 h-6 w-6"></i>
-          <span>{{ error_msg }}</span>
-        </div>
-        {% endif %}
-
+        <!-- Submit buttons -->
         <div class="mt-6 flex justify-end gap-3">
-          <button type="button" class="btn btn-outline" onclick="document.getElementById('modal').classList.remove('modal-open')">{{ t.cancel }}</button>
+          <button type="button" class="btn btn-outline" 
+                  onclick="document.getElementById('modal').classList.remove('modal-open')">{{ t.cancel }}</button>
           <button type="submit" class="btn btn-primary">{{ t.add_form }}</button>
         </div>
       </form>
@@ -261,14 +197,18 @@
           <i data-feather="x" class="h-5 w-5"></i>
         </label>
       </div>
-      <div id="form-preview" class="bg-white rounded-[7px] border border-gray-300 shadow-md p-6">
+      <div id="preview-content" 
+           hx-post="/form-management/form-builder/preview"
+           hx-trigger="load"
+           hx-include="closest form"
+           class="bg-white rounded-[7px] border border-gray-300 shadow-md p-6">
         <p class="italic text-sm text-gray-500">{{ t.input_fields_preview }}</p>
       </div>
     </div>
   </div>
 </div>
 
-<!-- เพิ่ม CSS สำหรับปุ่มซ่อนพรีวิว -->
+<!-- เก็บ CSS เดิมทั้งหมด -->
 <style>
 /* Grid layout หลัก */
 .main-container {
@@ -332,407 +272,24 @@
   width: 100% !important;
   max-width: none !important;
 }
+
+/* CSS สำหรับ calculator toggle */
+/* ซ่อน calculator เมื่อ checkbox ไม่ถูก check */
+#calculator-toggle:not(:checked) ~ div .calculator-container {
+    display: none !important;
+}
+
+/* แสดง calculator เมื่อ checkbox ถูก check */
+#calculator-toggle:checked ~ div .calculator-container {
+    display: block !important;
+}
+
+/* ซ่อน calculator container เมื่อว่างเปล่า และลบ margin */
+.calculator-container:empty {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+}
 </style>
-
-<!-- เพิ่ม SweetAlert2 CDN -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<!-- เพิ่ม shared JavaScript -->
-<script src="{{ url_for('static', filename='js/form-calculator.js') }}"></script>
-
-<!-- JavaScript เดิมทั้งหมดไม่เปลี่ยน -->
-<script>
-function toggleFormType() {
-    const formType = document.querySelector('input[name="form_type"]:checked').value;
-    const linkedSection = document.getElementById('linked-material-section');
-    const inputFieldsSection = document.getElementById('input-fields-section');
-    const isLinkedInput = document.getElementById('is_linked');
-    
-    console.log('Form type changed to:', formType); // Debug log
-    
-    if (formType === 'linked') {
-        linkedSection.classList.remove('hidden');
-        inputFieldsSection.classList.add('hidden');
-        isLinkedInput.value = 'true';
-        
-        // โหลด available materials ถ้ามี scope และ sub scope
-        triggerLinkedMaterialsLoad();
-        
-        // ล้าง formula ให้ user กรอกเอง (แก้ไขจาก buffer_data * 1)
-        document.getElementById('formula').value = '';
-        updatePreview();
-        updateFormulaButtons();
-        
-        // ตรวจสอบว่ามี material ที่เลือกอยู่หรือไม่
-        setTimeout(() => {
-            const linkedSelect = document.querySelector('select[name="linked_material_name"]');
-            if (linkedSelect && linkedSelect.value) {
-                onLinkedMaterialChange();
-            }
-        }, 500);
-    } else {
-        linkedSection.classList.add('hidden');
-        inputFieldsSection.classList.remove('hidden');
-        isLinkedInput.value = 'false';
-        
-        // ล้าง linked material data
-        window.linkedMaterialData = null;
-        
-        // ล้าง formula และให้ user กรอกเอง
-        document.getElementById('formula').value = '';
-        updatePreview();
-        updateFormulaButtons();
-    }
-}
-
-function triggerLinkedMaterialsLoad() {
-    const formType = document.querySelector('input[name="form_type"]:checked')?.value;
-    if (formType !== 'linked') return;
-    
-    const scope = document.querySelector('select[name="scope"]').value;
-    const subScope = document.querySelector('select[name="sup_scope"]').value;
-    
-    if (scope && subScope) {
-        // ใช้ HTMX โหลด available materials
-        htmx.ajax('GET', `/form-management/get-available-materials/${scope}/${subScope}`, {
-            target: '#available-materials-container',
-            swap: 'innerHTML'
-        });
-    }
-}
-
-function initializeForm() {
-    inputFieldCount = 0;
-    currentFormula = '';
-    const container = document.getElementById("input-fields-container");
-    if (container) container.innerHTML = "";
-    const formIdInput = document.querySelector("input[name='form_id']");
-    const formId = formIdInput ? formIdInput.value : null;
-    if (formId) {
-        fetch(`/form-management/get-form-data/${formId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    loadFormData(data.form);
-                } else {
-                    addInputField();
-                    setTimeout(() => {
-                        updatePreview();
-                        updateFormulaButtons();
-                        feather.replace();
-                    }, 100);
-                }
-            })
-            .catch(error => {
-                addInputField();
-                setTimeout(() => {
-                    updatePreview();
-                    updateFormulaButtons();
-                    feather.replace();
-                }, 100);
-            });
-    } else {
-        addInputField();
-        setTimeout(() => {
-            updatePreview();
-            updateFormulaButtons();
-            feather.replace();
-        }, 100);
-    }
-}
-
-function loadFormData(formData) {
-    const container = document.getElementById("input-fields-container");
-    if (container) container.innerHTML = "";
-    inputFieldCount = 0;
-    
-    // ตรวจสอบว่าเป็นฟอร์มลิงก์หรือไม่
-    if (formData.is_linked) {
-        document.querySelector('input[name="form_type"][value="linked"]').checked = true;
-        toggleFormType();
-        
-        // ตั้งค่า linked material name และโหลดข้อมูล
-        setTimeout(() => {
-            const linkedSelect = document.querySelector('select[name="linked_material_name"]');
-            if (linkedSelect && formData.linked_material_name) {
-                linkedSelect.value = formData.linked_material_name;
-                // เรียก onLinkedMaterialChange เพื่อโหลดฟิลด์และตัวแปร
-                onLinkedMaterialChange();
-            }
-        }, 500);
-    } else {
-        document.querySelector('input[name="form_type"][value="normal"]').checked = true;
-        toggleFormType();
-        
-        if (formData.input_types && formData.input_types.length > 0) {
-            formData.input_types.forEach(inputField => {
-                addInputField({
-                    field: inputField.field,
-                    label: inputField.label,
-                    input_type: inputField.input_type,
-                    unit: inputField.unit
-                });
-            });
-        } else {
-            addInputField();
-        }
-    }
-    
-    setTimeout(() => {
-        if (formData.material_name) {
-            const materialInput = document.querySelector("input[name='material_name']");
-            if (materialInput) materialInput.value = formData.material_name;
-        }
-        if (formData.desc_form) {
-            const descFormTextarea = document.querySelector("textarea[name='desc_form']");
-            if (descFormTextarea) descFormTextarea.value = formData.desc_form;
-        }
-        if (formData.formula) {
-            const formulaInput = document.querySelector("input[name='formula']");
-            if (formulaInput) formulaInput.value = formData.formula;
-        }
-        if (formData.desc_formula) {
-            const descFormulaTextarea = document.querySelector("textarea[name='desc_formula']");
-            if (descFormulaTextarea) descFormulaTextarea.value = formData.desc_formula;
-        }
-        if (formData.ghg_scope) {
-            const mainScopeSelect = document.querySelector("select[name='scope']");
-            if (mainScopeSelect) mainScopeSelect.value = formData.ghg_scope;
-        }
-        setTimeout(() => {
-            htmx.trigger(document.body, 'refreshSubScope');
-            setTimeout(() => {
-                updatePreview();
-                updateFormulaButtons();
-                feather.replace();
-            }, 200);
-        }, 100);
-    }, 50);
-}
-
-function updatePreview() {
-    const container = document.getElementById("input-fields-container");
-    const preview = document.getElementById("form-preview");
-    const materialName = (document.querySelector("input[name='material_name']").value || "NO MATERIAL NAME").toUpperCase();
-    const formType = document.querySelector('input[name="form_type"]:checked').value;
-    
-    let html = "";
-    html += `<div class="mb-6"><p class="text-sm text-gray-400"><strong>{{ t.material_name|upper }}:</strong> ${materialName}</p></div>`;
-    
-    const descForm = document.querySelector("textarea[name='desc_form']").value || "No Description";
-    const mainScope = document.querySelector("select[name='scope']").value || "-";
-    const subScope = document.querySelector("select[name='sup_scope']").value || "-";
-    
-    html += `<div class="mb-4">
-        <p class="text-sm text-gray-600">{{ t.material_name }}: ${materialName}</p>
-        <p class="text-sm text-gray-600">{{ t.form_description }}: ${descForm}</p>
-        <div class="flex gap-4 mt-2">
-            <div class="text-xs text-gray-700 bg-purple-100 rounded-full px-3 py-1 inline-block">Main Scope: ${mainScope}</div>
-            <div class="text-xs text-gray-700 bg-indigo-100 rounded-full px-3 py-1 inline-block">Sub Scope: ${subScope}</div>
-            <div class="text-xs text-gray-700 ${formType === 'linked' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'} rounded-full px-3 py-1 inline-block">
-                ${formType === 'linked' ? 'ฟอร์มลิงก์' : 'ฟอร์มปกติ'}
-            </div>
-        </div>
-    </div>`;
-    
-    if (formType === 'linked') {
-        const linkedMaterial = document.querySelector('select[name="linked_material_name"]').value;
-        html += `<div class="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
-            <p class="text-sm font-medium text-green-800 mb-2">ฟอร์มลิงก์ - ดึงฟิลด์จาก Material ต้นฉบับ</p>
-            <p class="text-xs text-green-700">Material ต้นทาง: ${linkedMaterial || 'ยังไม่ได้เลือก'}</p>
-            <p class="text-xs text-green-700 mt-1">ฟิลด์และตัวแปรจะถูกดึงจาก Material ที่เลือก</p>
-        </div>`;
-        
-        // แสดงฟิลด์จาก linked material
-        if (window.linkedMaterialData && window.linkedMaterialData.input_types) {
-            window.linkedMaterialData.input_types.forEach(field => {
-                html += `<div class='mb-6'>
-                    <label class='block text-sm text-gray-800 mb-1'><strong>${field.label || field.field} (${field.unit || '-'})</strong></label>
-                    <div class="relative">
-                        <input type='${field.input_type}' class='input input-bordered w-full mb-2' placeholder='{{t.enter}} ${field.label || field.field}'>
-                        <div class="flex gap-2 mt-2">
-                            <div class="text-xs text-gray-700 bg-gray-200 rounded-full px-3 py-1 inline-block">Field: ${field.field}</div>
-                            <div class="text-xs text-gray-700 bg-blue-100 rounded-full px-3 py-1 inline-block">Type: ${field.input_type}</div>
-                            <div class="text-xs text-gray-700 bg-green-100 rounded-full px-3 py-1 inline-block">จาก: ${linkedMaterial}</div>
-                        </div>
-                    </div>
-                </div>`;
-            });
-        }
-    } else {
-        // แสดงฟิลด์ปกติ
-        const fields = container.querySelectorAll("[data-index]");
-        fields.forEach(row => {
-            const field = row.querySelector("input[name='field']").value;
-            const label = row.querySelector("input[name='label']").value;
-            const inputType = row.querySelector("select[name='input_type']").value;
-            const unit = row.querySelector("input[name='unit']").value;
-            html += `<div class='mb-6'>
-                <label class='block text-sm text-gray-800 mb-1'><strong>${label || field} (${unit || '-'})</strong></label>
-                <div class="relative">
-                    <input type='${inputType}' class='input input-bordered w-full mb-2' placeholder='{{t.enter}} ${label || field}'>
-                    <div class="flex gap-2 mt-2">
-                        <div class="text-xs text-gray-700 bg-gray-200 rounded-full px-3 py-1 inline-block">Field: ${field || "Unnamed Field"}</div>
-                        <div class="text-xs text-gray-700 bg-blue-100 rounded-full px-3 py-1 inline-block">Type: ${inputType}</div>
-                    </div>
-                </div>
-            </div>`;
-        });
-    }
-    
-    const formula = document.querySelector("input[name='formula']").value || "No Formula";
-    const descFormula = document.querySelector("textarea[name='desc_formula']").value || "No Formula Description";
-    html += `<div class="mt-6">
-        <p class="text-sm text-gray-600">{{ t.formula }}: ${formula}</p>
-        <p class="text-sm text-gray-600">{{ t.formula_description }}: ${descFormula}</p>
-    </div>`;
-    
-    const currentUser = "{{ current_user.username if current_user else 'Unknown User' }}";
-    const currentTime = new Date().toLocaleString();
-    html += `<div class="mt-6 text-xs text-gray-500">
-        <div class="flex items-center gap-2"><i data-feather="user" class="w-4 h-4"></i><span>แก้ไขโดย: ${currentUser}</span></div>
-        <div class="flex items-center gap-2 mt-2"><i data-feather="clock" class="w-4 h-4"></i><span>แก้ไขเมื่อ: ${currentTime}</span></div>
-    </div>`;
-    
-    preview.innerHTML = html || `<p class="italic text-sm text-gray-500">No fields added.</p>`;
-    feather.replace();
-}
-
-function submitForm(event) {
-    event.preventDefault();
-    
-    if (typeof Swal === 'undefined') {
-        alert('SweetAlert2 ยังไม่โหลด กรุณาลองใหม่อีกครั้ง');
-        return false;
-    }
-    
-    const form = event.target;
-    const formData = new FormData(form);
-    
-    // Debug: แสดงข้อมูลใน FormData
-    console.log('FormData contents:');
-    for (let [key, value] of formData.entries()) {
-        console.log(key, '=', value);
-    }
-    
-    const submitButton = form.querySelector('button[type="submit"]');
-    const originalText = submitButton.textContent;
-    submitButton.textContent = 'กำลังบันทึก...';
-    submitButton.disabled = true;
-    
-    fetch(form.action, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        console.log('Response status:', response.status);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Response data:', data);
-        if (data.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'สำเร็จ!',
-                text: data.message,
-                confirmButtonText: 'ตกลง'
-            }).then(() => {
-                window.location.href = data.redirect_url;
-            });
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'เกิดข้อผิดพลาด!',
-                text: data.message,
-                confirmButtonText: 'ตกลง'
-            });
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'เกิดข้อผิดพลาด!',
-            text: 'เกิดข้อผิดพลาดในการส่งข้อมูล',
-            confirmButtonText: 'ตกลง'
-        });
-    })
-    .finally(() => {
-        submitButton.textContent = originalText;
-        submitButton.disabled = false;
-    });
-    
-    return false;
-}
-
-// Event listeners สำหรับ HTMX
-document.addEventListener('htmx:afterSettle', function(event) {
-    if (event.detail.target.id === 'available-materials-container') {
-        feather.replace();
-        updatePreview();
-        // เรียก onLinkedMaterialChange หากมีการเลือก material อยู่แล้ว
-        const linkedSelect = document.querySelector('select[name="linked_material_name"]');
-        if (linkedSelect && linkedSelect.value) {
-            setTimeout(() => {
-                onLinkedMaterialChange();
-            }, 100);
-        }
-    }
-    if (event.detail.target.id === 'sub-scope-container') {
-        triggerLinkedMaterialsLoad();
-        updatePreview();
-    }
-});
-
-// เพิ่มฟังก์ชันใหม่สำหรับจัดการ linked material change
-function onLinkedMaterialChange() {
-    const linkedMaterialSelect = document.querySelector('select[name="linked_material_name"]');
-    const selectedMaterial = linkedMaterialSelect.value;
-    
-    console.log('onLinkedMaterialChange called with:', selectedMaterial);
-    
-    if (selectedMaterial) {
-        // ดึงข้อมูล material ที่เลือก
-        fetch(`/form-management/get-linked-material-data/${encodeURIComponent(selectedMaterial)}`)
-            .then(response => {
-                console.log('Response status:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log('Received linked material data:', data);
-                if (data && data.input_types) {
-                    // เก็บข้อมูลไว้ใน global variable
-                    window.linkedMaterialData = data;
-                    console.log('Set linkedMaterialData:', window.linkedMaterialData);
-                    
-                    // อัปเดต preview และ calculator
-                    updatePreview();
-                    updateFormulaButtons();
-                } else {
-                    console.error('No input_types in response data');
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching linked material data:', error);
-            });
-    } else {
-        console.log('No material selected, clearing data');
-        window.linkedMaterialData = null;
-        updatePreview();
-        updateFormulaButtons();
-    }
-}
-
-// Initialize when DOM loads or when modal content loads
-document.addEventListener("DOMContentLoaded", function() {
-    console.log("DOM loaded (initial)");
-    
-    if (document.getElementById('add-form')) {
-        initializeForm();
-        setTimeout(triggerSubScopeLoad, 200);
-    }
-});
-</script>

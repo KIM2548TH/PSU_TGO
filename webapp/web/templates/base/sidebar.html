@@ -34,7 +34,7 @@
     {% endif %}
     {% if has_permission("เข้าถึงหน้าแหล่งปล่อยก๊าซเรือนกระจก") %}
     <li>
-      <a href="/form-management" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/form-management/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
+      <a href="/form-management/" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/form-management/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
         <i data-feather="file-text"></i>
         <span class="text-md">{{ t.sidebar_form }}</span>
       </a>

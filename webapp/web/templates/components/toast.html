@@ -1,0 +1,114 @@
+<!-- Toast Notification Component -->
+<div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2">
+  <!-- Toast messages จะถูกเพิ่มที่นี่ -->
+</div>
+
+<script>
+// Toast Notification Functions
+function showToast(message, type = 'success', duration = 3000) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  
+  // สร้าง toast element
+  const toast = document.createElement('div');
+  const toastId = 'toast-' + Date.now();
+  toast.id = toastId;
+  
+  // กำหนดสีตามประเภท
+  let bgColor, iconColor, icon;
+  if (type === 'success') {
+    bgColor = 'bg-green-500';
+    iconColor = 'text-white';
+    icon = 'check-circle';
+  } else if (type === 'error') {
+    bgColor = 'bg-red-500';
+    iconColor = 'text-white';
+    icon = 'alert-circle';
+  } else if (type === 'warning') {
+    bgColor = 'bg-yellow-500';
+    iconColor = 'text-white';
+    icon = 'alert-triangle';
+  } else {
+    bgColor = 'bg-blue-500';
+    iconColor = 'text-white';
+    icon = 'info';
+  }
+  
+  toast.className = `toast-item transform translate-x-full transition-all duration-300 ease-in-out ${bgColor} text-white px-4 py-3 rounded-lg shadow-lg max-w-sm`;
+  
+  toast.innerHTML = `
+    <div class="flex items-center gap-2">
+      <i data-feather="${icon}" class="w-5 h-5 ${iconColor}"></i>
+      <span class="text-sm font-medium flex-1">${message}</span>
+      <button onclick="hideToast('${toastId}')" class="ml-2 text-white hover:text-gray-200 transition-colors">
+        <i data-feather="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+  `;
+  
+  container.appendChild(toast);
+  
+  // Initialize feather icons
+  if (typeof feather !== 'undefined') {
+    feather.replace();
+  }
+  
+  // Show toast with animation
+  setTimeout(() => {
+    toast.classList.remove('translate-x-full');
+  }, 10);
+  
+  // Auto hide after duration
+  setTimeout(() => {
+    hideToast(toastId);
+  }, duration);
+}
+
+function hideToast(toastId) {
+  const toast = document.getElementById(toastId);
+  if (toast) {
+    toast.classList.add('translate-x-full');
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+    }, 300);
+  }
+}
+
+// ฟังก์ชันสำหรับแสดง toast ประเภทต่างๆ
+function showSuccess(message, duration = 3000) {
+  showToast(message, 'success', duration);
+}
+
+function showError(message, duration = 5000) {
+  showToast(message, 'error', duration);
+}
+
+function showWarning(message, duration = 4000) {
+  showToast(message, 'warning', duration);
+}
+
+function showInfo(message, duration = 3000) {
+  showToast(message, 'info', duration);
+}
+</script>
+
+<style>
+.toast-item {
+  min-width: 200px;
+  max-width: 350px;
+  word-wrap: break-word;
+}
+
+@media (max-width: 640px) {
+  #toast-container {
+    left: 1rem;
+    right: 1rem;
+  }
+  
+  .toast-item {
+    max-width: none;
+  }
+}
+</style>
