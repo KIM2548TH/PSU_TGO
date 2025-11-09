@@ -1,0 +1,84 @@
+<!-- 
+ตัวอย่างการใช้งาน Toast Notification System
+ใช้ได้ทุกหน้าโดยไม่ต้องเขียน JavaScript เพิ่มเติม
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Toast Examples</title>
+    <!-- Toast system จะถูกโหลดผ่าน base.html อัตโนมัติ -->
+</head>
+<body>
+    <!-- ตัวอย่างปุ่มทดสอบ -->
+    <div class="p-4 space-y-4">
+        <h2>ตัวอย่างการใช้งาน Toast</h2>
+        
+        <!-- 1. การใช้งานแบบง่าย - แค่เรียก JavaScript function -->
+        <button onclick="showSuccess('บันทึกข้อมูลสำเร็จ!')" class="btn btn-success">
+            Success Toast
+        </button>
+        
+        <button onclick="showError('เกิดข้อผิดพลาด!')" class="btn btn-error">
+            Error Toast
+        </button>
+        
+        <button onclick="showWarning('คำเตือน! ตรวจสอบข้อมูล')" class="btn btn-warning">
+            Warning Toast
+        </button>
+        
+        <button onclick="showInfo('ข้อมูลเพิ่มเติม')" class="btn btn-info">
+            Info Toast
+        </button>
+        
+        <!-- 2. กำหนดเวลาแสดงเอง -->
+        <button onclick="showSuccess('แสดง 10 วินาที', 10000)" class="btn btn-success">
+            Success 10s
+        </button>
+        
+        <button onclick="showError('แสดงตลอด', 0)" class="btn btn-error">
+            Error Permanent
+        </button>
+        
+        <!-- 3. ซ่อน toast -->
+        <button onclick="hideAllToasts()" class="btn btn-neutral">
+            ซ่อนทั้งหมด
+        </button>
+    </div>
+    
+    <!-- ตัวอย่างการใช้งานใน HTMX -->
+    <div class="p-4 space-y-4">
+        <h3>ตัวอย่าง HTMX Integration</h3>
+        
+        <!-- HTMX จะแสดง toast อัตโนมัติเมื่อได้รับ HX-Trigger header -->
+        <button hx-post="/example/save" 
+                hx-target="#result" 
+                class="btn btn-primary">
+            Save Data (HTMX)
+        </button>
+        
+        <div id="result"></div>
+    </div>
+    
+    <!-- JavaScript สำหรับตัวอย่าง -->
+    <script>
+        // ตัวอย่างการใช้งานขั้นสูง
+        function showMultipleToasts() {
+            showInfo('เริ่มต้นการประมวลผล...');
+            
+            setTimeout(() => {
+                showWarning('กำลังตรวจสอบข้อมูล...');
+            }, 1000);
+            
+            setTimeout(() => {
+                showSuccess('เสร็จสิ้น!');
+            }, 3000);
+        }
+        
+        function showCustomToast() {
+            // ใช้ฟังก์ชันหลัก showToast สำหรับการกำหนดค่าเพิ่มเติม
+            showToast('ข้อความพิเศษ', 'info', 5000);
+        }
+    </script>
+</body>
+</html>

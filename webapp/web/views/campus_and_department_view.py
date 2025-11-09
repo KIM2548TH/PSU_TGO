@@ -1,11 +1,34 @@
-from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for, abort
+from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for, abort, make_response
 from flask_login import login_required, current_user
 from ...models.campus_and_department_model import CampusAndDepartment
 from ..forms.campus_form import CampusForm, DepartmentForm
 from ..utils.acl import permissions_required_all
 import datetime
+import json
+import urllib.parse
 
 module = Blueprint("campus_department", __name__, url_prefix="/campus-department")
+
+
+def create_htmx_response(template_path, template_vars=None, success_message=None, error_message=None, warning_message=None):
+    """Helper function สำหรับสร้าง HTMX response พร้อม toast notification"""
+    if template_vars is None:
+        template_vars = {}
+    
+    response = make_response(render_template(template_path, **template_vars))
+    
+    trigger_data = {}
+    if success_message:
+        trigger_data["showSuccess"] = urllib.parse.quote(success_message)
+    if error_message:
+        trigger_data["showError"] = urllib.parse.quote(error_message)
+    if warning_message:
+        trigger_data["showWarning"] = urllib.parse.quote(warning_message)
+    
+    if trigger_data:
+        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+    
+    return response
 
 
 @module.route("/", methods=["GET"])
@@ -35,21 +58,40 @@ def add_campus():
                 form.description.data
             )
             
-            # สำหรับ HTMX: ส่งข้อมูลใหม่กลับไป
+            # สำหรับ HTMX: ส่งข้อมูลใหม่กลับไปพร้อม toast notification
             campuses = CampusAndDepartment.objects
-            return render_template("campus-and-department/partials/campus-list.html", campuses=campuses)
+            return create_htmx_response(
+                "campus-and-department/partials/campus-list.html",
+                {"campuses": campuses},
+                success_message=f"เพิ่มวิทยาเขต '{form.campus_name.data}' สำเร็จ!"
+            )
             
         except ValueError as e:
-            flash(str(e), "error")
-            return render_template("campus-and-department/partials/add-campus-modal.html", form=form)
+            return create_htmx_response(
+                "campus-and-department/partials/add-campus-modal.html",
+                {"form": form},
+                error_message=str(e)
+            )
+            
         except Exception as e:
-            flash(f"เกิดข้อผิดพลาด: {str(e)}", "error")
+            return create_htmx_response(
+                "campus-and-department/partials/add-campus-modal.html",
+                {"form": form},
+                error_message=f"เกิดข้อผิดพลาด: {str(e)}"
+            )
     
-    # แสดง validation errors ของ form
+    # แสดง validation errors ของ form ผ่าน toast
     if form.errors:
+        error_messages = []
         for field, errors in form.errors.items():
             for error in errors:
-                flash(error, "error")
+                error_messages.append(error)
+        
+        return create_htmx_response(
+            "campus-and-department/partials/add-campus-modal.html",
+            {"form": form},
+            error_message=" | ".join(error_messages)
+        )
     
     # GET request: ส่ง modal fragment
     return render_template("campus-and-department/partials/add-campus-modal.html", form=form)
@@ -73,24 +115,42 @@ def edit_campus(campus_id):
                 form.description.data
             )
             
-            # สำหรับ HTMX: ส่งข้อมูลใหม่กลับไป
+            # สำหรับ HTMX: ส่งข้อมูลใหม่กลับไปพร้อม toast notification
             campuses = CampusAndDepartment.objects
-            return render_template("campus-and-department/partials/campus-list.html", campuses=campuses)
+            return create_htmx_response(
+                "campus-and-department/partials/campus-list.html",
+                {"campuses": campuses},
+                success_message=f"แก้ไขวิทยาเขต '{form.campus_name.data}' สำเร็จ!"
+            )
             
         except ValueError as e:
-            flash(str(e), "error")
-            return render_template("campus-and-department/partials/edit-campus-modal.html", 
-                                 form=form, campus=campus, can_delete=campus.can_delete_campus())
+            return create_htmx_response(
+                "campus-and-department/partials/edit-campus-modal.html",
+                {"form": form, "campus": campus, "can_delete": campus.can_delete_campus()},
+                error_message=str(e)
+            )
+            
         except Exception as e:
-            flash(f"เกิดข้อผิดพลาด: {str(e)}", "error")
+            return create_htmx_response(
+                "campus-and-department/partials/edit-campus-modal.html",
+                {"form": form, "campus": campus, "can_delete": campus.can_delete_campus()},
+                error_message=f"เกิดข้อผิดพลาด: {str(e)}"
+            )
     
-    # แสดง validation errors ของ form
+    # แสดง validation errors ของ form ผ่าน toast
     if form.errors:
+        error_messages = []
         for field, errors in form.errors.items():
             for error in errors:
-                flash(error, "error")
+                error_messages.append(error)
+        
+        return create_htmx_response(
+            "campus-and-department/partials/edit-campus-modal.html",
+            {"form": form, "campus": campus, "can_delete": campus.can_delete_campus()},
+            error_message=" | ".join(error_messages)
+        )
     
-    # ถ้าเป็น GET request หรือมี validation error ให้ populate form ด้วยข้อมูลเดิม
+    # ถ้าเป็น GET request ให้ populate form ด้วยข้อมูลเดิม
     if request.method == "GET":
         form.campus_name.data = campus.name.get("0", "")
         form.description.data = campus.description or ""
@@ -117,18 +177,33 @@ def add_department(campus_id):
             # เพิ่ม department ใหม่ และ copy scope จาก 'base' อัตโนมัติ
             campus.add_department(form.department_name.data)
             
-            # สำหรับ HTMX: ส่งข้อมูลใหม่กลับไป
+            # สำหรับ HTMX: ส่งข้อมูลใหม่กลับไปพร้อม toast notification
             campuses = CampusAndDepartment.objects
-            return render_template("campus-and-department/partials/campus-list.html", campuses=campuses)
+            return create_htmx_response(
+                "campus-and-department/partials/campus-list.html",
+                {"campuses": campuses},
+                success_message=f"เพิ่มหน่วยงาน '{form.department_name.data}' สำเร็จ!"
+            )
             
         except Exception as e:
-            flash(f"เกิดข้อผิดพลาด: {str(e)}", "error")
+            return create_htmx_response(
+                "campus-and-department/partials/add-department-modal.html",
+                {"form": form, "campus": campus},
+                error_message=f"เกิดข้อผิดพลาด: {str(e)}"
+            )
     
-    # แสดง validation errors ของ form
+    # แสดง validation errors ของ form ผ่าน toast
     if form.errors:
+        error_messages = []
         for field, errors in form.errors.items():
             for error in errors:
-                flash(error, "error")
+                error_messages.append(error)
+        
+        return create_htmx_response(
+            "campus-and-department/partials/add-department-modal.html",
+            {"form": form, "campus": campus},
+            error_message=" | ".join(error_messages)
+        )
     
     return render_template("campus-and-department/partials/add-department-modal.html", form=form, campus=campus)
 
@@ -143,9 +218,13 @@ def edit_department(campus_id, dept_key):
         abort(404)
     
     if dept_key not in campus.departments:
-        flash("ไม่พบหน่วยงานนี้", "error")
+        # ส่ง error toast และแสดงข้อมูลใหม่
         campuses = CampusAndDepartment.objects
-        return render_template("campus-and-department/partials/campus-list.html", campuses=campuses)
+        return create_htmx_response(
+            "campus-and-department/partials/campus-list.html",
+            {"campuses": campuses},
+            error_message="ไม่พบหน่วยงานนี้"
+        )
     
     form = DepartmentForm()
     
@@ -154,27 +233,58 @@ def edit_department(campus_id, dept_key):
             # ใช้ Model method แทน
             campus.update_department(dept_key, form.department_name.data)
             
-            # สำหรับ HTMX: ส่งข้อมูลใหม่กลับไป
+            # สำหรับ HTMX: ส่งข้อมูลใหม่กลับไปพร้อม toast notification
             campuses = CampusAndDepartment.objects
-            return render_template("campus-and-department/partials/campus-list.html", campuses=campuses)
+            return create_htmx_response(
+                "campus-and-department/partials/campus-list.html",
+                {"campuses": campuses},
+                success_message=f"แก้ไขหน่วยงาน '{form.department_name.data}' สำเร็จ!"
+            )
             
         except ValueError as e:
-            flash(str(e), "error")
+            department = {"key": dept_key, "name": campus.departments[dept_key]}
+            dept_name_to_check = form.department_name.data or campus.departments[dept_key]
+            can_delete = campus.can_delete_department_by_name(campus.name.get("0", ""), dept_name_to_check)
+            
+            return create_htmx_response(
+                "campus-and-department/partials/edit-department-modal.html",
+                {"form": form, "campus": campus, "department": department, "can_delete": can_delete},
+                error_message=str(e)
+            )
+            
         except Exception as e:
-            flash(f"เกิดข้อผิดพลาด: {str(e)}", "error")
+            department = {"key": dept_key, "name": campus.departments[dept_key]}
+            dept_name_to_check = form.department_name.data or campus.departments[dept_key]
+            can_delete = campus.can_delete_department_by_name(campus.name.get("0", ""), dept_name_to_check)
+            
+            return create_htmx_response(
+                "campus-and-department/partials/edit-department-modal.html",
+                {"form": form, "campus": campus, "department": department, "can_delete": can_delete},
+                error_message=f"เกิดข้อผิดพลาด: {str(e)}"
+            )
     
-    # แสดง validation errors ของ form
+    # แสดง validation errors ของ form ผ่าน toast
     if form.errors:
+        error_messages = []
         for field, errors in form.errors.items():
             for error in errors:
-                flash(error, "error")
+                error_messages.append(error)
+        
+        department = {"key": dept_key, "name": campus.departments[dept_key]}
+        dept_name_to_check = form.department_name.data or campus.departments[dept_key]
+        can_delete = campus.can_delete_department_by_name(campus.name.get("0", ""), dept_name_to_check)
+        
+        return create_htmx_response(
+            "campus-and-department/partials/edit-department-modal.html",
+            {"form": form, "campus": campus, "department": department, "can_delete": can_delete},
+            error_message=" | ".join(error_messages)
+        )
     
     # ถ้าเป็น GET request ให้ populate form ด้วยข้อมูลเดิม
     if request.method == "GET":
         form.department_name.data = campus.departments[dept_key]
     
     # ตรวจสอบว่าหน่วยงานสามารถลบได้หรือไม่
-    # ใช้ชื่อจาก form (ถ้ามีการกรอก) หรือชื่อเดิม (ถ้าเป็น GET request)
     dept_name_to_check = form.department_name.data or campus.departments[dept_key]
     can_delete = campus.can_delete_department_by_name(campus.name.get("0", ""), dept_name_to_check)
     
@@ -194,20 +304,35 @@ def delete_campus(campus_id):
     
     if request.method == "POST":
         try:
+            campus_name = campus.name.get("0", "")
             # ใช้ Model method แทน
             campus.safe_delete()
             
+            # สำหรับ HTMX: ส่งข้อมูลใหม่กลับไปพร้อม toast notification สีเหลือง
+            campuses = CampusAndDepartment.objects
+            return create_htmx_response(
+                "campus-and-department/partials/campus-list.html",
+                {"campuses": campuses},
+                warning_message=f"ลบวิทยาเขต '{campus_name}' เรียบร้อยแล้ว (1 รายการ)"
+            )
+            
         except ValueError as e:
-            flash(str(e), "error")
+            campuses = CampusAndDepartment.objects
+            return create_htmx_response(
+                "campus-and-department/partials/campus-list.html",
+                {"campuses": campuses},
+                error_message=str(e)
+            )
+            
         except Exception as e:
-            flash(f"เกิดข้อผิดพลาด: {str(e)}", "error")
-        
-        # สำหรับ HTMX: ส่งข้อมูลใหม่กลับไป
-        campuses = CampusAndDepartment.objects
-        return render_template("campus-and-department/partials/campus-list.html", campuses=campuses)
+            campuses = CampusAndDepartment.objects
+            return create_htmx_response(
+                "campus-and-department/partials/campus-list.html",
+                {"campuses": campuses},
+                error_message=f"เกิดข้อผิดพลาด: {str(e)}"
+            )
     
-    # GET request - ไม่ต้องแสดง confirmation modal แล้ว เพราะใช้ในหน้าแก้ไข
-    flash("ไม่รองรับการเข้าถึงหน้านี้โดยตรง", "error")
+    # GET request - redirect กลับไปหน้าหลัก
     return redirect(url_for("campus_department.index"))
 
 
@@ -221,24 +346,43 @@ def delete_department(campus_id, dept_key):
         abort(404)
     
     if dept_key not in campus.departments:
-        flash("ไม่พบหน่วยงานนี้", "error")
+        # ส่ง error toast
         campuses = CampusAndDepartment.objects
-        return render_template("campus-and-department/partials/campus-list.html", campuses=campuses)
+        return create_htmx_response(
+            "campus-and-department/partials/campus-list.html",
+            {"campuses": campuses},
+            error_message="ไม่พบหน่วยงานนี้"
+        )
     
     if request.method == "POST":
         try:
+            dept_name = campus.departments[dept_key]
             # ใช้ Model method แทน
             campus.delete_department(dept_key)
             
+            # สำหรับ HTMX: ส่งข้อมูลใหม่กลับไปพร้อม toast notification สีเหลือง
+            campuses = CampusAndDepartment.objects
+            return create_htmx_response(
+                "campus-and-department/partials/campus-list.html",
+                {"campuses": campuses},
+                warning_message=f"ลบหน่วยงาน '{dept_name}' เรียบร้อยแล้ว (1 รายการ)"
+            )
+            
         except ValueError as e:
-            flash(str(e), "error")
+            campuses = CampusAndDepartment.objects
+            return create_htmx_response(
+                "campus-and-department/partials/campus-list.html",
+                {"campuses": campuses},
+                error_message=str(e)
+            )
+            
         except Exception as e:
-            flash(f"เกิดข้อผิดพลาด: {str(e)}", "error")
-        
-        # สำหรับ HTMX: ส่งข้อมูลใหม่กลับไป
-        campuses = CampusAndDepartment.objects
-        return render_template("campus-and-department/partials/campus-list.html", campuses=campuses)
+            campuses = CampusAndDepartment.objects
+            return create_htmx_response(
+                "campus-and-department/partials/campus-list.html",
+                {"campuses": campuses},
+                error_message=f"เกิดข้อผิดพลาด: {str(e)}"
+            )
     
-    # GET request - ไม่ต้องแสดง confirmation modal แล้ว เพราะใช้ในหน้าแก้ไข
-    flash("ไม่รองรับการเข้าถึงหน้านี้โดยตรง", "error")
+    # GET request - redirect กลับไปหน้าหลัก
     return redirect(url_for("campus_department.index"))

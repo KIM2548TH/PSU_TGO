@@ -1,0 +1,77 @@
+<!-- Toast Notification Component -->
+{% macro toast(message, type='success') %}
+<div id="toast-{{ loop.index0 if loop else '0' }}" 
+     class="fixed top-4 right-4 z-50 toast-item transform translate-x-full transition-all duration-300 ease-in-out 
+            {% if type == 'success' %}bg-green-500{% elif type == 'error' %}bg-red-500{% elif type == 'warning' %}bg-yellow-500{% else %}bg-blue-500{% endif %} 
+            text-white px-6 py-3 rounded-lg shadow-lg max-w-sm"
+     hx-trigger="load"
+     hx-swap="delete"
+     hx-target="this"
+     hx-delete="/components/toast/hide"
+     hx-delay="3s">
+  <div class="flex items-center gap-2">
+    <i data-feather="{% if type == 'success' %}check-circle{% elif type == 'error' %}alert-circle{% elif type == 'warning' %}alert-triangle{% else %}info{% endif %}" 
+       class="w-5 h-5"></i>
+    <span class="text-sm font-medium">{{ message }}</span>
+    <button hx-delete="/components/toast/hide" 
+            hx-target="closest .toast-item" 
+            hx-swap="delete"
+            class="ml-2 text-white hover:text-gray-200">
+      <i data-feather="x" class="w-4 h-4"></i>
+    </button>
+  </div>
+</div>
+
+<script>
+// Show toast animation
+document.addEventListener('DOMContentLoaded', function() {
+  const toast = document.getElementById('toast-{{ loop.index0 if loop else "0" }}');
+  if (toast) {
+    setTimeout(() => {
+      toast.classList.remove('translate-x-full');
+    }, 10);
+    
+    // Initialize feather icons
+    if (typeof feather !== 'undefined') {
+      feather.replace();
+    }
+  }
+});
+</script>
+{% endmacro %}
+
+<!-- Success Toast -->
+{% macro success_toast(message) %}
+  {{ toast(message, 'success') }}
+{% endmacro %}
+
+<!-- Error Toast -->
+{% macro error_toast(message) %}
+  {{ toast(message, 'error') }}
+{% endmacro %}
+
+<!-- Warning Toast -->
+{% macro warning_toast(message) %}
+  {{ toast(message, 'warning') }}
+{% endmacro %}
+
+<!-- Info Toast -->
+{% macro info_toast(message) %}
+  {{ toast(message, 'info') }}
+{% endmacro %}
+
+<style>
+.toast-item {
+  min-width: 200px;
+  max-width: 350px;
+  word-wrap: break-word;
+}
+
+@media (max-width: 640px) {
+  .toast-item {
+    left: 1rem;
+    right: 1rem;
+    max-width: calc(100vw - 2rem);
+  }
+}
+</style>

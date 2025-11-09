@@ -1,6 +1,6 @@
 <div class="flex flex-col h-full bg-base-100 shadow-md">
-  <!-- Logo Section -->
-  <div class="flex items-center gap-2 p-2">
+  <!-- Logo Section - Fixed -->
+  <div class="flex-shrink-0 flex items-center gap-2 p-2 bg-base-100 border-b border-base-300">
     <a href="/" class="flex items-center gap-4">
       <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-primary-content font-bold">
         <span class="text-xl font-bold">P</span>
@@ -11,114 +11,113 @@
       </div>
     </a>
   </div>
-  <div class="divider m-0"></div>
 
-  <!-- Menu Section -->
-  <ul class="menu flex-grow w-full p-2 bg-base-100 space-y-4">
-    <!-- Admin Functions -->
-    {% if has_permission("เข้าถึงหน้าจัดการผู้ใช้") %}
-    <li>
-      <a href="/users-management" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/users-management/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-        <i data-feather="users"></i>
-        <span class="text-md">{{ t.sidebar_user }}</span>
-      </a>
-    </li>
-    {% endif %}
-    {% if has_permission("เข้าถึงหน้าจัดการสิทธิ์") %}
-    <li>
-      <a href="/role-management" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/role-management/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-        <i data-feather="shield"></i>
-        <span class="text-md">{{ t.sidebar_role }}</span>
-      </a>
-    </li>
-    {% endif %}
-    {% if has_permission("เข้าถึงหน้าแหล่งปล่อยก๊าซเรือนกระจก") %}
-    <li>
-      <a href="/form-management/" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/form-management/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-        <i data-feather="file-text"></i>
-        <span class="text-md">{{ t.sidebar_form }}</span>
-      </a>
-    </li>
-    {% endif %}
-    {% if has_permission("เข้าถึงหน้าจัดการ GHG Scope") %}
-    <li>
-      <a href="/scope" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/scope/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-        <i data-feather="layers"></i>
-        <span class="text-md">{{t.scope_management}}</span>
-      </a>
-    </li>
-    {% endif %}
-    {% if has_permission("เข้าถึงหน้าจัดการวิทยาเขตและหน่วยงาน") %}
-    <li>
-      <a href="/campus-department" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path.startswith('/campus-department') %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-        <i data-feather="map-pin"></i>
-        <span class="text-md">{{ t.Manage_campuses_departments }}</span>
-      </a>
-    </li>
-    {% endif %}
-    <!-- User Functions -->
-    {% if has_permission("เข้าถึงหน้าข้อมูลการปล่อย") %}
-    <li>
-      <a href="/emissions-scope" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/emissions-scope/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-        <i data-feather="bar-chart-2"></i>
-        <span class="text-md">{{ t.sidebar_emissions }}</span>
-      </a>
-    </li>
-    {% endif %}
-    {% if has_permission("เข้าถึงหน้าภาพรวมความคืบหน้า") %}
-    <li>
-      <a href="/scope-progress" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path.startswith('/scope-progress') %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-        <i data-feather="activity"></i>
-        <!-- no permission defined -->
-        <span class="text-md">{{ t.overall_progress }}</span>
-      </a>
-    </li>
-    {% endif %}
-    {% if has_permission("เข้าถึงหน้าสัดส่วนการปล่อย") %}
-    <li>
-      <a href="/proportions" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/proportions/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-        <i data-feather="pie-chart"></i>
-        <!-- no permission defined -->
-        <span class="text-md">{{ t.sidebar_proportions }}</span>
-      </a>
-    </li>
-    {% endif %}
-    {% if has_permission("เข้าถึงหน้าภาพรวมสัดส่วนการปล่อย") %}
-    <li>
-      <a href="/proportions/overview" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/proportions/overview/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-        <i data-feather="target"></i>
-        <span class="text-md">ภาพรวมสัดส่วนการปล่อย</span>
-      </a>
-    </li>
-    {% endif %}
-    {% if has_permission("เข้าถึงหน้าสรุปผล") %}
-    <li>
-      <a href="/summary" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/summary' or request.path == '/summary/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-        <i data-feather="trending-up"></i>
-        <span class="text-md">{{ t.sidebar_summary }}</span>
-      </a>
-    </li>
-    {% endif %}
-    {% if has_permission("เข้าถึงหน้าสรุปผล") %}
-    <li>
-      <a href="/setting" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/setting' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-        <i data-feather="settings"></i>
-        <!-- no permission defined -->
-        <span class="text-md">{{ t.sidebar_settings }}</span>
-      </a>
-    </li>
-    {% endif %}    
-  </ul>
+  <!-- Menu Section - Scrollable -->
+  <div class="flex-1 overflow-y-auto">
+    <ul class="menu w-full p-2 bg-base-100 space-y-4">
+      <!-- Admin Functions -->
+      {% if has_permission("เข้าถึงหน้าจัดการผู้ใช้") %}
+      <li>
+        <a href="/users-management" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/users-management/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
+          <i data-feather="users"></i>
+          <span class="text-md">{{ t.sidebar_user }}</span>
+        </a>
+      </li>
+      {% endif %}
+      {% if has_permission("เข้าถึงหน้าจัดการสิทธิ์") %}
+      <li>
+        <a href="/role-management" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/role-management/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
+          <i data-feather="shield"></i>
+          <span class="text-md">{{ t.sidebar_role }}</span>
+        </a>
+      </li>
+      {% endif %}
+      {% if has_permission("เข้าถึงหน้าแหล่งปล่อยก๊าซเรือนกระจก") %}
+      <li>
+        <a href="/form-management/" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/form-management/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
+          <i data-feather="file-text"></i>
+          <span class="text-md">{{ t.sidebar_form }}</span>
+        </a>
+      </li>
+      {% endif %}
+      {% if has_permission("เข้าถึงหน้าจัดการ GHG Scope") %}
+      <li>
+        <a href="/scope" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/scope/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
+          <i data-feather="layers"></i>
+          <span class="text-md">{{t.scope_management}}</span>
+        </a>
+      </li>
+      {% endif %}
+      {% if has_permission("เข้าถึงหน้าจัดการวิทยาเขตและหน่วยงาน") %}
+      <li>
+        <a href="/campus-department" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path.startswith('/campus-department') %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
+          <i data-feather="map-pin"></i>
+          <span class="text-md">{{ t.Manage_campuses_departments }}</span>
+        </a>
+      </li>
+      {% endif %}
+      <!-- User Functions -->
+      {% if has_permission("เข้าถึงหน้าข้อมูลการปล่อย") %}
+      <li>
+        <a href="/emissions-scope" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/emissions-scope/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
+          <i data-feather="bar-chart-2"></i>
+          <span class="text-md">{{ t.sidebar_emissions }}</span>
+        </a>
+      </li>
+      {% endif %}
+      {% if has_permission("เข้าถึงหน้าภาพรวมความคืบหน้า") %}
+      <li>
+        <a href="/scope-progress" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path.startswith('/scope-progress') %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
+          <i data-feather="activity"></i>
+          <!-- no permission defined -->
+          <span class="text-md">{{ t.overall_progress }}</span>
+        </a>
+      </li>
+      {% endif %}
+      {% if has_permission("เข้าถึงหน้าสัดส่วนการปล่อย") %}
+      <li>
+        <a href="/proportions" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/proportions/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
+          <i data-feather="pie-chart"></i>
+          <!-- no permission defined -->
+          <span class="text-md">{{ t.sidebar_proportions }}</span>
+        </a>
+      </li>
+      {% endif %}
+      {% if has_permission("เข้าถึงหน้าภาพรวมสัดส่วนการปล่อย") %}
+      <li>
+        <a href="/proportions/overview" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/proportions/overview/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
+          <i data-feather="target"></i>
+          <span class="text-md">ภาพรวมสัดส่วนการปล่อย</span>
+        </a>
+      </li>
+      {% endif %}
+      {% if has_permission("เข้าถึงหน้าสรุปผล") %}
+      <li>
+        <a href="/summary" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/summary' or request.path == '/summary/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
+          <i data-feather="trending-up"></i>
+          <span class="text-md">{{ t.sidebar_summary }}</span>
+        </a>
+      </li>
+      {% endif %}
+      {% if has_permission("เข้าถึงหน้าสรุปผล") %}
+      <li>
+        <a href="/setting" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/setting' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
+          <i data-feather="settings"></i>
+          <!-- no permission defined -->
+          <span class="text-md">{{ t.sidebar_settings }}</span>
+        </a>
+      </li>
+      {% endif %}    
+    </ul>
+  </div>
 
-
-
-  <div class="divider m-0"></div>
-
-  <!-- Logout Section -->
-  <div class="p-2">
-    <a href="/users/logout" class="flex items-center gap-3 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
-      <i data-feather="log-out"></i>
-      <span class="text-lg">{{ t.sidebar_logout }}</span>
-    </a>
+  <!-- Logout Section - Fixed at Bottom -->
+  <div class="flex-shrink-0 border-t border-base-300 bg-base-100">
+    <div class="p-2">
+      <a href="/users/logout" class="flex items-center gap-3 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
+        <i data-feather="log-out"></i>
+        <span class="text-lg">{{ t.sidebar_logout }}</span>
+      </a>
+    </div>
   </div>
 </div>

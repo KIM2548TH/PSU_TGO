@@ -1,28 +1,18 @@
-<select 
-  name="sup_scope" 
-  id="sub-scope"
-  class="select select-bordered w-full mt-1"
-  hx-post="/form-management/form-builder/preview"
-  hx-target="#preview-content"
-  hx-trigger="change"
-  hx-include="closest form"
-  required>
-  <option value="">เลือก Sub Scope</option>
-  {% for sub_scope in sub_scopes %}
-    <option value="{{ sub_scope.ghg_sup_scope }}" 
-            {{ 'selected' if selected_value and selected_value == sub_scope.ghg_sup_scope else '' }}>
-      {{ sub_scope.ghg_sup_scope }}{% if sub_scope.ghg_name %} - {{ sub_scope.ghg_name }}{% endif %}
-    </option>
-  {% endfor %}
-  {% if not sub_scopes %}
+<select name="sup_scope" id="sub-scope" class="select select-bordered w-full mt-1" 
+        hx-post="/form-management/form-builder/preview"
+        hx-target="#preview-content"
+        hx-trigger="change"
+        hx-include="closest form"
+        required>
+  {% if sub_scopes %}
+    <option value="">เลือก Sub Scope</option>
+    {% for scope in sub_scopes %}
+      <option value="{{ scope.ghg_sup_scope }}" 
+              {{ 'selected' if selected_value == scope.ghg_sup_scope else '' }}>
+        {{ scope.ghg_sup_scope }} - {{ scope.ghg_name }}
+      </option>
+    {% endfor %}
+  {% else %}
     <option value="">ไม่พบ Sub Scope</option>
   {% endif %}
-  {% if error %}
-    <option value="">{{ error }}</option>
-  {% endif %}
 </select>
-
-{% if selected_value %}
-  <!-- Hidden input เพื่อส่งค่าเมื่อ select ถูก disabled -->
-  <input type="hidden" name="sup_scope" value="{{ selected_value }}">
-{% endif %}

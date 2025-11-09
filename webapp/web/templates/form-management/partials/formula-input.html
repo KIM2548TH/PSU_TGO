@@ -1,0 +1,9 @@
+<input type="text" name="formula" id="formula" 
+       class="input input-bordered w-full" 
+       placeholder="e.g. diesel * 2.68"
+       value="{{ formula_value }}"
+       hx-post="/form-management/form-builder/preview"
+       hx-target="#preview-content"
+       hx-trigger="keyup delay:800ms, change"
+       hx-include="closest form"
+       required>

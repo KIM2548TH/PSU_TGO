@@ -18,6 +18,9 @@ import datetime
 import re
 from ...models.file_model import ReferenceDocument, UploadedFile
 from urllib.parse import quote
+from flask import make_response
+import json
+import urllib.parse
 
 module = Blueprint("emissions", __name__, url_prefix="/emissions")
 
@@ -261,7 +264,7 @@ def load_materials_form():
     )
 
 
-# สมมติว่าคลาสเหล่านี้มีการ địnhหมาย ไว้แล้ว (จากโค้ดเดิมของคุณ)
+# สมมติว่าคลาสเหล่านี้มีการกำหนดไว้แล้ว (จากโค้ดเดิมของคุณ)
 # class FormAndFormula:
 #     ...
 #
@@ -517,7 +520,17 @@ def save_materials():
         print(
             f"Invalid scope or sub-scope ID: scope_id={scope_id}, sub_scope_id={sub_scope_id}"
         )
-        return jsonify({"error": "Invalid scope or sub-scope ID"}), 400
+        # ใช้ toast notification สำหรับ error
+
+        
+        response = make_response('')
+        encoded_message = urllib.parse.quote("ไม่พบข้อมูล Scope ที่ระบุ")
+        
+        trigger_data = {
+            "showError": encoded_message
+        }
+        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+        return response
 
     head_table = scope.head_table
     print(f"Head table before saving materials: {head_table}")  # Debugging
@@ -532,13 +545,28 @@ def save_materials():
         form_and_formula = FormAndFormula.objects(material_name=head).first()
         if not form_and_formula:
             print(f"Form and Formula not found for material: {head}")
-            return jsonify({"error": "Form and Formula not found"}), 400
+            # ใช้ toast notification สำหรับ error
+            response = make_response('')
+            encoded_message = urllib.parse.quote("ไม่พบฟอร์มสำหรับวัสดุที่ระบุ")
+            
+            trigger_data = {
+                "showError": encoded_message
+            }
+            response.headers['HX-Trigger'] = json.dumps(trigger_data)
+            return response
 
-        # label = input_label
         field = input_field
         if not field:
             print(f"No input types found for material: {head}")
-            return jsonify({"error": "No input types found"}), 400
+            # ใช้ toast notification สำหรับ error
+            response = make_response('')
+            encoded_message = urllib.parse.quote("ไม่พบฟิลด์ข้อมูลสำหรับวัสดุที่ระบุ")
+            
+            trigger_data = {
+                "showError": encoded_message
+            }
+            response.headers['HX-Trigger'] = json.dumps(trigger_data)
+            return response
 
         materials.append({"head": head, "field": field, "amount": amount})
     else:
@@ -560,11 +588,31 @@ def save_materials():
     # Debugging: Print materials data
     print(f"Materials: {materials}")
 
-    if not scope_id or not sub_scope_id or not month_id or not year or not materials:
+    if not scope_id or not sub_scope_id or not month_id or not year:
         print("Missing required data")
-        return jsonify({"error": "Missing data"}), 400
+        # ใช้ toast notification สำหรับ error
+        response = make_response('')
+        encoded_message = urllib.parse.quote("ข้อมูลไม่ครบถ้วน กรุณาตรวจสอบอีกครั้ง")
+        
+        trigger_data = {
+            "showError": encoded_message
+        }
+        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+        return response
+
+    if not materials:
+        # ใช้ toast notification สำหรับ warning
+        response = make_response('')
+        encoded_message = urllib.parse.quote("กรุณากรอกข้อมูลอย่างน้อย 1 ฟิลด์")
+        
+        trigger_data = {
+            "showWarning": encoded_message
+        }
+        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+        return response
 
     # Save each material
+    saved_count = 0
     for material_data in materials:
         # ตรวจสอบว่า material นี้ไม่ถูกลิงก์
         matched_material = Material.objects(
@@ -578,7 +626,8 @@ def save_materials():
         if matched_material and matched_material.is_linked:
             continue  # ข้าม material ที่ถูกลิงก์
 
-        save_material(scope_id, sub_scope_id, month_id, year, material_data)
+        if save_material(scope_id, sub_scope_id, month_id, year, material_data):
+            saved_count += 1
 
     # Update emissions table
     head_table = scope.head_table  # Re-fetch head_table after saving materials
@@ -620,7 +669,9 @@ def save_materials():
         print(
             f"Rendering emissions table with scope_id: {scope_id}, sub_scope_id: {sub_scope_id}, year: {year}, page: {page}"
         )
-        return render_template(
+        
+        # สร้าง response พร้อม toast notification
+        table_html = render_template(
             "emissions-scope/partials/emissions-table.html",
             scope=scope,
             scope_id=scope_id,
@@ -635,6 +686,18 @@ def save_materials():
             materials_form=materials_form,
             items_per_page=items_per_page,  # ส่งจำนวนรายการต่อหน้า
         )
+        
+        response = make_response(table_html)
+        
+        # เพิ่ม toast notification สำหรับความสำเร็จ
+        encoded_message = urllib.parse.quote(f"บันทึกข้อมูลสำเร็จ! ({saved_count} รายการ)")
+        
+        trigger_data = {
+            "showSuccess": encoded_message
+        }
+        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+        
+        return response
     else:
         return redirect(
             url_for(
@@ -713,7 +776,8 @@ def delete_material():
     )
 
     if request.headers.get("HX-Request"):
-        return render_template(
+        # สร้าง response พร้อม toast notification สีเหลือง
+        table_html = render_template(
             "emissions-scope/partials/emissions-table.html",
             scope=scope,
             scope_id=scope_id,
@@ -728,6 +792,18 @@ def delete_material():
             materials_form=materials_form,
             items_per_page=items_per_page,
         )
+        
+        response = make_response(table_html)
+        
+        # เพิ่ม toast notification สีเหลืองสำหรับการลบ
+        encoded_message = urllib.parse.quote("ลบข้อมูลเรียบร้อยแล้ว")
+        
+        trigger_data = {
+            "showWarning": encoded_message
+        }
+        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+        
+        return response
 
 
 @module.route("/delete-all-materials", methods=["POST"])
@@ -740,77 +816,116 @@ def delete_all_materials():
     year = request.form.get("year")
     page = int(request.form.get("page", 1))
 
-    materials = Material.objects(
-        month=int(month_id),
-        scope=int(scope_id),
-        sub_scope=int(sub_scope_id),
-        year=int(year),
-        department=current_user.department_key,
-        campus=current_user.campus_id,
-    )
-
-    if materials:
-        # ลบเฉพาะ material ที่ไม่ถูกลิงก์
-        for material in materials:
-            if material.is_linked:
-                continue  # ข้าม material ที่ถูกลิงก์
-            material.quantity_type = []  # Clear quantity_type
-            material.edit_by_id = str(current_user.id)  # Update edit_by_id
-            material.update_date = datetime.datetime.now()  # Update update_date
-            material.save()
-
-            # Calculate and update the result
-            calculate_result(material)
-
-    # Refresh the table after deletion
-    scope = Scope.objects(
-        ghg_scope=int(scope_id),
-        ghg_sup_scope=int(sub_scope_id),
-        department=current_user.department_key,
-        campus=current_user.campus_id,
-    ).first()
-    head_table = scope.head_table if scope else []
-
-    current_headers, materials_form, total_pages, items_per_page = (
-        calculate_grouped_input_types(head_table, page)
-    )
-
-    # สร้าง head_table_info สำหรับ current_headers
-    head_table_info = {}
-    for head in current_headers:
-        form = FormAndFormula.objects(material_name=head).first()
-        if form:
-            head_table_info[head] = {
-                "is_linked": getattr(form, "is_linked", False),
-                "linked_material_name": getattr(form, "linked_material_name", ""),
-                "desc_form": form.desc_form,
-                "formula": form.formula,
-            }
-
-    materials = Material.objects(
-        scope=int(scope_id),
-        sub_scope=int(sub_scope_id),
-        year=int(year),
-        department=current_user.department_key,
-        campus=current_user.campus_id,
-    )
-
-    if request.headers.get("HX-Request"):
-        return render_template(
-            "emissions-scope/partials/emissions-table.html",
-            scope=scope,
-            scope_id=scope_id,
-            sub_scope_id=sub_scope_id,
-            materials=materials,
-            head_table=current_headers,
-            head_table_info=head_table_info,  # เพิ่มบรรทัดนี้
-            total_pages=total_pages,
-            page=page,
-            user=current_user,
-            year=year,
-            materials_form=materials_form,
-            items_per_page=items_per_page,
+    try:
+        materials = Material.objects(
+            month=int(month_id),
+            scope=int(scope_id),
+            sub_scope=int(sub_scope_id),
+            year=int(year),
+            department=current_user.department_key,
+            campus=current_user.campus_id,
         )
+
+        deleted_count = 0
+        if materials:
+            # นับจำนวนรายการจริงที่จะลบ
+            for material in materials:
+                if material.is_linked:
+                    continue  # ข้าม material ที่ถูกลิงก์
+                
+                # นับจำนวน quantity_type ที่มีอยู่ก่อนลบ
+                quantity_count_before_delete = len(material.quantity_type) if material.quantity_type else 0
+                deleted_count += quantity_count_before_delete
+                
+                material.quantity_type = []  # Clear quantity_type
+                material.edit_by_id = str(current_user.id)  # Update edit_by_id
+                material.update_date = datetime.datetime.now()  # Update update_date
+                material.save()
+
+                # Calculate and update the result
+                calculate_result(material)
+
+        # Refresh the table after deletion
+        scope = Scope.objects(
+            ghg_scope=int(scope_id),
+            ghg_sup_scope=int(sub_scope_id),
+            department=current_user.department_key,
+            campus=current_user.campus_id,
+        ).first()
+        head_table = scope.head_table if scope else []
+
+        current_headers, materials_form, total_pages, items_per_page = (
+            calculate_grouped_input_types(head_table, page)
+        )
+
+        # สร้าง head_table_info สำหรับ current_headers
+        head_table_info = {}
+        for head in current_headers:
+            form = FormAndFormula.objects(material_name=head).first()
+            if form:
+                head_table_info[head] = {
+                    "is_linked": getattr(form, "is_linked", False),
+                    "linked_material_name": getattr(form, "linked_material_name", ""),
+                    "desc_form": form.desc_form,
+                    "formula": form.formula,
+                }
+
+        materials = Material.objects(
+            scope=int(scope_id),
+            sub_scope=int(sub_scope_id),
+            year=int(year),
+            department=current_user.department_key,
+            campus=current_user.campus_id,
+        )
+
+        if request.headers.get("HX-Request"):
+            # สร้าง response พร้อม toast notification
+            table_html = render_template(
+                "emissions-scope/partials/emissions-table.html",
+                scope=scope,
+                scope_id=scope_id,
+                sub_scope_id=sub_scope_id,
+                materials=materials,
+                head_table=current_headers,
+                head_table_info=head_table_info,  # เพิ่มบรรทัดนี้
+                total_pages=total_pages,
+                page=page,
+                user=current_user,
+                year=year,
+                materials_form=materials_form,
+                items_per_page=items_per_page,
+            )
+            
+            response = make_response(table_html)
+            
+            # เปลี่ยนเป็น toast notification สีเหลืองสำหรับการลบ
+            if deleted_count > 0:
+                # แสดง warning toast สีเหลืองแทนสีเขียว
+                encoded_message = urllib.parse.quote(f"ลบข้อมูลทั้งหมดเรียบร้อยแล้ว ({deleted_count} รายการ)")
+                trigger_data = {
+                    "showWarning": encoded_message
+                }
+            else:
+                # แสดง info toast ถ้าไม่มีการลบ
+                encoded_message = urllib.parse.quote("ไม่มีข้อมูลที่สามารถลบได้")
+                trigger_data = {
+                    "showInfo": encoded_message
+                }
+            
+            response.headers['HX-Trigger'] = json.dumps(trigger_data)
+            
+            return response
+            
+    except Exception as e:
+        # ใช้ toast notification สำหรับ error
+        response = make_response('')
+        encoded_message = urllib.parse.quote(f"เกิดข้อผิดพลาดในการลบข้อมูล: {str(e)}")
+        
+        trigger_data = {
+            "showError": encoded_message
+        }
+        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+        return response
 
 
 @module.route("/load-upload-modal", methods=["GET"])
@@ -872,7 +987,17 @@ def load_upload_modal(
 def upload_file():
     file = request.files.get("file")
     if not file:
-        return jsonify({"error": "No file uploaded"}), 400
+        # ใช้ toast notification สำหรับ error
+
+        
+        response = make_response('')
+        encoded_message = urllib.parse.quote("กรุณาเลือกไฟล์ที่ต้องการอัปโหลด")
+        
+        trigger_data = {
+            "showError": encoded_message
+        }
+        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+        return response
 
     scope_id = request.form.get("scope_id")
     sub_scope_id = request.form.get("sub_scope_id")
@@ -882,45 +1007,77 @@ def upload_file():
 
     # ตรวจสอบว่าค่าพารามิเตอร์ไม่เป็น None
     if not all([scope_id, sub_scope_id, year, month_id]):
-        return jsonify({"error": "Missing required parameters"}), 400
+        # ใช้ toast notification สำหรับ error
+        response = make_response('')
+        encoded_message = urllib.parse.quote("ข้อมูลไม่ครบถ้วน กรุณาลองใหม่อีกครั้ง")
+        
+        trigger_data = {
+            "showError": encoded_message
+        }
+        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+        return response
 
-    document = ReferenceDocument.objects(
-        scope_id=int(scope_id),
-        sub_scope_id=int(sub_scope_id),
-        year=int(year),
-        month=int(month_id),
-        campus=current_user.campus_id,
-        department=current_user.department_key,
-    ).first()
-
-    if not document:
-        document = ReferenceDocument(
+    try:
+        document = ReferenceDocument.objects(
             scope_id=int(scope_id),
             sub_scope_id=int(sub_scope_id),
             year=int(year),
             month=int(month_id),
             campus=current_user.campus_id,
             department=current_user.department_key,
-            files=[],
-        )
+        ).first()
 
-    document.files.append(
-        UploadedFile(
-            filename=file.filename,
-            content_type=file.content_type,
-            data=file.read(),
-        )
-    )
-    document.save()
+        if not document:
+            document = ReferenceDocument(
+                scope_id=int(scope_id),
+                sub_scope_id=int(sub_scope_id),
+                year=int(year),
+                month=int(month_id),
+                campus=current_user.campus_id,
+                department=current_user.department_key,
+                files=[],
+            )
 
-    # ส่งค่าพารามิเตอร์ไปยัง load_upload_modal
-    return load_upload_modal(
-        month_id=month_id,
-        year=year,
-        scope_id=scope_id,
-        sub_scope_id=sub_scope_id,
-        month=month,
-    )
+        document.files.append(
+            UploadedFile(
+                filename=file.filename,
+                content_type=file.content_type,
+                data=file.read(),
+            )
+        )
+        document.save()
+
+        # สร้าง response พร้อม toast notification สำเร็จ
+        modal_html = render_template(
+            "emissions-scope/partials/upload-modal.html",
+            documents=document,
+            month_id=month_id,
+            year=year,
+            scope_id=scope_id,
+            sub_scope_id=sub_scope_id,
+            month=month,
+        )
+        
+        response = make_response(modal_html)
+        encoded_message = urllib.parse.quote(f"อัปโหลดไฟล์ '{file.filename}' สำเร็จ!")
+        
+        trigger_data = {
+            "showSuccess": encoded_message
+        }
+        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+        
+        return response
+
+    except Exception as e:
+        # ใช้ toast notification สำหรับ error
+        response = make_response('')
+        encoded_message = urllib.parse.quote(f"เกิดข้อผิดพลาดในการอัปโหลด: {str(e)}")
+        
+        trigger_data = {
+            "showError": encoded_message
+        }
+        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+        return response
 
 
 @module.route("/download-file/<file_id>", methods=["GET"])
@@ -960,24 +1117,70 @@ def delete_file(file_id):
 
     if not file_id:
         print("Missing file_id")
-        return jsonify({"error": "Missing file_id"}), 400
+        # ใช้ toast notification สำหรับ error
 
-    document = ReferenceDocument.objects(files__id=file_id).first()
-    if not document:
-        print(f"Document not found for file_id: {file_id}")
-        return jsonify({"error": "File not found"}), 404
+        
+        response = make_response('')
+        encoded_message = urllib.parse.quote("ไม่พบรหัสไฟล์ที่ต้องการลบ")
+        
+        trigger_data = {
+            "showError": encoded_message
+        }
+        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+        return response
 
-    document.files = [f for f in document.files if str(f.id) != file_id]
-    document.save()
+    try:
+        document = ReferenceDocument.objects(files__id=file_id).first()
+        if not document:
+            print(f"Document not found for file_id: {file_id}")
+            # ใช้ toast notification สำหรับ error
+            response = make_response('')
+            encoded_message = urllib.parse.quote("ไม่พบไฟล์ที่ต้องการลบ")
+            
+            trigger_data = {
+                "showError": encoded_message
+            }
+            response.headers['HX-Trigger'] = json.dumps(trigger_data)
+            return response
 
-    # ส่งค่าพารามิเตอร์ไปยัง load_upload_modal
-    return load_upload_modal(
-        month_id=month_id,
-        year=year,
-        scope_id=scope_id,
-        sub_scope_id=sub_scope_id,
-        month=month,
-    )
+        # หาชื่อไฟล์ก่อนลบเพื่อแสดงใน toast
+        file_to_delete = next((f for f in document.files if str(f.id) == file_id), None)
+        filename = file_to_delete.filename if file_to_delete else "ไฟล์"
+
+        document.files = [f for f in document.files if str(f.id) != file_id]
+        document.save()
+
+        # สร้าง response พร้อม toast notification สีเหลืองสำหรับการลบไฟล์
+        modal_html = render_template(
+            "emissions-scope/partials/upload-modal.html",
+            documents=document,
+            month_id=month_id,
+            year=year,
+            scope_id=scope_id,
+            sub_scope_id=sub_scope_id,
+            month=month,
+        )
+        
+        response = make_response(modal_html)
+        encoded_message = urllib.parse.quote(f"ลบไฟล์ '{filename}' เรียบร้อยแล้ว")
+        
+        trigger_data = {
+            "showWarning": encoded_message
+        }
+        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+        
+        return response
+
+    except Exception as e:
+        # ใช้ toast notification สำหรับ error
+        response = make_response('')
+        encoded_message = urllib.parse.quote(f"เกิดข้อผิดพลาดในการลบไฟล์: {str(e)}")
+        
+        trigger_data = {
+            "showError": encoded_message
+        }
+        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+        return response
 
 
 @module.route("/get-form-details/<material_name>", methods=["GET"])
