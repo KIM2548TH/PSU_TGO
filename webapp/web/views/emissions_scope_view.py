@@ -187,8 +187,27 @@ def edit_scope(ghg_scope, ghg_sup_scope):
     
     material_names = sorted([name for name in materials if name])
 
+    # ดึงชื่อจริงของ campus และ department
+    campus_name = ""
+    department_name = ""
+    
+    try:
+        from ...models.campus_and_department_model import CampusAndDepartment
+        campus_doc = CampusAndDepartment.objects(id=current_user.campus_id).first()
+        if campus_doc:
+            campus_name = campus_doc.name.get("0", "")
+            department_name = campus_doc.departments.get(current_user.department_key, "")
+    except Exception as e:
+        print(f"Error getting campus/department names: {e}")
+        campus_name = scope.campus
+        department_name = scope.department
+
     return render_template(
-        "/emissions-scope/edit-scope.html", scope=scope, material_names=material_names
+        "/emissions-scope/edit-scope.html", 
+        scope=scope, 
+        material_names=material_names,
+        campus_name=campus_name,
+        department_name=department_name
     )
 
 
@@ -213,8 +232,26 @@ def scope_description(ghg_scope, ghg_sup_scope):
                 error="ไม่พบข้อมูล Scope ที่ต้องการ",
             )
 
+        # ดึงชื่อจริงของ campus และ department
+        campus_name = ""
+        department_name = ""
+        
+        try:
+            from ...models.campus_and_department_model import CampusAndDepartment
+            campus_doc = CampusAndDepartment.objects(id=current_user.campus_id).first()
+            if campus_doc:
+                campus_name = campus_doc.name.get("0", "")
+                department_name = campus_doc.departments.get(current_user.department_key, "")
+        except Exception as e:
+            print(f"Error getting campus/department names: {e}")
+            campus_name = scope.campus
+            department_name = scope.department
+
         return render_template(
-            "/emissions-scope/partials/scope-description-modal.html", scope=scope
+            "/emissions-scope/partials/scope-description-modal.html", 
+            scope=scope,
+            campus_name=campus_name,
+            department_name=department_name
         )
 
     except Exception as e:

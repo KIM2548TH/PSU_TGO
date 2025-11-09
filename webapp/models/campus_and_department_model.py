@@ -292,6 +292,7 @@ class CampusAndDepartment(me.Document):
         self.delete()
 
     @staticmethod
+    @staticmethod
     def get_campus_name(campus_id):
         """Get campus name from DB by id"""
         campus_obj = CampusAndDepartment.objects(id=campus_id).first()
