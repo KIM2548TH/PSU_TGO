@@ -96,9 +96,9 @@ def emissions_scope():
 def calculate_scope_progress(scope, selected_year):
     """
     คำนวณ Progress:
-    - นับเฉพาะ Material ที่ result ไม่เป็น None / "" / 0 / "0"
-    - ไม่สนใจ result2 แล้ว
-    - ถ้า result = 0 ไม่นับตามที่ขอ
+    - นับเฉพาะ Material ที่อยู่ใน scope นี้เท่านั้น
+    - นับ result ที่ไม่เป็น None หรือ "" (รวม 0 ด้วย)
+    - ถ้า result = 0 ถือว่ากรอกแล้ว
     """
     num_head_table = len(scope.head_table)
     if num_head_table == 0:
@@ -116,8 +116,8 @@ def calculate_scope_progress(scope, selected_year):
         department=current_user.department_key,
     )
 
-    # นับเฉพาะ result ที่มีค่าและไม่เป็น 0
-    filled = materials_qs.filter(result__nin=[None, "", 0, "0"]).count()
+    # นับเฉพาะ result ที่มีค่า (รวม 0 ด้วย) - ไม่นับ None และ "" เท่านั้น
+    filled = materials_qs.filter(result__nin=[None, ""]).count()
 
     progress = (filled / total_fields_required) * 100
     return min(progress, 100)

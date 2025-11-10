@@ -8,6 +8,9 @@ from ..views.emissoins import calculate_result
 from ..utils.acl import permissions_required_all
 from ..utils.toast_utils import success_response, error_response, warning_response, info_response, ToastType
 import datetime
+from bson import ObjectId
+from bson.errors import InvalidId
+
 
 
 module = Blueprint("form_management", __name__, url_prefix="/form-management")
@@ -64,8 +67,8 @@ def load_edit_form_and_formula():
         )
 
     try:
-        from bson import ObjectId
-        from bson.errors import InvalidId
+        
+        
 
         try:
             object_id = ObjectId(form_id)
@@ -458,7 +461,7 @@ def edit_form_and_formula():
         return _error_response("No form ID provided")
         
     try:
-        from bson import ObjectId
+        
         form = FormAndFormula.objects(id=ObjectId(form_id)).first()
         if not form:
             return _error_response("Form not found")
@@ -495,7 +498,7 @@ def edit_form_and_formula():
 def delete_form(form_id):
     """ลบฟอร์ม"""
     try:
-        from bson import ObjectId
+        
         form = FormAndFormula.objects(id=ObjectId(form_id)).first()
         if not form:
             return _error_response("Form not found")
@@ -683,7 +686,7 @@ def load_edit_fields():
         if not form_id:
             return render_template("form-management/partials/normal-form-section.html")
         
-        from bson import ObjectId
+        
         form_obj = FormAndFormula.objects(id=ObjectId(form_id)).first()
         
         if not form_obj or not form_obj.input_types:
@@ -814,8 +817,8 @@ def hide_toast():
 def get_form_data(form_id):
     """ดึงข้อมูลฟอร์มในรูปแบบ JSON"""
     try:
-        from bson import ObjectId
-        from bson.errors import InvalidId
+        
+        
 
         try:
             object_id = ObjectId(form_id)

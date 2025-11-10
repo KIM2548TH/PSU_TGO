@@ -27,15 +27,26 @@
                         <!-- Loop through main headers -->
                         {% for head in head_table %}
                         {% set form_info = head_table_info[head] %}
-                        <th colspan="{{ materials_form[loop.index0] | length }}" 
-                            class="px-6 py-3 text-xs font-medium text-gray-500 tracking-wider border-b border-r border-gray-200 truncate relative group"
+                        {% set sub_column_count = materials_form[loop.index0] | length %}
+                        
+                        <th colspan="{{ sub_column_count }}" 
+                            class="px-2 py-3 text-xs font-medium text-gray-500 tracking-wider border-b border-r border-gray-200 relative group"
+                            style="width: auto; min-width: fit-content; max-width: none; word-wrap: break-word; white-space: normal; overflow-wrap: break-word;"
                             title="{{ head }}">
-                            <div class="flex items-center justify-center gap-1">
-                                <span title="{{ head }}" style="cursor:pointer;">
-                                {{ head | truncate(30, True, '...') }}
+                            <div class="flex items-center justify-center gap-1 leading-tight">
+                                <span class="cursor-pointer text-center" style="line-height: 1.2;">
+                                    {% if head|length <= 15 %}
+                                        {{ head }}
+                                    {% elif head|length <= 30 %}
+                                        {% set mid = (head|length // 2) %}
+                                        {{ head[:mid] }}<br>{{ head[mid:] }}
+                                    {% else %}
+                                        {{ head[:15] }}<br>{{ head[15:25] }}...
+                                    {% endif %}
                                 </span>
                                 {% if form_info and form_info.is_linked %}
-                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 cursor-pointer"
+                                    <br>
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 cursor-pointer mt-1"
                                           hx-get="{{ url_for('emissions.get_form_details', material_name=head) }}"
                                           hx-target="#modal-content"
                                           hx-swap="innerHTML"
