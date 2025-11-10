@@ -97,8 +97,8 @@ def calculate_scope_progress(scope, selected_year):
     """
     คำนวณ Progress:
     - นับเฉพาะ Material ที่อยู่ใน scope นี้เท่านั้น
-    - นับ result ที่ไม่เป็น None หรือ "" (รวม 0 ด้วย)
-    - ถ้า result = 0 ถือว่ากรอกแล้ว
+    - นับ Material ที่มี quantity_type (ไม่เป็น None และไม่ว่าง)
+    - Material ที่ถูกลบจะไม่มี field quantity_type หรือเป็น None/[] จะไม่ถูกนับ
     """
     num_head_table = len(scope.head_table)
     if num_head_table == 0:
@@ -116,13 +116,15 @@ def calculate_scope_progress(scope, selected_year):
         department=current_user.department_key,
     )
 
-    # นับเฉพาะ result ที่มีค่า (รวม 0 ด้วย) - ไม่นับ None และ "" เท่านั้น
-    filled = materials_qs.filter(result__nin=[None, ""]).count()
+    # นับเฉพาะ Material ที่มี quantity_type และไม่เป็น None และไม่ว่าง
+    filled = materials_qs.filter(
+        quantity_type__exists=True,  # มี field quantity_type
+        quantity_type__ne=None,      # ไม่เป็น None
+        quantity_type__not__size=0   # ไม่ว่าง (มีอย่างน้อย 1 รายการ)
+    ).count()
 
     progress = (filled / total_fields_required) * 100
     return min(progress, 100)
-
-
 
 
 @module.route("/get-latest-sub-scope", methods=["POST"])
@@ -199,7 +201,7 @@ def edit_scope(ghg_scope, ghg_sup_scope):
         ghg_sup_scope=ghg_sup_scope  # แก้จาก ghg_sub_scope เป็น ghg_sup_scope
     ).distinct("material_name")
     
-    print(materials)
+
     
     material_names = sorted([name for name in materials if name])
 
