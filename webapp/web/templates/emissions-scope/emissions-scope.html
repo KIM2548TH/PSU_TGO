@@ -243,7 +243,7 @@
           </div>
           
           <div class="flex items-center gap-2 flex-shrink-0">
-            {% if session.get("role") in ["admin"] %}
+            {% if has_permission("แก้ไขข้อมูลการปล่อย") %}
             <button 
               class="text-blue-500 hover:text-blue-700 btn btn-ghost btn-sm btn-circle"
               title="{{ t.edit_scope }}"

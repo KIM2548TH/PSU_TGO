@@ -76,6 +76,7 @@
           </button>
         </li>
         {% endfor %}
+        {% if has_permission("เพิ่มฟอร์ม") %}
         <li class="border-t border-gray-200 mt-2 pt-2">
           <button class="w-full text-left text-blue-600"
                   hx-get="{{ url_for('form_management.load_add_form_and_formula') }}?default_scope=3" 
@@ -86,6 +87,7 @@
             เพิ่มฟอร์มใหม่ใน subscope ที่ยังไม่มีฟอร์ม
           </button>
         </li>
+        {% endif %}
       </ul>
     </div>
   </div>
@@ -99,6 +101,7 @@
     </div>
     <h3 class="text-lg font-semibold text-blue-700 mb-2">ยังไม่มี Sub Scope</h3>
     <p class="text-blue-600 mb-4">เริ่มต้นสร้างฟอร์มแรกใน Scope 3</p>
+    {% if has_permission("เพิ่มฟอร์ม") %}
     <button class="btn btn-primary"
             hx-get="{{ url_for('form_management.load_add_form_and_formula') }}?default_scope=3" 
             hx-target="#modal-content" 
@@ -107,6 +110,7 @@
       <i data-feather="plus" class="w-4 h-4 mr-2"></i>
       เพิ่มฟอร์มใหม่
     </button>
+    {% endif %}
   </div>
   {% else %}
   
@@ -142,6 +146,7 @@
                   <p class="text-sm text-gray-500 break-words leading-relaxed">{{ form.desc_form[:50] }}{% if form.desc_form and form.desc_form|length > 50 %}...{% endif %}</p>
                 </div>
               </div>
+              {% if has_permission("แก้ไขฟอร์ม") %}
               <button class="text-blue-500 hover:text-blue-700 p-1 rounded-md hover:bg-blue-50 transition-colors" 
                       title="แก้ไข"
                       hx-get="{{ url_for('form_management.load_edit_form_and_formula') }}?form_id={{ form.id }}"
@@ -150,6 +155,7 @@
                       hx-on:htmx:after-request="document.getElementById('modal').classList.add('modal-open')">
                 <i data-feather="edit" class="w-4 h-4"></i>
               </button>
+              {% endif %}
             </div>
             
             <!-- Linked Form Information -->
@@ -200,7 +206,8 @@
           {% endif %}
         {% endfor %}
         
-        <!-- Add New Form Card - แสดงเสมอ -->
+        <!-- Add New Form Card - แสดงเฉพาะเมื่อมี permission -->
+        {% if has_permission("เพิ่มฟอร์ม") %}
         <div class="border-2 border-dashed border-blue-200 rounded-xl p-8 flex flex-col items-center justify-center text-center hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200 cursor-pointer"
              hx-get="{{ url_for('form_management.load_add_form_and_formula') }}?default_scope=3&default_sub_scope={{ sub_scope }}" 
              hx-target="#modal-content" 
@@ -212,6 +219,7 @@
           <h4 class="text-sm font-medium text-blue-700">เพิ่มฟอร์มใหม่</h4>
           <p class="text-xs text-blue-500 mt-1">Sub Scope {{ sub_scope }}</p>
         </div>
+        {% endif %}
       </div>
     </div>
     {% endif %}

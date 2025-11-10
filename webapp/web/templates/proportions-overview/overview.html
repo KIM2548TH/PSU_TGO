@@ -135,9 +135,11 @@
             </div>
             <div class="flex items-center gap-2 pt-2">
               <div class="flex-1 bg-gray-200 rounded-full h-2">
-                <div class="h-2 rounded-full" style="background-color: {{ campus.color }}; width: {{ campus.percentageOfTotal|round(1) }}%"></div>
+                {% set width_percent = campus.percentageOfTotal if campus.percentageOfTotal > 0 else 0 %}
+                <div class="h-2 rounded-full transition-all duration-500" 
+                     style="background-color: {{ campus.color }}; width: {{ width_percent|round(1) }}%"></div>
               </div>
-              <span class="text-xs text-gray-600">{{ campus.percentageOfTotal|round(1) }}%</span>
+              <span class="text-xs text-gray-600 font-semibold">{{ campus.percentageOfTotal|round(1) }}%</span>
             </div>
           </div>
         </div>
@@ -149,14 +151,11 @@
     <div class="lg:col-span-1">
       <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100 mb-6 mt-11">
         <h3 class="text-lg font-bold mb-4">เปรียบเทียบการปล่อยแต่ละ Campus</h3>
-        {% set max_emissions = campus_summaries[0].totalEmissions if campus_summaries else 1 %}
-        {% if max_emissions == 0 %}
-          {% set max_emissions = 1 %}
-        {% endif %}
+        {% set max_emissions = campus_summaries[0].totalEmissions if campus_summaries and campus_summaries[0].totalEmissions > 0 else 1 %}
         <div class="space-y-4">
           {% for campus in campus_summaries %}
           <div>
-            <div class="flex justify-between items-center">
+            <div class="flex justify-between items-center mb-1">
               <div class="flex items-center gap-2">
                 <div class="w-3 h-3 rounded-full" style="background-color: {{ campus.color }}"></div>
                 <span class="text-sm font-medium">{{ campus.campusNameTh }}</span>
@@ -164,7 +163,12 @@
               <span class="text-sm font-bold">{{ campus.totalEmissions|round(1) }} tonCO₂e</span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-3">
-              <div class="h-3 rounded-full" style="background-color: {{ campus.color }}; width: {{ (campus.totalEmissions / max_emissions * 100)|round(1) }}%"></div>
+              {% set bar_width = (campus.totalEmissions / max_emissions * 100) if max_emissions > 0 else 0 %}
+              <div class="h-3 rounded-full transition-all duration-500" 
+                   style="background-color: {{ campus.color }}; width: {{ bar_width|round(1) }}%"></div>
+            </div>
+            <div class="text-right mt-1">
+              <span class="text-xs text-gray-500">{{ campus.percentageOfTotal|round(1) }}% ของทั้งหมด</span>
             </div>
           </div>
           {% endfor %}
@@ -176,36 +180,37 @@
           <div class="flex justify-between">
             <span class="text-gray-600">Campus ที่ปล่อยมากที่สุด</span>
             <span class="font-semibold text-gray-800">
-              {{ campus_summaries[0].campusNameTh if campus_summaries else '-' }}
+              {{ campus_summaries[0].campusNameTh if campus_summaries and campus_summaries[0].totalEmissions > 0 else '-' }}
             </span>
           </div>
           <div class="flex justify-between">
             <span class="text-gray-600">Campus ที่ปล่อยน้อยที่สุด</span>
             <span class="font-semibold text-gray-800">
-              {{ campus_summaries[-1].campusNameTh if campus_summaries else '-' }}
+              {{ campus_summaries[-1].campusNameTh if campus_summaries and campus_summaries[-1].totalEmissions > 0 else '-' }}
             </span>
           </div>
           <div class="flex justify-between pt-2 border-t border-gray-200">
             <span class="text-gray-600">ค่าเฉลี่ยต่อ Campus</span>
             <span class="font-semibold text-green-600">
-              {{ (overall_stats.total / 5)|round(1) }} tonCO₂e
+              {% set avg_emissions = (overall_stats.total / campus_summaries|length) if campus_summaries|length > 0 else 0 %}
+              {{ avg_emissions|round(1) }} tonCO₂e
             </span>
           </div>
-          <div class="flex justify-between pt-2 border-t border-gray-200">
+          <div class="flex justify-between">
             <span class="text-gray-600">Scope 1 รวม</span>
-            <span class="font-semibold text-green-600">
+            <span class="font-semibold text-purple-600">
               {{ overall_stats.totalScope1|round(1) }} tonCO₂e
             </span>
           </div>
-          <div class="flex justify-between pt-2 border-t border-gray-200">
+          <div class="flex justify-between">
             <span class="text-gray-600">Scope 2 รวม</span>
             <span class="font-semibold text-green-600">
               {{ overall_stats.totalScope2|round(1) }} tonCO₂e
             </span>
           </div>
-          <div class="flex justify-between pt-2 border-t border-gray-200">
+          <div class="flex justify-between">
             <span class="text-gray-600">Scope 3 รวม</span>
-            <span class="font-semibold text-green-600">
+            <span class="font-semibold text-blue-600">
               {{ overall_stats.totalScope3|round(1) }} tonCO₂e
             </span>
           </div>

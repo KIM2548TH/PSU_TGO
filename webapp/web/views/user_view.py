@@ -101,6 +101,7 @@ def logout():
 
 
 @module.route("/register", methods=["GET", "POST"])
+@login_required
 def register():
     form = RegisterForm()
     error_msg = ""
@@ -134,6 +135,7 @@ def register():
 
 
 @module.route("/load-departments-for-register", methods=["GET"])
+@login_required
 def load_departments_for_register():
     campus_id = request.args.get("campus")
     print("campus_id:", campus_id)  # Debug
