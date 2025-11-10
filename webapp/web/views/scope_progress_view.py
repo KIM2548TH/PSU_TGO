@@ -6,6 +6,39 @@ from datetime import datetime
 
 module = Blueprint("scope_process", __name__, url_prefix="/scope-progress")
 
+def calculate_scope_progress(scope, selected_year, campus_id, department_key):
+    """
+    คำนวณ Progress เหมือนกับหน้า emissions-scope:
+    - นับเฉพาะ Material ที่อยู่ใน scope นี้เท่านั้น
+    - นับ Material ที่มี quantity_type (ไม่เป็น None และไม่ว่าง)
+    - Material ที่ถูกลบจะไม่มี field quantity_type หรือเป็น None/[] จะไม่ถูกนับ
+    """
+    num_head_table = len(scope.head_table)
+    if num_head_table == 0:
+        return 0
+
+    total_fields_required = num_head_table * 12
+    if total_fields_required == 0:
+        return 0
+
+    materials_qs = Material.objects(
+        scope=scope.ghg_scope,
+        sub_scope=scope.ghg_sup_scope,
+        year=selected_year,
+        campus=campus_id,
+        department=department_key,
+    )
+
+    # นับเฉพาะ Material ที่มี quantity_type และไม่เป็น None และไม่ว่าง
+    filled = materials_qs.filter(
+        quantity_type__exists=True,  # มี field quantity_type
+        quantity_type__ne=None,      # ไม่เป็น None
+        quantity_type__not__size=0   # ไม่ว่าง (มีอย่างน้อย 1 รายการ)
+    ).count()
+
+    progress = (filled / total_fields_required) * 100
+    return min(progress, 100)
+
 @module.route("/", methods=["GET"])
 @login_required
 @permissions_required_all(["เข้าถึงหน้าภาพรวมความคืบหน้า"])
@@ -66,25 +99,17 @@ def progress_dashboard():
             dept_progress_sum = 0
 
             for scope in dept_scopes:
-                num_head_table = len(scope.head_table)
-                total_fields_required = num_head_table * 12 if num_head_table > 0 else 0
-                materials_qs = Material.objects(
-                    scope=scope.ghg_scope,
-                    sub_scope=scope.ghg_sup_scope,
-                    year=selected_year,
-                    campus=selected_campus_id,
-                    department=dept_key,
-                )
-                filled = materials_qs.filter(result__nin=[None, "", 0, "0"]).count()
-                progress = (filled / total_fields_required) * 100 if total_fields_required > 0 else 0
+                # ใช้ฟังก์ชันเดียวกับหน้า emissions-scope
+                progress = calculate_scope_progress(scope, selected_year, selected_campus_id, dept_key)
                 dept_progress_sum += progress
 
-                if progress == 0:
-                    dept_not_started += 1
-                elif progress >= 100:
+                # กำหนดสถานะตาม Progress เหมือนหน้า emissions-scope
+                if progress == 100:
                     dept_completed += 1
-                else:
+                elif progress > 0:
                     dept_in_progress += 1
+                else:
+                    dept_not_started += 1
 
             avg_progress = dept_progress_sum / dept_total if dept_total > 0 else 0
             departments_data.append({
@@ -120,6 +145,7 @@ def progress_dashboard():
         "not_started": not_started,
         "completed": completed,
         "departments_data": departments_data,
+        "selected_ghg_scope": selected_ghg_scope,  # เพิ่มตัวแปรนี้สำหรับ template
     }
 
     return render_template("scope-progress/scope-progress.html", **context)

@@ -8,26 +8,166 @@
     <!-- Emissions Over Time Card - ใช้ 2 columns -->
     <div class="dashboard-card flex flex-col p-6 bg-white shadow-lg rounded-xl overflow-hidden col-span-2">
       <h3 class="text-lg font-semibold text-gray-800 mb-4 flex-shrink-0">{{ t.emissions_over_time }}</h3>
-      <div class="relative flex-grow min-h-[300px] md:min-h-[350px] overflow-auto">
-        <canvas id="emissionsOverTimeChart"></canvas>
+      <div class="relative flex-grow min-h-[300px] md:min-h-[350px] overflow-auto chart-wrapper">
+        <canvas id="emissionsOverTimeChart" style="max-width: 100% !important; max-height: 350px !important;"></canvas>
       </div>
     </div>
 
     <!-- Category Breakdown Card - ใช้ 1 column -->
     <div class="dashboard-card flex flex-col p-6 bg-white shadow-lg rounded-xl overflow-hidden col-span-1">
       <h3 class="text-lg font-semibold text-gray-800 mb-4 flex-shrink-0">{{ t.category_breakdown }}</h3>
-      <div class="relative w-full max-w-[220px] mx-auto my-4 flex-shrink-0">
-        <canvas id="categoryBreakdownChart"></canvas>
+      <div class="relative w-full max-w-[220px] mx-auto my-4 flex-shrink-0 chart-wrapper">
+        <canvas id="categoryBreakdownChart" style="max-width: 220px !important; max-height: 220px !important;"></canvas>
       </div>
       <div id="category-legend" class="flex-grow overflow-y-auto min-h-0 space-y-4 pr-2 max-h-[200px]"></div>
     </div>
 
   </div>
 
+  <style>
+    /* Force canvas reset styles */
+    .chart-wrapper canvas {
+      position: relative !important;
+      width: 100% !important;
+      height: auto !important;
+      display: block !important;
+    }
+    
+    /* Prevent canvas from stretching beyond container */
+    #emissionsOverTimeChart {
+      max-width: 100% !important;
+      max-height: 350px !important;
+    }
+    
+    #categoryBreakdownChart {
+      max-width: 220px !important;
+      max-height: 220px !important;
+    }
+    
+    /* Reset any absolute positioning that might cause issues */
+    .dashboard-card canvas {
+      position: relative !important;
+      left: auto !important;
+      top: auto !important;
+      transform: none !important;
+    }
+  </style>
+
   <script>
+    // ===== EXTREME CHART CLEANUP SYSTEM =====
+    
+    // Force destroy ALL chart instances aggressively
+    function destroyAllChartsAggressively() {
+      console.log('🔥 AGGRESSIVE CHART CLEANUP STARTING...');
+      
+      // Method 1: Destroy specific global charts
+      ['emissionsOverTimeChart', 'categoryBreakdownChart'].forEach(chartName => {
+        if (window[chartName]) {
+          try {
+            console.log(`Destroying ${chartName}...`);
+            window[chartName].destroy();
+            delete window[chartName];
+          } catch (e) {
+            console.warn(`Error destroying ${chartName}:`, e);
+          }
+        }
+      });
+      
+      // Method 2: Destroy ALL Chart.js instances globally
+      if (typeof Chart !== 'undefined') {
+        if (Chart.instances) {
+          Object.keys(Chart.instances).forEach(key => {
+            try {
+              Chart.instances[key].destroy();
+              delete Chart.instances[key];
+            } catch (e) {
+              console.warn('Error destroying chart instance:', e);
+            }
+          });
+        }
+        
+        // Clear Chart registry
+        if (Chart.registry && Chart.registry.plugins) {
+          try {
+            Chart.registry.plugins.clear();
+          } catch (e) {
+            console.warn('Error clearing Chart registry:', e);
+          }
+        }
+      }
+      
+      // Method 3: NUCLEAR CANVAS RESET
+      document.querySelectorAll('#charts-container canvas').forEach((canvas, index) => {
+        console.log(`Resetting canvas ${index}...`);
+        
+        // Get parent container
+        const parent = canvas.parentNode;
+        const canvasId = canvas.id;
+        
+        // Remove old canvas completely
+        canvas.remove();
+        
+        // Create brand new canvas element
+        const newCanvas = document.createElement('canvas');
+        newCanvas.id = canvasId;
+        
+        // Apply styles based on canvas type
+        if (canvasId === 'emissionsOverTimeChart') {
+          newCanvas.style.cssText = 'max-width: 100% !important; max-height: 350px !important; position: relative !important;';
+        } else if (canvasId === 'categoryBreakdownChart') {
+          newCanvas.style.cssText = 'max-width: 220px !important; max-height: 220px !important; position: relative !important;';
+        }
+        
+        // Add to parent
+        parent.appendChild(newCanvas);
+      });
+      
+      // Method 4: Force CSS reset
+      const style = document.createElement('style');
+      style.textContent = `
+        #charts-container canvas {
+          position: relative !important;
+          width: auto !important;
+          height: auto !important;
+          max-width: 100% !important;
+          display: block !important;
+          left: 0 !important;
+          top: 0 !important;
+          transform: none !important;
+        }
+      `;
+      document.head.appendChild(style);
+      
+      console.log('🔥 AGGRESSIVE CHART CLEANUP COMPLETED');
+    }
+
+    // HTMX Event Listeners
+    document.addEventListener('htmx:beforeRequest', function(evt) {
+      if (evt.detail.target && (
+          evt.detail.target.id === 'charts-container' || 
+          evt.detail.target.closest('#charts-container')
+        )) {
+        destroyAllChartsAggressively();
+      }
+    });
+
+    document.addEventListener('htmx:beforeSwap', function(evt) {
+      if (evt.detail.target && evt.detail.target.id === 'charts-container') {
+        destroyAllChartsAggressively();
+      }
+    });
+
+    // Page unload cleanup
+    window.addEventListener('beforeunload', function() {
+      destroyAllChartsAggressively();
+    });
+
+    // ===== CHART INITIALIZATION =====
+    
     (() => {
-      let emissionsOverTimeChart;
-      let categoryBreakdownChart;
+      // Initial aggressive cleanup
+      destroyAllChartsAggressively();
+
       const doughnutCenterText = {
         id: 'doughnutCenterText',
         afterDraw: (chart) => {
@@ -46,8 +186,16 @@
             ctx.restore();
         }
       };
-      if (!Chart.registry.plugins.get('doughnutCenterText')) {
-        Chart.register(doughnutCenterText);
+      
+      // Register plugin only once
+      if (typeof Chart !== 'undefined') {
+        try {
+          if (!Chart.registry.plugins.get('doughnutCenterText')) {
+            Chart.register(doughnutCenterText);
+          }
+        } catch (e) {
+          console.warn('Plugin registration error:', e);
+        }
       }
 
       function renderCustomLegend(labels, values, colors) {
@@ -67,7 +215,7 @@
                   <span class="w-3 h-3 rounded-full mr-3 flex-shrink-0" style="background-color:${color};"></span>
                   <span class="text-gray-600">${label}</span>
                 </div>
-                <span class="font-medium text-gray-800">${value.toFixed(1)} kg</span>
+                <span class="font-medium text-gray-800">${value.toFixed(1)} (tonCO₂e)</span>
               </div>
               <div class="w-full bg-gray-200 rounded-full h-1.5">
                 <div class="h-1.5 rounded-full" style="width:${pct}%;background-color:${color};"></div>
@@ -78,103 +226,154 @@
       }
 
       function renderEmissionsOverTimeChart(labels, curVals, prevVals, curYear, prevYear){
-        const ctx = document.getElementById('emissionsOverTimeChart')?.getContext('2d');
-        if(!ctx) return;
-        if(emissionsOverTimeChart) emissionsOverTimeChart.destroy();
-        emissionsOverTimeChart = new Chart(ctx,{
-          type:'bar',
-          data:{
-            labels,
-            datasets:[
-              {
-                label:`Previous Year (${prevYear})`,
-                data:prevVals,
-                backgroundColor:'rgba(59,130,246,0.3)',
-                hoverBackgroundColor:'rgba(20,184,166,0.3)',
-                borderRadius:6,
-                borderSkipped:false,
-                barPercentage:0.6,
-                categoryPercentage:0.7
-              },
-              {
-                label:`Selected Year (${curYear})`,
-                data:curVals,
-                backgroundColor:'#3b82f6',
-                hoverBackgroundColor:'#14b8a6',
-                borderRadius:6,
-                borderSkipped:false,
-                barPercentage:0.6,
-                categoryPercentage:0.7
-              }
-            ]
-          },
-          options:{
-            responsive:true,
-            maintainAspectRatio:false,
-            plugins:{
-              legend:{display:true},
-              tooltip:{
-                callbacks:{
-                  title:(c)=>{
-                    const m = labels[c[0].dataIndex];
-                    const y = c[0].dataset.label.includes('Selected')?curYear:prevYear;
-                    return `${m} (${y})`;
-                  },
-                  label:(c)=>` ${c.raw.toFixed(1)} tonCO2`
-                },
-                displayColors:false,
-                padding:10,
-                backgroundColor:'#1f2937'
-              }
-            },
-            scales:{
-              x:{grid:{display:false},ticks:{color:'#6b7280'}},
-              y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.05)',drawBorder:false},ticks:{color:'#6b7280'}}
-            }
+        console.log('📊 Creating Emissions Over Time Chart...');
+        
+        // Wait for canvas to be ready
+        setTimeout(() => {
+          const canvas = document.getElementById('emissionsOverTimeChart');
+          if (!canvas) {
+            console.error('Canvas not found!');
+            return;
           }
-        });
+          
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            console.error('Context not available!');
+            return;
+          }
+          
+          try {
+            window.emissionsOverTimeChart = new Chart(ctx, {
+              type: 'bar',
+              data: {
+                labels,
+                datasets: [
+                  {
+                    label: `Previous Year (${prevYear})`,
+                    data: prevVals,
+                    backgroundColor: 'rgba(59,130,246,0.3)',
+                    hoverBackgroundColor: 'rgba(20,184,166,0.3)',
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.7
+                  },
+                  {
+                    label: `Selected Year (${curYear})`,
+                    data: curVals,
+                    backgroundColor: '#3b82f6',
+                    hoverBackgroundColor: '#14b8a6',
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.7
+                  }
+                ]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false, // Disable animation to prevent sizing issues
+                plugins: {
+                  legend: { display: true },
+                  tooltip: {
+                    callbacks: {
+                      title: (c) => {
+                        const m = labels[c[0].dataIndex];
+                        const y = c[0].dataset.label.includes('Selected') ? curYear : prevYear;
+                        return `${m} (${y})`;
+                      },
+                      label: (c) => ` ${c.raw.toFixed(1)} tonCO2`
+                    },
+                    displayColors: false,
+                    padding: 10,
+                    backgroundColor: '#1f2937'
+                  }
+                },
+                scales: {
+                  x: { grid: { display: false }, ticks: { color: '#6b7280' } },
+                  y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false }, ticks: { color: '#6b7280' } }
+                }
+              }
+            });
+            console.log('✅ Emissions chart created successfully');
+          } catch (e) {
+            console.error('❌ Error creating emissions chart:', e);
+          }
+        }, 200);
       }
 
       function renderCategoryBreakdownChart(labels, values, colors){
-        const ctx = document.getElementById('categoryBreakdownChart')?.getContext('2d');
-        if(!ctx) return;
-        if(categoryBreakdownChart) categoryBreakdownChart.destroy();
-        const total = values.reduce((a,v)=>a+v,0);
-        categoryBreakdownChart = new Chart(ctx,{
-          type:'doughnut',
-          data:{labels,datasets:[{data:values,backgroundColor:colors,borderColor:'#ffffff',borderWidth:4,cutout:'75%',offset:new Array(values.length).fill(0),hoverOffset:12}]},
-          options:{
-            responsive:true,
-            maintainAspectRatio:true,
-            animation:{duration:800,easing:'easeOutCubic'},
-            plugins:{
-              legend:{display:false},
-              tooltip:{
-                callbacks:{
-                  label:(c)=>{
-                    const val=c.raw;
-                    const pct= total>0 ? ((val/total)*100).toFixed(1):0;
-                    return ` ${c.label}: ${pct}%`;
-                  }
-                }
-              },
-              doughnutCenterText:{display:true,text:Math.round(total),unit:'tonCO2'}
-            },
-            onClick:(evt,els,chart)=>{
-              if(!els.length) return;
-              const {datasetIndex,index}=els[0];
-              const ds=chart.data.datasets[datasetIndex];
-              const cur=ds.offset[index];
-              ds.offset.fill(0);
-              if(cur===0) ds.offset[index]=20;
-              chart.update();
-            }
+        console.log('🍩 Creating Category Breakdown Chart...');
+        
+        // Wait for canvas to be ready
+        setTimeout(() => {
+          const canvas = document.getElementById('categoryBreakdownChart');
+          if (!canvas) {
+            console.error('Canvas not found!');
+            return;
           }
-        });
-        renderCustomLegend(labels, values, colors);
+          
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            console.error('Context not available!');
+            return;
+          }
+          
+          try {
+            const total = values.reduce((a,v)=>a+v,0);
+            window.categoryBreakdownChart = new Chart(ctx, {
+              type: 'doughnut',
+              data: {
+                labels,
+                datasets: [{
+                  data: values,
+                  backgroundColor: colors,
+                  borderColor: '#ffffff',
+                  borderWidth: 4,
+                  cutout: '75%',
+                  offset: new Array(values.length).fill(0),
+                  hoverOffset: 12
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                animation: false, // Disable animation to prevent sizing issues
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    callbacks: {
+                      label: (c) => {
+                        const val = c.raw;
+                        const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                        return ` ${c.label}: ${pct}%`;
+                      }
+                    }
+                  },
+                  doughnutCenterText: { display: true, text: Math.round(total), unit: 'tonCO2' }
+                },
+                onClick: (evt, els, chart) => {
+                  if (!els.length) return;
+                  const { datasetIndex, index } = els[0];
+                  const ds = chart.data.datasets[datasetIndex];
+                  const cur = ds.offset[index];
+                  ds.offset.fill(0);
+                  if (cur === 0) ds.offset[index] = 20;
+                  chart.update();
+                }
+              }
+            });
+            renderCustomLegend(labels, values, colors);
+            console.log('✅ Category chart created successfully');
+          } catch (e) {
+            console.error('❌ Error creating category chart:', e);
+          }
+        }, 300);
       }
 
       function init(){
+        console.log('🚀 Initializing charts...');
         const selectedYear = {{ selected_year | tojson }};
         const rawDailyData = {{ data.daily_data | tojson }};
         const previousYearData = {{ previous_year_data.daily_data | tojson }};
@@ -185,10 +384,13 @@
         const prevVals = months.map(m=>previousYearData[m]||0);
         const labels = months.map(m=>m.substring(0,3));
         const colors = ['#4f46e5','#10b981','#f97316','#3b82f6','#ec4899','#8b5cf6'];
+        
         renderEmissionsOverTimeChart(labels, curVals, prevVals, selectedYear, selectedYear-1);
         renderCategoryBreakdownChart(categoryLabels, categoryValues, colors);
       }
-      init();
+      
+      // Wait longer for DOM to be completely ready
+      setTimeout(init, 500);
     })();
   </script>
 </div>
