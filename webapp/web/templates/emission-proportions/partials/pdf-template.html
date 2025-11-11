@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ report_title }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+            @bottom-center {
+                content: "หน้า " counter(page) " จาก " counter(pages);
+                font-size: 10px;
+                color: #666;
+            }
+        }
+        
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #2563eb;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            color: #1e40af;
+            margin: 0 0 10px 0;
+            font-weight: bold;
+        }
+        
+        .header .meta-info {
+            font-size: 14px;
+            color: #666;
+            margin: 5px 0;
+        }
+        
+        .summary-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .summary-item {
+            text-align: center;
+        }
+        
+        .summary-item .value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e40af;
+            display: block;
+        }
+        
+        .summary-item .label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .scope-section {
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+        }
+        
+        .scope-header {
+            background-color: #2563eb;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .scope-1 .scope-header { background-color: #7c3aed; }
+        .scope-2 .scope-header { background-color: #059669; }
+        .scope-3 .scope-header { background-color: #2563eb; }
+        
+        .sub-scope {
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            margin-bottom: 0;
+        }
+        
+        .sub-scope-header {
+            background-color: #f3f4f6;
+            padding: 12px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .materials-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+        
+        .materials-table th {
+            background-color: #f9fafb;
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: bold;
+            color: #374151;
+        }
+        
+        .materials-table td {
+            padding: 6px 12px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .materials-table .numeric {
+            text-align: right;
+            font-weight: 500;
+        }
+        
+        .materials-table .total-row {
+            background-color: #f3f4f6;
+            font-weight: bold;
+        }
+        
+        .grand-total {
+            background-color: #374151;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 30px;
+        }
+        
+        .notes-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .notes-section h3 {
+            margin: 0 0 10px 0;
+            color: #92400e;
+            font-size: 14px;
+        }
+        
+        .notes-section p {
+            margin: 0;
+            color: #78350f;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        
+        .page-break {
+            page-break-before: always;
+        }
+        
+        /* Print-specific styles */
+        @media print {
+            body { print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>{{ report_title }}</h1>
+        <div class="meta-info">
+            <strong>มหาวิทยาลัยสงขลานครินทร์</strong><br>
+            Campus: {{ page_meta.campus }} | Department: {{ page_meta.department }} | ปี: {{ page_meta.selected_year }}<br>
+            สร้างรายงานเมื่อ: {{ generated_date }}
+        </div>
+    </div>
+    
+    <!-- Summary -->
+    <div class="summary-box">
+        <h2 style="margin: 0 0 20px 0; color: #1e40af; text-align: center;">สรุปข้อมูลภาพรวม</h2>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <span class="value">{{ page_meta.total_materials }}</span>
+                <div class="label">รายการทั้งหมด</div>
+            </div>
+            <div class="summary-item">
+                <span class="value">{{ page_meta.total_scopes }}</span>
+                <div class="label">จำนวน Scope</div>
+            </div>
+            <div class="summary-item">
+                <span class="value">{{ '{:,.2f}'.format(grand_total) }}</span>
+                <div class="label">tonCO₂e รวม</div>
+            </div>
+        </div>
+        
+        <div style="border-top: 1px solid #e5e7eb; padding-top: 20px;">
+            <h3 style="margin: 0 0 15px 0; color: #374151; font-size: 14px;">การแบ่งตาม Scope:</h3>
+            {% for coverage in page_meta.scope_coverage %}
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                <span>Scope {{ coverage.scope }}:</span>
+                <span><strong>{{ '{:,.2f}'.format(coverage.total) }} tonCO₂e</strong> ({{ coverage.percent|round(2) }}%)</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Detailed Data -->
+    {% if pdf_format == 'detailed' %}
+        {% for scope in scope_data %}
+        <div class="scope-section scope-{{ scope.scope }}">
+            <div class="scope-header">
+                <span>
+                    Scope {{ scope.scope }} - 
+                    {% if scope.scope == 1 %}การปล่อยมลพิษทางตรง
+                    {% elif scope.scope == 2 %}การปล่อยมลพิษทางอ้อม  
+                    {% else %}การปล่อยมลพิษ (อื่นๆ){% endif %}
+                </span>
+                <span>{{ '{:,.2f}'.format(scope.scope_total) }} tonCO₂e ({{ scope.scope_percentage|round(2) }}%)</span>
+            </div>
+            
+            {% for sub_scope in scope.sub_scopes %}
+            <div class="sub-scope">
+                <div class="sub-scope-header">
+                    <span>{{ scope.scope }}.{{ sub_scope.sub_scope }} - {{ sub_scope.ghg_name }}</span>
+                    <span>{{ '{:,.2f}'.format(sub_scope.sub_scope_total) }} tonCO₂e</span>
+                </div>
+                
+                <table class="materials-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;">รายการ</th>
+                            <th style="width: 15%; text-align: right;">TOTAL (tonCO₂e)</th>
+                            <th style="width: 15%; text-align: right;">% (SCOPE 1)</th>
+                            <th style="width: 15%; text-align: right;">% (SCOPE 1+2)</th>
+                            <th style="width: 15%; text-align: right;">% (ALL)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mat in sub_scope.materials %}
+                        <tr>
+                            <td>{{ mat.name }} ({{ mat.year }})</td>
+                            <td class="numeric">{{ '{:,.2f}'.format(mat.result2) }}</td>
+                            <td class="numeric">{{ mat.percent_scope1|round(2) }}%</td>
+                            <td class="numeric">{{ mat.percent_scope1_2|round(2) }}%</td>
+                            <td class="numeric">{{ mat.percent_scope1_2_3|round(2) }}%</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="total-row">
+                            <td><strong>รวมทั้งหมด</strong></td>
+                            <td class="numeric"><strong>{{ '{:,.2f}'.format(sub_scope.sub_scope_total) }}</strong></td>
+                            <td class="numeric"><strong>{{ sub_scope.sub_scope_percent_scope1|round(2) }}%</strong></td>
+                            <td class="numeric"><strong>{{ sub_scope.sub_scope_percent_scope1_2|round(2) }}%</strong></td>
+                            <td class="numeric"><strong>{{ sub_scope.sub_scope_percent_scope1_2_3|round(2) }}%</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    {% endif %}
+    
+    <!-- Grand Total -->
+    <div class="grand-total">
+        รวมทั้งหมด ({{ selected_year }}): {{ '{:,.2f}'.format(grand_total) }} tonCO₂e
+    </div>
+    
+    <!-- Notes -->
+    {% if notes %}
+    <div class="notes-section">
+        <h3>หมายเหตุ:</h3>
+        <p>{{ notes }}</p>
+    </div>
+    {% endif %}
+</body>
+</html>

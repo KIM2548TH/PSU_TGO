@@ -14,6 +14,8 @@ flask-bcrypt = "^1.0.1"
 flask-wtf = "^1.2.2"
 dotenv = "^0.9.9"
 flask-htmx = "^0.4.0"
+weasyprint = "^66.0"
+reportlab = "^4.4.4"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.11.0"
