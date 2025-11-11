@@ -348,7 +348,7 @@ def emission_proportions_data():
 
 @module.route("/download-pdf", methods=["GET"])
 @login_required
-@permissions_required_all(["เข้าถึงหน้าสัดส่วนการปล่อย"])
+@permissions_required_all(["ดาวน์โหลดรายงานสัดส่วนการปล่อย"])
 def download_pdf_modal():
     """
     Show PDF download modal
@@ -360,7 +360,7 @@ def download_pdf_modal():
 
 @module.route("/download-pdf", methods=["POST"])
 @login_required
-@permissions_required_all(["เข้าถึงหน้าสัดส่วนการปล่อย"])
+@permissions_required_all(["ดาวน์โหลดรายงานสัดส่วนการปล่อย"])
 def download_pdf():
     """
     Generate and download PDF report of emission proportions
@@ -705,156 +705,155 @@ def download_pdf():
         story.append(meta_table)
         story.append(Spacer(1, 20))
         
-        # Detailed Data - เหมือนหน้าเว็บ (ถ้าเลือก detailed)
-        if pdf_format == 'detailed':
-            for scope in scope_data:
-                # กำหนดสีตาม Scope เหมือนหน้าเว็บ
-                scope_colors = {
-                    1: colors.Color(124/255, 58/255, 237/255),    # purple
-                    2: colors.Color(5/255, 150/255, 105/255),     # green  
-                    3: colors.Color(37/255, 99/255, 235/255)      # blue
-                }
-                scope_color = scope_colors.get(scope['scope'], colors.blue)
+        # Detailed Data - เหมือนหน้าเว็บ (แสดงรายละเอียดทั้งหมดเสมอ)
+        for scope in scope_data:
+            # กำหนดสีตาม Scope เหมือนหน้าเว็บ
+            scope_colors = {
+                1: colors.Color(124/255, 58/255, 237/255),    # purple
+                2: colors.Color(5/255, 150/255, 105/255),     # green  
+                3: colors.Color(37/255, 99/255, 235/255)      # blue
+            }
+            scope_color = scope_colors.get(scope['scope'], colors.blue)
+            
+            # Scope Header (เหมือนหน้าเว็บ)
+            scope_title = f"Scope {scope['scope']} - "
+            if scope['scope'] == 1:
+                scope_title += "การปล่อยมลพิษทางตรง"
+            elif scope['scope'] == 2:
+                scope_title += "การปล่อยมลพิษทางอ้อม"
+            else:
+                scope_title += "การปล่อยมลพิษ (อื่นๆ)"
+            
+            # สร้าง style สำหรับ scope title
+            scope_header_style = ParagraphStyle(
+                f'ScopeHeader{scope["scope"]}',
+                parent=scope_title_style,
+                textColor=scope_color,
+                spaceAfter=15,
+                fontName=thai_font_bold
+            )
+            
+            # สร้าง Scope Header ที่อ่านง่าย
+            scope_header_data = [[
+                scope_title,
+                f"{scope['material_count']} รายการ",  
+                f"{scope['scope_total']:,.2f} tonCO₂e",
+                f"{scope['scope_percentage']:.2f}% ของทั้งหมด"
+            ]]
+            
+            scope_header_table = Table(scope_header_data, colWidths=[3.2*inch, 1.0*inch, 1.3*inch, 2.0*inch])
+            scope_header_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), scope_color),
+                ('TEXTCOLOR', (0, 0), (-1, -1), colors.white),
+                ('FONTNAME', (0, 0), (-1, -1), thai_font_bold),
+                ('FONTSIZE', (0, 0), (-1, -1), 9),  # ลดขนาด font
+                ('ALIGN', (0, 0), (0, -1), 'LEFT'),      # Left align title
+                ('ALIGN', (1, 0), (-1, -1), 'CENTER'),   # Center align stats
+                ('TOPPADDING', (0, 0), (-1, -1), 12),    # ลด padding
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+                ('LEFTPADDING', (0, 0), (-1, -1), 12),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                # ลดความหนาของขอบ
+                ('BOX', (0, 0), (-1, -1), 0.8, colors.Color(255/255, 255/255, 255/255, 0.3)),
+            ]))
+            
+            # สร้าง list สำหรับจัดกลุ่ม Scope Header กับ Sub-scopes ทั้งหมด
+            scope_elements = [
+                scope_header_table,
+                Spacer(1, 3)  # ลดช่องว่างจาก 15 เป็น 3
+            ]
+            
+            for sub_scope in scope['sub_scopes']:
+                # สร้างกลุ่มของ sub-scope และตารางเพื่อป้องกันการแยกหน้า
+                sub_scope_elements = []
                 
-                # Scope Header (เหมือนหน้าเว็บ)
-                scope_title = f"Scope {scope['scope']} - "
-                if scope['scope'] == 1:
-                    scope_title += "การปล่อยมลพิษทางตรง"
-                elif scope['scope'] == 2:
-                    scope_title += "การปล่อยมลพิษทางอ้อม"
-                else:
-                    scope_title += "การปล่อยมลพิษ (อื่นๆ)"
+                # สร้าง Sub-scope Header แยก (เพื่อป้องกันการทับข้อความ)
+                sub_scope_title = f"{scope['scope']}.{sub_scope['sub_scope']} - {sub_scope['ghg_name']}"
                 
-                # สร้าง style สำหรับ scope title
-                scope_header_style = ParagraphStyle(
-                    f'ScopeHeader{scope["scope"]}',
-                    parent=scope_title_style,
-                    textColor=scope_color,
-                    spaceAfter=15,
-                    fontName=thai_font_bold
-                )
+                # ตัดชื่อ sub-scope ถ้ายาวเกินไป
+                if len(sub_scope_title) > 80:
+                    sub_scope_title = sub_scope_title[:77] + "..."
                 
-                # สร้าง Scope Header ที่อ่านง่าย
-                scope_header_data = [[
-                    scope_title,
-                    f"{scope['material_count']} รายการ",  
-                    f"{scope['scope_total']:,.2f} tonCO₂e",
-                    f"{scope['scope_percentage']:.2f}% ของทั้งหมด"
+                sub_scope_header_data = [[
+                    Paragraph(sub_scope_title, ParagraphStyle(
+                        'SubScopeTitle',
+                        parent=normal_style,
+                        fontName=thai_font_bold,
+                        fontSize=10,
+                        textColor=scope_color,
+                        leading=12
+                    )),
+                    f"{len(sub_scope['materials'])} รายการ",
+                    f"{sub_scope['sub_scope_total']:,.2f} tonCO₂e",
+                    f"{sub_scope['sub_scope_percent_scope1_2_3']:.2f}%"
                 ]]
                 
-                scope_header_table = Table(scope_header_data, colWidths=[3.2*inch, 1.0*inch, 1.3*inch, 2.0*inch])
-                scope_header_table.setStyle(TableStyle([
-                    ('BACKGROUND', (0, 0), (-1, -1), scope_color),
-                    ('TEXTCOLOR', (0, 0), (-1, -1), colors.white),
-                    ('FONTNAME', (0, 0), (-1, -1), thai_font_bold),
-                    ('FONTSIZE', (0, 0), (-1, -1), 9),  # ลดขนาด font
-                    ('ALIGN', (0, 0), (0, -1), 'LEFT'),      # Left align title
-                    ('ALIGN', (1, 0), (-1, -1), 'CENTER'),   # Center align stats
-                    ('TOPPADDING', (0, 0), (-1, -1), 12),    # ลด padding
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
-                    ('LEFTPADDING', (0, 0), (-1, -1), 12),
-                    ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+                sub_scope_header_table = Table(sub_scope_header_data, colWidths=[4.0*inch, 1.0*inch, 1.3*inch, 1.2*inch])
+                sub_scope_header_table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, -1), colors.Color(248/255, 250/255, 252/255)),
+                    ('TEXTCOLOR', (0, 0), (-1, -1), scope_color),
+                    ('FONTNAME', (1, 0), (-1, -1), thai_font_bold),  # ยกเว้น column แรกที่ใช้ Paragraph
+                    ('FONTSIZE', (1, 0), (-1, -1), 9),
+                    ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                    ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
                     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                    # ลดความหนาของขอบ
-                    ('BOX', (0, 0), (-1, -1), 0.8, colors.Color(255/255, 255/255, 255/255, 0.3)),
+                    ('TOPPADDING', (0, 0), (-1, -1), 8),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 6),  # เพิ่ม bottom padding จาก 2 เป็น 6 เพื่อให้ตัวอักษรไม่ชิดขอบล่าง
+                    ('LEFTPADDING', (0, 0), (-1, -1), 8),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                    # ไม่ใส่ BOX เพื่อให้ดูเชื่อมกับตารางข้างล่าง
+                    ('LINEBEFORE', (0, 0), (0, -1), 0.8, colors.Color(156/255, 163/255, 175/255)),  # เส้นซ้าย
+                    ('LINEAFTER', (-1, 0), (-1, -1), 0.8, colors.Color(156/255, 163/255, 175/255)),  # เส้นขวา
+                    ('LINEABOVE', (0, 0), (-1, 0), 0.8, colors.Color(156/255, 163/255, 175/255)),  # เส้นบน
+                    ('LINEBELOW', (0, 0), (-1, -1), 0.8, colors.Color(156/255, 163/255, 175/255)),  # เส้นล่าง
                 ]))
                 
-                # สร้าง list สำหรับจัดกลุ่ม Scope Header กับ Sub-scopes ทั้งหมด
-                scope_elements = [
-                    scope_header_table,
-                    Spacer(1, 3)  # ลดช่องว่างจาก 15 เป็น 3
-                ]
+                # สร้างตารางข้อมูล Materials แยก
+                materials_data = []
                 
-                for sub_scope in scope['sub_scopes']:
-                    # สร้างกลุ่มของ sub-scope และตารางเพื่อป้องกันการแยกหน้า
-                    sub_scope_elements = []
-                    
-                    # สร้าง Sub-scope Header แยก (เพื่อป้องกันการทับข้อความ)
-                    sub_scope_title = f"{scope['scope']}.{sub_scope['sub_scope']} - {sub_scope['ghg_name']}"
-                    
-                    # ตัดชื่อ sub-scope ถ้ายาวเกินไป
-                    if len(sub_scope_title) > 80:
-                        sub_scope_title = sub_scope_title[:77] + "..."
-                    
-                    sub_scope_header_data = [[
-                        Paragraph(sub_scope_title, ParagraphStyle(
-                            'SubScopeTitle',
-                            parent=normal_style,
-                            fontName=thai_font_bold,
-                            fontSize=10,
-                            textColor=scope_color,
-                            leading=12
-                        )),
-                        f"{len(sub_scope['materials'])} รายการ",
-                        f"{sub_scope['sub_scope_total']:,.2f} tonCO₂e",
-                        f"{sub_scope['sub_scope_percent_scope1_2_3']:.2f}%"
-                    ]]
-                    
-                    sub_scope_header_table = Table(sub_scope_header_data, colWidths=[4.0*inch, 1.0*inch, 1.3*inch, 1.2*inch])
-                    sub_scope_header_table.setStyle(TableStyle([
-                        ('BACKGROUND', (0, 0), (-1, -1), colors.Color(248/255, 250/255, 252/255)),
-                        ('TEXTCOLOR', (0, 0), (-1, -1), scope_color),
-                        ('FONTNAME', (1, 0), (-1, -1), thai_font_bold),  # ยกเว้น column แรกที่ใช้ Paragraph
-                        ('FONTSIZE', (1, 0), (-1, -1), 9),
-                        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
-                        ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
-                        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                        ('TOPPADDING', (0, 0), (-1, -1), 8),
-                        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),  # เพิ่ม bottom padding จาก 2 เป็น 6 เพื่อให้ตัวอักษรไม่ชิดขอบล่าง
-                        ('LEFTPADDING', (0, 0), (-1, -1), 8),
-                        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-                        # ไม่ใส่ BOX เพื่อให้ดูเชื่อมกับตารางข้างล่าง
-                        ('LINEBEFORE', (0, 0), (0, -1), 0.8, colors.Color(156/255, 163/255, 175/255)),  # เส้นซ้าย
-                        ('LINEAFTER', (-1, 0), (-1, -1), 0.8, colors.Color(156/255, 163/255, 175/255)),  # เส้นขวา
-                        ('LINEABOVE', (0, 0), (-1, 0), 0.8, colors.Color(156/255, 163/255, 175/255)),  # เส้นบน
-                        ('LINEBELOW', (0, 0), (-1, -1), 0.8, colors.Color(156/255, 163/255, 175/255)),  # เส้นล่าง
-                    ]))
-                    
-                    # สร้างตารางข้อมูล Materials แยก
-                    materials_data = []
-                    
-                    # Table Headers - ลด columns ให้เท่ากับ sub-scope header (4 columns)
-                    materials_data.append(['รายการ', 'TOTAL (tonCO₂e)', '% (SCOPE 1+2)', '% (ALL)'])
-                    
-                    # Materials Data
-                    for mat in sub_scope['materials']:
-                        material_name = f"{mat['name']} ({mat['year']})"
-                        # ตัดชื่อ material ถ้ายาวเกินไป
-                        if len(material_name) > 60:
-                            material_name = material_name[:57] + "..."
-                            
-                        materials_data.append([
-                            Paragraph(material_name, ParagraphStyle(
-                                'MaterialName',
-                                parent=normal_style,
-                                fontName=thai_font_name,
-                                fontSize=8,
-                                leading=10
-                            )),
-                            f"{mat['result2']:,.2f}",
-                            f"{mat['percent_scope1_2']:.2f}",
-                            f"{mat['percent_scope1_2_3']:.2f}"
-                        ])
-                    
-                    # Total row
+                # Table Headers - ลด columns ให้เท่ากับ sub-scope header (4 columns)
+                materials_data.append(['รายการ', 'TOTAL (tonCO₂e)', '% (SCOPE 1+2)', '% (ALL)'])
+                
+                # Materials Data
+                for mat in sub_scope['materials']:
+                    material_name = f"{mat['name']} ({mat['year']})"
+                    # ตัดชื่อ material ถ้ายาวเกินไป
+                    if len(material_name) > 60:
+                        material_name = material_name[:57] + "..."
+                        
                     materials_data.append([
-                        "รวมทั้งหมด",
-                        f"{sub_scope['sub_scope_total']:,.2f}",
-                        f"{sub_scope['sub_scope_percent_scope1_2']:.2f}",
-                        f"{sub_scope['sub_scope_percent_scope1_2_3']:.2f}"
+                        Paragraph(material_name, ParagraphStyle(
+                            'MaterialName',
+                            parent=normal_style,
+                            fontName=thai_font_name,
+                            fontSize=8,
+                            leading=10
+                        )),
+                        f"{mat['result2']:,.2f}",
+                        f"{mat['percent_scope1_2']:.2f}",
+                        f"{mat['percent_scope1_2_3']:.2f}"
                     ])
-                    
-                    # สร้างสีพื้นหลังแบบ light สำหรับแต่ละ scope
-                    scope_bg_colors = {
-                        1: colors.Color(249/255, 245/255, 255/255),    # purple-50
-                        2: colors.Color(240/255, 253/255, 244/255),    # green-50
-                        3: colors.Color(239/255, 246/255, 255/255)     # blue-50
-                    }
-                    scope_bg = scope_bg_colors.get(scope['scope'], colors.Color(249/255, 250/255, 251/255))
-                    
-                    # สร้างตารางข้อมูล Materials - ปรับความกว้างให้เท่ากับ sub-scope header
-                    materials_table = Table(materials_data, colWidths=[4.0*inch, 1.0*inch, 1.3*inch, 1.2*inch])
-                    materials_table.setStyle(TableStyle([
+                
+                # Total row
+                materials_data.append([
+                    "รวมทั้งหมด",
+                    f"{sub_scope['sub_scope_total']:,.2f}",
+                    f"{sub_scope['sub_scope_percent_scope1_2']:.2f}",
+                    f"{sub_scope['sub_scope_percent_scope1_2_3']:.2f}"
+                ])
+                
+                # สร้างสีพื้นหลังแบบ light สำหรับแต่ละ scope
+                scope_bg_colors = {
+                    1: colors.Color(249/255, 245/255, 255/255),    # purple-50
+                    2: colors.Color(240/255, 253/255, 244/255),    # green-50
+                    3: colors.Color(239/255, 246/255, 255/255)     # blue-50
+                }
+                scope_bg = scope_bg_colors.get(scope['scope'], colors.Color(249/255, 250/255, 251/255))
+                
+                # สร้างตารางข้อมูล Materials - ปรับความกว้างให้เท่ากับ sub-scope header
+                materials_table = Table(materials_data, colWidths=[4.0*inch, 1.0*inch, 1.3*inch, 1.2*inch])
+                materials_table.setStyle(TableStyle([
                         # Table Header Row
                         ('BACKGROUND', (0, 0), (-1, 0), colors.Color(243/255, 244/255, 246/255)),  # bg-gray-100
                         ('TEXTCOLOR', (0, 0), (-1, 0), colors.Color(55/255, 65/255, 81/255)),  # text-gray-700
@@ -899,29 +898,29 @@ def download_pdf():
                         ('LINEBELOW', (0, -1), (-1, -1), 0.8, colors.Color(156/255, 163/255, 175/255)),  # เส้นล่าง
                         ('LINEBELOW', (0, 0), (-1, 0), 1, colors.Color(203/255, 213/255, 225/255)),  # เส้นใต้ header อ่อนลง
                         
-                        # การจัดตำแหน่ง
-                        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                    ]))
-                    
-                    # เพิ่ม sub-scope header และตารางข้อมูลแบบ KeepTogether
-                    sub_scope_elements = [
-                        sub_scope_header_table,
-                        Spacer(1, 1),    # ระยะห่างระหว่าง sub-scope header กับตาราง materials (ปรับได้ตามต้องการ)
-                        materials_table,
-                        Spacer(1, 20)     # ระยะห่างหลังตาราง materials
-                    ]
-                    
-                    # เพิ่ม sub-scope elements เข้าไปใน scope_elements
-                    scope_elements.extend([
-                        sub_scope_header_table,
-                        Spacer(1, 1),    # ระยะห่างระหว่าง sub-scope header กับตาราง
-                        materials_table,
-                        Spacer(1, 10)    # ระยะห่างหลังตาราง materials
-                    ])
+                    # การจัดตำแหน่ง
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ]))
                 
-                # จัดกลุ่ม Scope Header กับ Sub-scopes ทั้งหมดไว้ด้วยกัน
-                story.append(KeepTogether(scope_elements))
-                story.append(Spacer(1, 8))   # ลดช่องว่างระหว่าง scope จาก 12 เป็น 8
+                # เพิ่ม sub-scope header และตารางข้อมูลแบบ KeepTogether
+                sub_scope_elements = [
+                    sub_scope_header_table,
+                    Spacer(1, 1),    # ระยะห่างระหว่าง sub-scope header กับตาราง materials (ปรับได้ตามต้องการ)
+                    materials_table,
+                    Spacer(1, 20)     # ระยะห่างหลังตาราง materials
+                ]
+                
+                # เพิ่ม sub-scope elements เข้าไปใน scope_elements
+                scope_elements.extend([
+                    sub_scope_header_table,
+                    Spacer(1, 1),    # ระยะห่างระหว่าง sub-scope header กับตาราง
+                    materials_table,
+                    Spacer(1, 10)    # ระยะห่างหลังตาราง materials
+                ])
+            
+            # จัดกลุ่ม Scope Header กับ Sub-scopes ทั้งหมดไว้ด้วยกัน
+            story.append(KeepTogether(scope_elements))
+            story.append(Spacer(1, 8))   # ลดช่องว่างระหว่าง scope จาก 12 เป็น 8
         
         # Grand Total (เหมือนหน้าเว็บ - bg-gray-400 text-white)
         story.append(Spacer(1, 8))  # ลดช่องว่างก่อน Grand Total จาก 20 เป็น 8
@@ -951,18 +950,93 @@ def download_pdf():
         ]))
         story.append(grand_total_table)
         
-        # Notes
+        # Notes Section - ออกแบบให้ดูเป็นทางการ แบบรวมเป็นก้อนเดียว
         if notes:
-            story.append(Spacer(1, 20))
-            notes_title_style = ParagraphStyle(
-                'NotesTitle',
-                parent=scope_title_style,
-                textColor=colors.Color(146/255, 64/255, 14/255),  # amber-800
-                fontSize=14,
-                fontName=thai_font_bold
+            story.append(Spacer(1, 25))  # เพิ่มระยะห่าง
+            
+            # สร้าง Notes Section แบบรวมทั้งหมดเป็นตารางเดียว
+            notes_content_style = ParagraphStyle(
+                'NotesContent',
+                parent=normal_style,
+                fontSize=10,
+                leading=14,  # ระยะห่างระหว่างบรรทัด
+                spaceAfter=6,
+                leftIndent=12,
+                rightIndent=12,
+                fontName=thai_font_name,
+                textColor=colors.Color(55/255, 65/255, 81/255),  # text-gray-700
+                alignment=4  # justify text
             )
-            story.append(Paragraph("หมายเหตุ:", notes_title_style))
-            story.append(Paragraph(notes, normal_style))
+            
+            # สร้าง content สำหรับ notes
+            note_paragraphs = notes.split('\n')
+            formatted_notes = []
+            
+            for paragraph in note_paragraphs:
+                if paragraph.strip():  # ข้าม empty lines
+                    # เพิ่มเครื่องหมาย bullet point สำหรับแต่ละย่อหน้า
+                    if len([p for p in note_paragraphs if p.strip()]) > 1:
+                        formatted_paragraph = f"• {paragraph.strip()}"
+                    else:
+                        formatted_paragraph = paragraph.strip()
+                    formatted_notes.append(formatted_paragraph)
+            
+            # รวม notes content เป็น string เดียว
+            notes_content = '<br/>'.join(formatted_notes)
+            
+            # สร้างตารางแบบรวม 3 ส่วนเป็นหนึ่งเดียว
+            combined_notes_data = [
+                # Header row
+                ["หมายเหตุและข้อสังเกต (Notes & Observations)"],
+                # Content row
+                [Paragraph(notes_content, notes_content_style)],
+                # Footer row
+                [f"หมายเหตุถูกบันทึกเมื่อ: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}"]
+            ]
+            
+            combined_notes_table = Table(combined_notes_data, colWidths=[7.5*inch])
+            combined_notes_table.setStyle(TableStyle([
+                # Header row styling
+                ('BACKGROUND', (0, 0), (0, 0), colors.Color(248/255, 249/255, 250/255)),  # bg-gray-50
+                ('TEXTCOLOR', (0, 0), (0, 0), colors.Color(17/255, 24/255, 39/255)),  # text-gray-900
+                ('FONTNAME', (0, 0), (0, 0), thai_font_bold),
+                ('FONTSIZE', (0, 0), (0, 0), 12),
+                ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+                ('VALIGN', (0, 0), (0, 0), 'MIDDLE'),
+                ('TOPPADDING', (0, 0), (0, 0), 12),
+                ('BOTTOMPADDING', (0, 0), (0, 0), 12),
+                ('LEFTPADDING', (0, 0), (0, 0), 15),
+                ('RIGHTPADDING', (0, 0), (0, 0), 15),
+                ('LINEBELOW', (0, 0), (0, 0), 2.0, colors.Color(59/255, 130/255, 246/255)),  # blue accent line
+                
+                # Content row styling
+                ('BACKGROUND', (0, 1), (0, 1), colors.white),
+                ('VALIGN', (0, 1), (0, 1), 'TOP'),
+                ('TOPPADDING', (0, 1), (0, 1), 15),
+                ('BOTTOMPADDING', (0, 1), (0, 1), 15),
+                ('LEFTPADDING', (0, 1), (0, 1), 18),
+                ('RIGHTPADDING', (0, 1), (0, 1), 18),
+                
+                # Footer row styling
+                ('BACKGROUND', (0, 2), (0, 2), colors.Color(249/255, 250/255, 251/255)),  # bg-gray-50
+                ('TEXTCOLOR', (0, 2), (0, 2), colors.Color(107/255, 114/255, 128/255)),  # text-gray-500
+                ('FONTNAME', (0, 2), (0, 2), thai_font_name),
+                ('FONTSIZE', (0, 2), (0, 2), 8),
+                ('ALIGN', (0, 2), (0, 2), 'RIGHT'),
+                ('VALIGN', (0, 2), (0, 2), 'MIDDLE'),
+                ('TOPPADDING', (0, 2), (0, 2), 8),
+                ('BOTTOMPADDING', (0, 2), (0, 2), 8),
+                ('LEFTPADDING', (0, 2), (0, 2), 15),
+                ('RIGHTPADDING', (0, 2), (0, 2), 15),
+                ('LINEABOVE', (0, 2), (0, 2), 0.5, colors.Color(209/255, 213/255, 219/255)),  # top border
+                
+                # รอบนอกของตารางทั้งหมด
+                ('BOX', (0, 0), (-1, -1), 1.0, colors.Color(209/255, 213/255, 219/255)),  # border-gray-300
+                
+                # ไม่มีเส้นแบ่งระหว่าง rows เพื่อให้ดูเป็นก้อนเดียว
+            ]))
+            
+            story.append(combined_notes_table)
         
         # สร้าง PDF
         doc.build(story)
@@ -974,9 +1048,9 @@ def download_pdf():
         # ถ้าเป็น HTMX request ให้ส่งลิ้งค์ดาวน์โหลดกลับไป
         if is_htmx:
             # สร้าง response สำหรับ HTMX ที่มี JavaScript trigger การดาวน์โหลด
-            # สร้าง JavaScript safe strings
-            safe_report_title = report_title.replace("'", "\\'").replace('"', '\\"')
-            safe_notes = notes.replace("'", "\\'").replace('"', '\\"')
+            # สร้าง JavaScript safe strings - แก้ไขให้ handle newlines และ special characters ให้ถูกต้อง
+            safe_report_title = report_title.replace("\\", "\\\\").replace("'", "\\'").replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
+            safe_notes = notes.replace("\\", "\\\\").replace("'", "\\'").replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
             download_url = url_for("proportions.download_pdf")
             
             response_html = f"""

@@ -55,6 +55,7 @@
         </div>
 
         <!-- Download PDF Button -->
+        {% if has_permission("ดาวน์โหลดรายงานสัดส่วนการปล่อย") %}
         <div>
           <div class="text-[11px] uppercase tracking-wide text-gray-500 mb-1">ดาวน์โหลด</div>
           <button class="btn btn-xs md:btn-sm btn-success text-white"
@@ -65,6 +66,7 @@
             PDF
           </button>
         </div>
+        {% endif %}
       </div>
 
     </div>
