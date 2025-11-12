@@ -1,0 +1,31 @@
+<div class="modal modal-open" id="success-modal">
+  <div class="modal-box">
+    <div class="text-center">
+      <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i data-feather="check" class="w-8 h-8 text-green-600"></i>
+      </div>
+      <h2 class="text-xl font-bold text-green-800 mb-2">สร้างผู้ใช้สำเร็จ!</h2>
+      <p class="text-gray-600 mb-4">ผู้ใช้ใหม่ถูกเพิ่มเข้าในระบบแล้ว</p>
+      <button class="btn btn-primary" 
+              hx-get="{{ url_for('department_management.load_users_table') }}" 
+              hx-target="#users-table-container" 
+              hx-swap="innerHTML"
+              hx-on="click: document.getElementById('success-modal').remove()">
+        ตกลง
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  feather.replace();
+  // Auto close after 3 seconds
+  setTimeout(() => {
+    const modal = document.getElementById('success-modal');
+    if (modal) {
+      modal.remove();
+      // Reload users table
+      htmx.ajax('GET', '{{ url_for("department_management.load_users_table") }}', '#users-table-container');
+    }
+  }, 3000);
+</script>

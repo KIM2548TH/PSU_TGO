@@ -4,9 +4,16 @@
 <form method="POST" action="{{ url_for('profile.load_edit_profile') }}">
 <div class="mb-2">
   <label class="block text-sm font-medium">
-      Full Name
+      Username
   </label>
-  <input type="text" name="username" class="input input-bordered w-full" value="{{ form.username.data }}">
+  <input type="text" name="username" class="input input-bordered w-full bg-gray-100 cursor-not-allowed" 
+         value="{{ form.username.data }}" readonly disabled>
+</div>
+<div class="mb-2">
+  <label class="block text-sm font-medium">
+      Display Name
+  </label>
+  <input type="text" name="name" class="input input-bordered w-full" value="{{ form.name.data or '' }}">
 </div>
 <div class="mb-2">
   <label class="block text-sm font-medium">

@@ -1,0 +1,121 @@
+<div class="bg-white rounded-lg border border-base-300 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto w-full">
+      <table class="table w-full table-striped">
+        <thead>
+          <tr class="bg-base-200 text-base-content uppercase text-xs">
+            <th class="px-4 py-3 font-medium">ชื่อผู้ใช้</th>
+            <th class="px-4 py-3 font-medium">สถานะ</th>
+            <th class="px-4 py-3 font-medium">Scope 1</th>
+            <th class="px-4 py-3 font-medium">Scope 2</th>
+            <th class="px-4 py-3 font-medium">Scope 3</th>
+            <th class="px-4 py-3 font-medium">วันที่สร้าง</th>
+            <th class="px-4 py-3 font-medium">จัดการ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr class="hover:bg-base-100 border-t border-base-200">
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold">
+                  <span class="text-lg font-bold">{{ (user.name[0] if user.name else user.username[0])|upper }}</span>
+                </div>
+                <div>
+                  <div class="font-medium">{{ user.name if user.name else user.username }}</div>
+                  <div class="text-sm text-gray-500">{{ user.email }}</div>
+                  {% if user.name and user.username %}
+                    <div class="text-xs text-gray-400">username: {{ user.username }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+            <td class="px-4 py-3">
+              <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium {% if user.status == 'active' %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ user.status }}
+              </span>
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex flex-wrap gap-1">
+                {% for scope in user.ghg_scope_1_names %}
+                  <span class="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded" 
+                        title="Scope 1.{{ scope.id }}">{{ scope.name }}</span>
+                {% else %}
+                  <span class="text-gray-400 text-xs">ไม่มี</span>
+                {% endfor %}
+              </div>
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex flex-wrap gap-1">
+                {% for scope in user.ghg_scope_2_names %}
+                  <span class="inline-flex px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded"
+                        title="Scope 2.{{ scope.id }}">{{ scope.name }}</span>
+                {% else %}
+                  <span class="text-gray-400 text-xs">ไม่มี</span>
+                {% endfor %}
+              </div>
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex flex-wrap gap-1">
+                {% for scope in user.ghg_scope_3_names %}
+                  <span class="inline-flex px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded"
+                        title="Scope 3.{{ scope.id }}">{{ scope.name }}</span>
+                {% else %}
+                  <span class="text-gray-400 text-xs">ไม่มี</span>
+                {% endfor %}
+              </div>
+            </td>
+            <td class="px-4 py-3">
+              {{ user.created_date.strftime('%d/%m/%Y') }}
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex justify-center items-center">
+                <button class="text-blue-500 hover:text-blue-700 transition-colors"
+                        hx-get="{{ url_for('department_management.load_edit_user_scopes', user_id=user.id) }}" 
+                        hx-target="#modal-content" 
+                        hx-swap="innerHTML" 
+                        onclick="document.getElementById('modal').classList.add('modal-open')">
+                  <i data-feather="edit" class="w-[18px] h-[18px]"></i>  
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="w-full flex justify-center items-center mt-4 gap-4 py-4">
+    <!-- ปุ่ม Previous -->
+    <button 
+        class="btn btn-circle bg-base-200 hover:bg-base-300 text-base-content shadow-md transition duration-200 {% if page <= 1 %}btn-disabled opacity-50{% endif %}" 
+        {% if page > 1 %}
+        hx-get="{{ url_for('department_management.load_users_table', page=page - 1) }}" 
+        hx-target="#users-table-container" 
+        hx-swap="innerHTML" 
+        hx-include="[name=search]"
+        {% endif %}>
+        <i data-feather="arrow-left" class="w-5 h-5"></i>
+    </button>
+
+    <!-- ตัวเลข Page -->
+    <span class="text-sm text-gray-600">
+        Page <span class="font-semibold text-primary">{{ page }}</span> of <span class="font-semibold">{{ total_pages }}</span>
+    </span>
+
+    <!-- ปุ่ม Next -->
+    <button 
+        class="btn btn-circle bg-base-200 hover:bg-base-300 text-base-content shadow-md transition duration-200 {% if page >= total_pages %}btn-disabled opacity-50{% endif %}" 
+        {% if page < total_pages %}
+        hx-get="{{ url_for('department_management.load_users_table', page=page + 1) }}" 
+        hx-target="#users-table-container" 
+        hx-swap="innerHTML" 
+        hx-include="[name=search]"
+        {% endif %}>
+        <i data-feather="arrow-right" class="w-5 h-5"></i>
+    </button>
+  </div>
+
+<script>
+  feather.replace();
+</script>

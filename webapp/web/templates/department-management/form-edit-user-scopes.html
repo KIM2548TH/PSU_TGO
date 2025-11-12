@@ -1,0 +1,94 @@
+<form hx-post="{{ url_for('department_management.load_edit_user_scopes', user_id=user.id, page=page) }}"
+      hx-target="#users-table-container"
+      hx-swap="innerHTML">
+    
+    <h2 class="text-lg font-bold mb-4">แก้ไข Scope ของผู้ใช้</h2>
+    
+    <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold">
+                <span class="text-lg font-bold">{{ (user.name[0] if user.name else user.username[0])|upper }}</span>
+            </div>
+            <div>
+                <div class="font-medium">{{ user.name if user.name else user.username }}</div>
+                <div class="text-sm text-gray-500">{{ user.email }}</div>
+            </div>
+        </div>
+        <p class="text-sm text-gray-600">แก้ไข scope ย่อยที่ผู้ใช้สามารถเข้าถึงได้</p>
+    </div>
+
+    <!-- Scope 1 -->
+    <div class="mb-6">
+        <label class="block text-sm font-bold text-gray-700 mb-3">
+            <i data-feather="layers" class="w-4 h-4 inline mr-2"></i>
+            Scope 1 - ซับสโคป
+        </label>
+        <div class="grid grid-cols-4 gap-3 p-4 border rounded-lg bg-blue-50">
+            {% for scope in available_scopes_1 %}
+            <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" 
+                       name="ghg_scope_1" 
+                       value="{{ scope }}" 
+                       class="checkbox checkbox-primary checkbox-sm"
+                       {% if scope in user.ghg_scope_1 %}checked{% endif %}>
+                <span class="text-sm">{{ scope }}</span>
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Scope 2 -->
+    <div class="mb-6">
+        <label class="block text-sm font-bold text-gray-700 mb-3">
+            <i data-feather="layers" class="w-4 h-4 inline mr-2"></i>
+            Scope 2 - ซับสโคป
+        </label>
+        <div class="grid grid-cols-4 gap-3 p-4 border rounded-lg bg-green-50">
+            {% for scope in available_scopes_2 %}
+            <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" 
+                       name="ghg_scope_2" 
+                       value="{{ scope }}" 
+                       class="checkbox checkbox-success checkbox-sm"
+                       {% if scope in user.ghg_scope_2 %}checked{% endif %}>
+                <span class="text-sm">{{ scope }}</span>
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Scope 3 -->
+    <div class="mb-6">
+        <label class="block text-sm font-bold text-gray-700 mb-3">
+            <i data-feather="layers" class="w-4 h-4 inline mr-2"></i>
+            Scope 3 - ซับสโคป
+        </label>
+        <div class="grid grid-cols-4 gap-3 p-4 border rounded-lg bg-purple-50">
+            {% for scope in available_scopes_3 %}
+            <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" 
+                       name="ghg_scope_3" 
+                       value="{{ scope }}" 
+                       class="checkbox checkbox-secondary checkbox-sm"
+                       {% if scope in user.ghg_scope_3 %}checked{% endif %}>
+                <span class="text-sm">{{ scope }}</span>
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="mt-6 flex justify-end space-x-2">
+        <button type="button" class="btn btn-outline"
+                hx-on="click: document.getElementById('modal').classList.remove('modal-open')">
+            ยกเลิก
+        </button>
+        <button type="submit" class="btn btn-primary" 
+                hx-on="click: document.getElementById('modal').classList.remove('modal-open')">
+            บันทึก
+        </button>
+    </div>
+</form>
+
+<script>
+    feather.replace();
+</script>

@@ -29,7 +29,8 @@ def load_edit_profile():
     form = EditprofileForm()
     if request.method == "POST":
         # กรอกข้อมูลจากฟอร์ม (ไม่รวม campus และ department)
-        form.username.data = request.form.get("username")
+        form.username.data = user.username  # ไม่ให้แก้ไข username
+        form.name.data = request.form.get("name")  # เพิ่มฟิลด์ name
         form.email.data = request.form.get("email")
         # เก็บ campus และ department เดิมไว้ (ไม่ให้แก้ไข)
         form.campus.data = user.campus
@@ -48,6 +49,7 @@ def load_edit_profile():
 
     # แสดงฟอร์มพร้อมข้อมูลผู้ใช้งาน
     form.username.data = user.username
+    form.name.data = user.name  # เพิ่มฟิลด์ name
     form.email.data = user.email
     form.campus.data = user.campus
     form.department.data = user.department

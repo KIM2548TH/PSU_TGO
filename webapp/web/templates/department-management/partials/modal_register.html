@@ -1,0 +1,35 @@
+<div class="modal modal-open" id="register-modal">
+  <div class="modal-box max-w-lg">
+    <form method="post" hx-post="{{ url_for('department_management.modal_register') }}" hx-target="#register-modal" hx-swap="outerHTML">
+      {% if error_msg %}
+      <div class="alert alert-error mb-4">{{ error_msg }}</div>
+      {% endif %}
+      <h2 class="text-xl font-bold mb-4">เพิ่มผู้ใช้ในหน่วยงาน</h2>
+      <p class="text-sm text-gray-600 mb-4">ผู้ใช้ใหม่จะถูกเพิ่มในหน่วยงานเดียวกันกับคุณ</p>
+      
+      {{ form.csrf_token }}
+      <div class="mb-2">
+        {{ form.username.label }} {{ form.username(class="input input-bordered w-full") }}
+      </div>
+      <div class="mb-2">
+        {{ form.name.label }} {{ form.name(class="input input-bordered w-full") }}
+      </div>
+      <div class="mb-2">
+        {{ form.password.label }} {{ form.password(class="input input-bordered w-full", type="password") }}
+      </div>
+      <div class="mb-2">
+        {{ form.confirm_password.label }} {{ form.confirm_password(class="input input-bordered w-full", type="password") }}
+      </div>
+      
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary">สร้างผู้ใช้</button>
+        <a href="#" class="btn" onclick="closeRegisterModal()">ยกเลิก</a>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+function closeRegisterModal() {
+  document.getElementById('register-modal').remove();
+}
+</script>

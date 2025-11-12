@@ -153,6 +153,7 @@ def load_edit_user_role():
     else:
         form.department.data = user_department
 
+    form.name.data = user.name if user.name else ""  # เพิ่มฟิลด์ name
     form.roles.data = ",".join(user.roles) if user.roles and len(user.roles) > 0 else ""
     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", get_campuses()[0].name, "campus_id")
     return render_template(

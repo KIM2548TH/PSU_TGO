@@ -1,4 +1,4 @@
-from ..models.user_model import User
+from ..models.user_model import User, get_all_sub_scopes
 from flask_login import login_user, logout_user, current_user
 from ..web.forms.user_form import RegisterForm, EditUserForm, EditprofileForm
 import datetime
@@ -29,6 +29,7 @@ class UserService:
             "user": {
                 "_id": str(user.id),
                 "username": user.username,
+                "name": user.name,  # เพิ่ม name
                 "role": user.roles[0]
             }
         }
@@ -44,14 +45,26 @@ class UserService:
         if form.password.data != form.confirm_password.data:
             return {"success": False, "error_msg": "รหัสผ่านไม่ตรงกัน"}
 
+        # Get sub scopes for each ghg_scope separately
+        from ..models.user_model import get_sub_scopes_by_scope
+        
+        scope_1_subs = get_sub_scopes_by_scope(1)
+        scope_2_subs = get_sub_scopes_by_scope(2) 
+        scope_3_subs = get_sub_scopes_by_scope(3)
+
         user = User(
             username=form.username.data,
+            name=form.name.data,  # เพิ่มฟิลด์ name
             roles=["user"],
             status="active",
             created_date=datetime.datetime.now(),
             updated_date=datetime.datetime.now(),
             campus_id=form.campus_id,
             department_key=form.department_key,
+            # เซ็ตซับสโคปแยกตาม ghg_scope
+            ghg_scope_1=scope_1_subs,
+            ghg_scope_2=scope_2_subs,
+            ghg_scope_3=scope_3_subs,
         )
         user.set_password(form.password.data)  # เข้ารหัสรหัสผ่าน
         user.save()
@@ -62,6 +75,9 @@ class UserService:
         user = User.objects(username=form.username.data).first()
         if not user:
             return {"success": False, "error_msg": "ไม่พบผู้ใช้"}
+
+        # อัปเดตฟิลด์ name
+        user.name = form.name.data if form.name.data else user.name
 
         # ตรวจสอบและเซฟ campus_id
         user.campus_id = (
@@ -88,10 +104,10 @@ class UserService:
         if not user:
             return {"success": False, "error_msg": "ไม่พบผู้ใช้"}
 
-        user.username = form.username.data
+        # อัปเดตเฉพาะ name และ email (ไม่ให้แก้ไข username)
+        user.name = form.name.data
         user.email = form.email.data
-        user.campus = form.campus.data
-        user.department = form.department.data
+        # campus และ department จะไม่ให้แก้ไขใน profile
         user.save()
         return {"success": True, "error_msg": ""}
 

@@ -2,8 +2,12 @@
       hx-target="#users-table-container"
       hx-swap="innerHTML">
     <div class="mb-2">
-        <label class="block text-sm font-medium">{{ t.name }}</label>
+        <label class="block text-sm font-medium">Username</label>
         <input type="text" name="username" class="input input-bordered w-full" value="{{ form.username.data }}" readonly disabled>
+    </div>
+    <div class="mb-2">
+        <label class="block text-sm font-medium">{{ t.name or 'Name' }}</label>
+        <input type="text" name="name" class="input input-bordered w-full" value="{{ form.name.data or user.name or '' }}" readonly disabled>
     </div>
     <div class="mb-2">
         <label class="block text-sm font-medium">Email</label>

@@ -17,6 +17,10 @@
         {{ form_renderer.render_text_input(form.username, placeholder="Enter your username", class="input input-bordered w-full") }}
       </div>
       <div class="mb-2">
+        <label class="block text-sm font-medium mb-1" for="name">Name</label>
+        {{ form_renderer.render_text_input(form.name, placeholder="Enter your display name", class="input input-bordered w-full") }}
+      </div>
+      <div class="mb-2">
         <label class="block text-sm font-medium mb-1" for="password">Password</label>
         {{ form_renderer.render_text_input(form.password, placeholder="Enter your password", type="password", class="input input-bordered w-full") }}
       </div>
