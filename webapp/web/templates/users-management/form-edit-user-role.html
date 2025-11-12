@@ -1,3 +1,11 @@
+<div class="flex justify-between items-center mb-4">
+    <h2 class="text-lg font-bold">แก้ไขผู้ใช้</h2>
+    <button type="button" class="btn btn-sm btn-circle btn-ghost hover:bg-gray-200" 
+            onclick="document.getElementById('modal').classList.remove('modal-open')">
+        <i data-feather="x" class="w-4 h-4"></i>
+    </button>
+</div>
+
 <form hx-post="{{ url_for('users_management.load_edit_user_role', user_id=user.id, page=page, campus=selected_campus, department=selected_department, search=search_query) }}"
       hx-target="#users-table-container"
       hx-swap="innerHTML">

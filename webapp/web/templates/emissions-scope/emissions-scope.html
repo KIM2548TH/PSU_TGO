@@ -1,9 +1,9 @@
 {% extends "/base/default_page.html" %}
 {% block content %}
 <script src="{{ 'js/auto-refresh.js' | static_url }}"></script>
-<div class="p-4">
+
   <!-- Header Section -->
-  <div class="card shadow-lg border border-orange-200 bg-base-100 p-6 rounded-lg">
+  <div class="card shadow-lg border border-orange-200 bg-base-100 p-6 rounded-lg mb-8">
     <div>
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center gap-3">
@@ -83,11 +83,8 @@
       </div>
     </div>
   </div>
-</div>
-    <!-- ✅ Label -->
-<label class="block mb-4 text-lg font-semibold text-gray-700">เลือก Scope:</label>
 
-<!-- ✅ Scope Cards as Radio Buttons -->
+  <!-- ✅ Scope Cards as Radio Buttons -->
 <div class="flex gap-6 mb-6">
   {% for scope_name, scope_items in mockup_data.scopes.items() %}
   <div id="scope-card-{{ scope_name.replace(' ', '-') }}" class="cursor-pointer p-4 rounded-xl shadow-md border border-gray-300 flex-1 transition-all duration-200
