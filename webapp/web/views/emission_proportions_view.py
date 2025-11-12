@@ -594,6 +594,21 @@ def download_pdf():
                     '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
                     '/usr/share/fonts/TTF/DejaVuSans.ttf',
                     '/usr/share/fonts/truetype/noto/NotoSansThai-Regular.ttf',
+                    # TLWG Thai fonts (ปรับ path ใหม่ตาม fc-cache ผลลัพธ์)
+                    '/usr/share/fonts/truetype/tlwg/Garuda.ttf',
+                    '/usr/share/fonts/truetype/tlwg/Kinnari.ttf',
+                    '/usr/share/fonts/truetype/tlwg/Laksaman.ttf',
+                    '/usr/share/fonts/truetype/tlwg/Norasi.ttf',
+                    '/usr/share/fonts/truetype/tlwg/Purisa.ttf',
+                    '/usr/share/fonts/truetype/tlwg/Sawasdee.ttf',
+                    '/usr/share/fonts/truetype/tlwg/TlwgMono.ttf',
+                    '/usr/share/fonts/truetype/tlwg/TlwgTypewriter.ttf',
+                    '/usr/share/fonts/truetype/tlwg/Umpush.ttf',
+                    '/usr/share/fonts/truetype/tlwg/Waree.ttf',
+                    # เพิ่ม font ไทยยอดนิยมจาก TLWG
+                    '/usr/share/fonts/truetype/tlwg/Loma.ttf',
+                    '/usr/share/fonts/truetype/tlwg/TlwgTypist.ttf',
+                    # รองรับ path เก่าด้วยในกรณีที่ระบบบางตัวใช้ path เก่า
                     '/usr/share/fonts/truetype/thai/Garuda.ttf',
                     '/usr/share/fonts/truetype/thai/Kinnari.ttf',
                     '/usr/share/fonts/truetype/thai/Laksaman.ttf',
