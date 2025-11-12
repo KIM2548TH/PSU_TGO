@@ -1,4 +1,11 @@
-<h2 class="text-lg font-bold mb-4">{{ t.add_new_role }}</h2>
+<div class="flex justify-between items-center mb-4">
+  <h2 class="text-lg font-bold">{{ t.add_new_role }}</h2>
+  <button type="button" class="btn btn-sm btn-circle btn-ghost hover:bg-gray-200" 
+          onclick="document.getElementById('modal').classList.remove('modal-open')">
+    <i data-feather="x" class="w-4 h-4"></i>
+  </button>
+</div>
+
 <form method="POST" action="{{ url_for('role_management.add_role') }}">
   <div class="mb-4">
     <label class="block text-sm font-medium">{{ t.role_name }}</label>

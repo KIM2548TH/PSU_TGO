@@ -1,5 +1,4 @@
-<div class="w-full max-w-xs sm:max-w-sm md:max-w-2xl lg:max-w-4xl border border-gray-200 bg-white rounded-lg shadow-lg p-3 sm:p-4 md:p-6">
-  <form method="POST" 
+<form method="POST" 
         action="{{ url_for('emissions_scope.edit_scope', ghg_scope=scope.ghg_scope, ghg_sup_scope=scope.ghg_sup_scope) }}" 
         hx-post="{{ url_for('emissions_scope.edit_scope', ghg_scope=scope.ghg_scope, ghg_sup_scope=scope.ghg_sup_scope) }}" 
         hx-target="#modal-content" 
@@ -88,11 +87,23 @@
       <div class="text-xs text-gray-500 mb-3 break-words">{{ t.select_material_hint }}</div>
       
       {% if material_names %}
+        <!-- Search Box for Materials -->
+        <div class="mb-4">
+          <div class="relative">
+            <input type="text" 
+                   id="material-search" 
+                   placeholder="ค้นหาวัสดุ..." 
+                   class="input input-bordered w-full pl-10 text-sm"
+                   onkeyup="filterMaterials()">
+            <i data-feather="search" class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          </div>
+        </div>
+        
         <div class="bg-blue-50 p-3 sm:p-4 rounded-lg">
-          <div class="max-h-40 sm:max-h-48 overflow-y-auto">
+          <div class="max-h-40 sm:max-h-48 overflow-y-auto" id="materials-container">
             <div class="grid grid-cols-1 gap-2">
               {% for material_name in material_names %}
-              <div class="flex items-start space-x-2 p-2 hover:bg-blue-100 rounded">
+              <div class="flex items-start space-x-2 p-2 hover:bg-blue-100 rounded material-item" data-material-name="{{ material_name|lower }}">
                 <input type="checkbox" 
                        name="head_table" 
                        value="{{ material_name }}" 
@@ -104,6 +115,12 @@
                 </label>
               </div>
               {% endfor %}
+            </div>
+            
+            <!-- No results message -->
+            <div id="no-results" class="text-center py-4 text-gray-500 text-sm" style="display: none;">
+              <i data-feather="search" class="w-8 h-8 mx-auto mb-2 text-gray-400"></i>
+              <p>ไม่พบวัสดุที่ตรงกับคำค้นหา</p>
             </div>
           </div>
         </div>
@@ -134,7 +151,49 @@
       </button>
     </div>
   </form>
-</div>
+
 <script>
-  feather.replace();
+  // Replace feather icons on initial load
+  document.addEventListener('DOMContentLoaded', function() {
+    feather.replace();
+    
+    // Clear search when modal opens
+    const searchInput = document.getElementById('material-search');
+    if (searchInput) {
+      searchInput.value = '';
+    }
+  });
+  
+  function filterMaterials() {
+    const searchInput = document.getElementById('material-search');
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const materialItems = document.querySelectorAll('.material-item');
+    const noResults = document.getElementById('no-results');
+    let visibleItems = 0;
+    
+    materialItems.forEach(item => {
+      const materialName = item.getAttribute('data-material-name');
+      if (materialName.includes(searchTerm)) {
+        item.style.display = 'flex';
+        visibleItems++;
+      } else {
+        item.style.display = 'none';
+      }
+    });
+    
+    // Show/hide no results message
+    if (visibleItems === 0 && searchTerm !== '') {
+      noResults.style.display = 'block';
+    } else {
+      noResults.style.display = 'none';
+    }
+    
+    // Re-replace feather icons after DOM changes
+    feather.replace();
+  }
+  
+  // Also replace icons when modal content changes (for HTMX)
+  document.body.addEventListener('htmx:afterSwap', function(event) {
+    feather.replace();
+  });
 </script>

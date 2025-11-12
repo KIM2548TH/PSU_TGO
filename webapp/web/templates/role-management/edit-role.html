@@ -1,4 +1,11 @@
-<h2 class="text-lg font-bold mb-4">{{ t.edit_role }}</h2>
+<div class="flex justify-between items-center mb-4">
+  <h2 class="text-lg font-bold">{{ t.edit_role }}</h2>
+  <button type="button" class="btn btn-sm btn-circle btn-ghost hover:bg-gray-200" 
+          onclick="document.getElementById('modal').classList.remove('modal-open')">
+    <i data-feather="x" class="w-4 h-4"></i>
+  </button>
+</div>
+
 <form hx-post="{{ url_for('role_management.edit_role', role_id=role.id) }}"
       hx-target="#modal-content"
       hx-swap="innerHTML">
