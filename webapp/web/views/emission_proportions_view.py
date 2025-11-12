@@ -32,6 +32,7 @@ from ...models.form_and_formula_model import FormAndFormula
 from ..utils.acl import permissions_required_all
 import json
 import urllib.parse
+from reportlab.pdfbase.pdfmetrics import getFont
 
 module = Blueprint("proportions", __name__, url_prefix="/proportions")
 

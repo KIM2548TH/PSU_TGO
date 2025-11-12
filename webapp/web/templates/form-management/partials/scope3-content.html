@@ -146,16 +146,25 @@
                   <p class="text-sm text-gray-500 break-words leading-relaxed">{{ form.desc_form[:50] }}{% if form.desc_form and form.desc_form|length > 50 %}...{% endif %}</p>
                 </div>
               </div>
-              {% if has_permission("แก้ไขฟอร์ม") %}
-              <button class="text-blue-500 hover:text-blue-700 p-1 rounded-md hover:bg-blue-50 transition-colors" 
-                      title="แก้ไข"
-                      hx-get="{{ url_for('form_management.load_edit_form_and_formula') }}?form_id={{ form.id }}"
-                      hx-target="#modal-content"
-                      hx-swap="innerHTML"
-                      hx-on:htmx:after-request="document.getElementById('modal').classList.add('modal-open')">
-                <i data-feather="edit" class="w-4 h-4"></i>
-              </button>
-              {% endif %}
+              <div class="flex flex-col gap-2">
+                {% if has_permission("แก้ไขฟอร์ม") %}
+                <button class="text-blue-500 hover:text-blue-700 p-1 rounded-md hover:bg-blue-50 transition-colors" 
+                        title="แก้ไข"
+                        hx-get="{{ url_for('form_management.load_edit_form_and_formula') }}?form_id={{ form.id }}"
+                        hx-target="#modal-content"
+                        hx-swap="innerHTML"
+                        hx-on:htmx:after-request="document.getElementById('modal').classList.add('modal-open')">
+                  <i data-feather="edit" class="w-4 h-4"></i>
+                </button>
+                <button class="text-green-500 hover:text-green-700 p-1 rounded-md hover:bg-green-50 transition-colors" 
+                        title="อัปเดต Material"
+                        hx-post="{{ url_for('form_management.update_materials', form_id=form.id) }}"
+                        hx-confirm="ต้องการอัปเดต Material ทั้งหมดที่ใช้ฟอร์มนี้หรือไม่?"
+                        hx-indicator="#loading-spinner">
+                  <i data-feather="refresh-cw" class="w-4 h-4"></i>
+                </button>
+                {% endif %}
+              </div>
             </div>
             
             <!-- Linked Form Information -->

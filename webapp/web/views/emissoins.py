@@ -279,7 +279,7 @@ def calculate_result(material):
     # ดึงข้อมูลสูตรจากฐานข้อมูล
     form_and_formula = FormAndFormula.objects(material_name=material.name).first()
     if not form_and_formula:
-        print(f"ไม่พบสูตรสำหรับ material: {material.name}")
+        # print(f"ไม่พบสูตรสำหรับ material: {material.name}")
         return
 
     # สร้าง mapping ระหว่างชื่อตัวแปรภาษาไทย กับชื่อที่ปลอดภัย
@@ -307,8 +307,7 @@ def calculate_result(material):
         )
 
     try:
-        print(f"Executing sanitized formula: {sanitized_formula}")
-        print(f"With variables: {sanitized_variables}")
+        
 
         # คำนวณผลลัพธ์แรก (result)
         eval_result = eval(sanitized_formula, {}, sanitized_variables)
@@ -316,7 +315,7 @@ def calculate_result(material):
         # บันทึกผลลัพธ์ลงใน material.result
         material.result = eval_result
 
-        print(f"คำนวณผลลัพธ์สำหรับ {material.name} สำเร็จ: {material.result}")
+
 
         # คำนวณ result2 ถ้ามี formula2
         if hasattr(form_and_formula, "formula2") and form_and_formula.formula2:
@@ -337,22 +336,15 @@ def calculate_result(material):
                         sanitized_formula2,
                     )
 
-                print(f"Executing sanitized formula2: {sanitized_formula2}")
-                print(f"With formula2 variables: {formula2_variables}")
+
 
                 # คำนวณ result2
                 eval_result2 = eval(sanitized_formula2, {}, formula2_variables)
                 material.result2 = eval_result2
 
-                print(f"คำนวณ result2 สำหรับ {material.name} สำเร็จ: {material.result2}")
 
             except Exception as e:
-                print(f"เกิดข้อผิดพลาดในการคำนวณ result2 สำหรับ {material.name}: {e}")
-                print("--- Debug Information for result2 ---")
-                print(f"Original formula2: {form_and_formula.formula2}")
-                print(f"Sanitized formula2: {sanitized_formula2}")
-                print(f"Formula2 variables: {formula2_variables}")
-                print("-----------------------------------")
+                print(f"เกิดข้อผิดพลาดในการคำนวณ result2 สำหรับ : {e}")
                 material.result2 = None
         else:
             # ถ้าไม่มี formula2 ให้ตั้งค่า result2 เป็น None
@@ -362,11 +354,11 @@ def calculate_result(material):
         material.save()
 
     except Exception as e:
-        print(f"เกิดข้อผิดพลาดในการคำนวณผลลัพธ์สำหรับ {material.name}: {e}")
-        print("--- Debug Information ---")
-        print(f"Original formula: {form_and_formula.formula}")
-        print(f"Sanitized formula: {sanitized_formula}")
-        print(f"Sanitized variables: {sanitized_variables}")
+        # print(f"เกิดข้อผิดพลาดในการคำนวณผลลัพธ์สำหรับ {material.name}: {e}")
+        # print("--- Debug Information ---")
+        # print(f"Original formula: {form_and_formula.formula}")
+        # print(f"Sanitized formula: {sanitized_formula}")
+        # print(f"Sanitized variables: {sanitized_variables}")
         print("-----------------------")
 
 
@@ -392,13 +384,13 @@ def save_material(scope_id, sub_scope_id, month_id, year, material_data):
     # ค้นหา FormAndFormula ที่ตรงกับ head
     form_and_formula = FormAndFormula.objects(material_name=head).first()
     if not form_and_formula:
-        print(f"Form and Formula not found for material: {head}")
+        
         return False
 
     # ค้นหา InputType ที่ตรงกับ field
     input_type = form_and_formula.input_types.filter(field=field).first()
     if not input_type:
-        print(f"Input type not found for field: {field} in material: {head}")
+        
         return False
 
     # อัปเดตหรือสร้าง Material
@@ -463,14 +455,34 @@ def save_material(scope_id, sub_scope_id, month_id, year, material_data):
             campus=current_user.campus_id,
         ).first()
 
+        # สร้าง quantity_type สำหรับ linked material โดยใช้ result จาก material ต้นฉบับ
+        linked_quantity_types = []
+        if material.result is not None:
+            # ใช้ result จาก material ต้นฉบับเป็น input สำหรับ linked material
+            # ดึง input_type แรกจาก linked_formula เพื่อใช้เป็น template
+            if linked_formula.input_types:
+                first_input = linked_formula.input_types[0]
+                linked_quantity_types = [
+                    QuantityType(
+                        field=first_input.field,
+                        label=first_input.label,
+                        amount=float(material.result),
+                        unit=first_input.unit,
+                    )
+                ]
+
         if linked_material:
-            linked_material.quantity_type = material.quantity_type
-            linked_material.result = material.result
-            linked_material.is_linked = True  # ตั้งค่า is_linked เป็น True
+            # อัปเดต quantity_type ใหม่
+            linked_material.quantity_type = linked_quantity_types
+            linked_material.is_linked = True
             linked_material.edit_by_id = str(current_user.id)
             linked_material.update_date = datetime.datetime.now()
             linked_material.save()
+            
+            # คำนวณ result ใหม่ตามสูตรของ linked material
+            calculate_result(linked_material)
         else:
+            # สร้าง material ใหม่
             linked_material = Material(
                 month=int(month_id),
                 name=linked_formula.material_name,
@@ -483,12 +495,13 @@ def save_material(scope_id, sub_scope_id, month_id, year, material_data):
                 campus=current_user.campus_id,
                 edit_by_id=str(current_user.id),
                 update_date=datetime.datetime.now(),
-                quantity_type=material.quantity_type,
-                result=material.result,
-                result2=material.result2,
-                is_linked=True,  # ตั้งค่า is_linked เป็น True
+                quantity_type=linked_quantity_types,
+                is_linked=True,
             )
             linked_material.save()
+            
+            # คำนวณ result ตามสูตรของ linked material
+            calculate_result(linked_material)
 
     return True
 
@@ -506,7 +519,7 @@ def save_materials():
     input_field = request.form.get("input_field")
 
     # Debugging: Print received form data
-    print(f"Received form data: {request.form}")
+
 
     # ตรวจสอบว่า scope และ sub_scope มีอยู่ในฐานข้อมูล
     scope = Scope.objects(
@@ -517,9 +530,7 @@ def save_materials():
     ).first()
 
     if not scope:
-        print(
-            f"Invalid scope or sub-scope ID: scope_id={scope_id}, sub_scope_id={sub_scope_id}"
-        )
+
         # ใช้ toast notification สำหรับ error
 
         
@@ -533,7 +544,7 @@ def save_materials():
         return response
 
     head_table = scope.head_table
-    print(f"Head table before saving materials: {head_table}")  # Debugging
+
 
     # Extract materials from form
     materials = []
@@ -544,7 +555,7 @@ def save_materials():
 
         form_and_formula = FormAndFormula.objects(material_name=head).first()
         if not form_and_formula:
-            print(f"Form and Formula not found for material: {head}")
+
             # ใช้ toast notification สำหรับ error
             response = make_response('')
             encoded_message = urllib.parse.quote("ไม่พบฟอร์มสำหรับวัสดุที่ระบุ")
@@ -557,7 +568,7 @@ def save_materials():
 
         field = input_field
         if not field:
-            print(f"No input types found for material: {head}")
+
             # ใช้ toast notification สำหรับ error
             response = make_response('')
             encoded_message = urllib.parse.quote("ไม่พบฟิลด์ข้อมูลสำหรับวัสดุที่ระบุ")
@@ -575,7 +586,7 @@ def save_materials():
             if key.startswith("amount_"):
                 parts = key.split("_")
                 if len(parts) < 3:
-                    print(f"Invalid key format: {key}")
+
                     continue
                 head = parts[1]
                 field = parts[2]
@@ -586,10 +597,10 @@ def save_materials():
                     materials.append({"head": head, "field": field, "amount": amount})
 
     # Debugging: Print materials data
-    print(f"Materials: {materials}")
+
 
     if not scope_id or not sub_scope_id or not month_id or not year:
-        print("Missing required data")
+
         # ใช้ toast notification สำหรับ error
         response = make_response('')
         encoded_message = urllib.parse.quote("ข้อมูลไม่ครบถ้วน กรุณาตรวจสอบอีกครั้ง")
@@ -631,7 +642,7 @@ def save_materials():
 
     # Update emissions table
     head_table = scope.head_table  # Re-fetch head_table after saving materials
-    print(f"Head table after saving materials: {head_table}")  # Debugging
+
 
     current_headers, materials_form, total_pages, items_per_page = (
         calculate_grouped_input_types(head_table, page)
@@ -666,9 +677,7 @@ def save_materials():
     )
 
     if request.headers.get("HX-Request"):
-        print(
-            f"Rendering emissions table with scope_id: {scope_id}, sub_scope_id: {sub_scope_id}, year: {year}, page: {page}"
-        )
+
         
         # สร้าง response พร้อม toast notification
         table_html = render_template(
@@ -941,9 +950,7 @@ def load_upload_modal(
     month = month or request.args.get("month")
 
     # ตรวจสอบค่าที่ได้รับ
-    print(
-        f"month_id: {month_id}, year: {year}, scope_id: {scope_id}, sub_scope_id: {sub_scope_id}, month: {month}"
-    )
+
 
     # ตรวจสอบว่าค่าพารามิเตอร์ไม่เป็น None
     if not all([month_id, year, scope_id, sub_scope_id]):
@@ -1085,7 +1092,7 @@ def upload_file():
 @permissions_required_all(["โหลดข้อมูลการปล่อย"])
 def download_file(file_id):
     document = ReferenceDocument.objects(files__id=file_id).first()
-    print(f"Downloading file with ID: {file_id}")
+
     if not document:
         return jsonify({"error": "File not found"}), 404
 
@@ -1108,7 +1115,7 @@ def download_file(file_id):
 @login_required
 @permissions_required_all(["ลบไฟล์ข้อมูลการปล่อย"])
 def delete_file(file_id):
-    print(f"Deleting file with ID: {file_id}")
+
     scope_id = request.form.get("scope_id")
     sub_scope_id = request.form.get("sub_scope_id")
     year = request.form.get("year")
@@ -1116,7 +1123,7 @@ def delete_file(file_id):
     month = request.form.get("month")  # เพิ่มการดึงค่า month
 
     if not file_id:
-        print("Missing file_id")
+
         # ใช้ toast notification สำหรับ error
 
         
@@ -1132,7 +1139,7 @@ def delete_file(file_id):
     try:
         document = ReferenceDocument.objects(files__id=file_id).first()
         if not document:
-            print(f"Document not found for file_id: {file_id}")
+
             # ใช้ toast notification สำหรับ error
             response = make_response('')
             encoded_message = urllib.parse.quote("ไม่พบไฟล์ที่ต้องการลบ")

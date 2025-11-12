@@ -4,6 +4,7 @@ from ..forms.user_form import LoginForm, RegisterForm, EditUserForm, Editprofile
 from ..forms.form_management_form import FormAndFormulaForm, InputFieldForm
 from ...services.user_service import UserService
 from ...models import User, Role, Permission, FormAndFormula, Scope, Material, InputType
+from ...models.materail_model import QuantityType  # เพิ่ม import QuantityType
 from ..views.emissoins import calculate_result
 from ..utils.acl import permissions_required_all
 from ..utils.toast_utils import success_response, error_response, warning_response, info_response, ToastType
@@ -511,6 +512,151 @@ def delete_form(form_id):
         
     except Exception as e:
         return _error_response(f"Error deleting form: {str(e)}")
+
+
+@module.route("/update-materials/<form_id>", methods=["POST"])
+@login_required
+@permissions_required_all(["แก้ไขฟอร์ม"])
+def update_materials(form_id):
+    """อัปเดต Material ทั้งหมดที่ใช้ฟอร์มนี้และคำนวณผลลัพธ์ใหม่"""
+    try:
+        # ดึงข้อมูลฟอร์ม
+        form = FormAndFormula.objects(id=ObjectId(form_id)).first()
+        if not form:
+            return _error_response("ไม่พบฟอร์มที่ต้องการ")
+
+        # ค้นหา Material ทั้งหมดที่ใช้ฟอร์มนี้
+        materials = Material.objects(
+            name=form.material_name,
+            scope=form.ghg_scope,
+            sub_scope=form.ghg_sup_scope
+        )
+
+        updated_count = 0
+        for material in materials:
+            try:
+                # คำนวณผลลัพธ์ใหม่
+                calculate_result(material)
+                updated_count += 1
+            except Exception as e:
+                print(f"Error updating material : {e}")
+                continue
+
+        # ตรวจสอบว่ามี linked forms หรือไม่
+        linked_updated_count = 0
+        linked_created_count = 0
+        linked_forms = FormAndFormula.objects(
+            linked_material_name=form.material_name, 
+            is_linked=True
+        )
+        
+        if linked_forms:
+            # ดึงรายการเดือน/ปี/แผนก/วิทยาเขตที่มี Material ต้นฉบับ
+            source_materials_info = set()
+            for material in materials:
+                source_materials_info.add((
+                    material.month,
+                    material.year, 
+                    material.department,
+                    material.campus
+                ))
+            
+            for linked_form in linked_forms:
+                for month, year, department, campus in source_materials_info:
+                    # ตรวจสอบว่ามี linked material ในเดือน/ปี/แผนก/วิทยาเขตนี้หรือไม่
+                    existing_linked_material = Material.objects(
+                        name=linked_form.material_name,
+                        scope=linked_form.ghg_scope,
+                        sub_scope=linked_form.ghg_sup_scope,
+                        month=month,
+                        year=year,
+                        department=department,
+                        campus=campus
+                    ).first()
+                    
+                    # ดึงข้อมูล source material ในเดือนนี้
+                    source_material = Material.objects(
+                        name=form.material_name,
+                        scope=form.ghg_scope,
+                        sub_scope=form.ghg_sup_scope,
+                        month=month,
+                        year=year,
+                        department=department,
+                        campus=campus
+                    ).first()
+                    
+                    if not source_material:
+                        continue
+                        
+                    # สร้าง quantity_type สำหรับ linked material
+                    linked_quantity_types = []
+                    if source_material.result is not None and linked_form.input_types:
+                        first_input = linked_form.input_types[0]
+                        linked_quantity_types = [
+                            QuantityType(
+                                field=first_input.field,
+                                label=first_input.label,
+                                amount=float(source_material.result),
+                                unit=first_input.unit,
+                            )
+                        ]
+                    
+                    if existing_linked_material:
+                        # อัปเดต Material ที่มีอยู่
+                        try:
+                            existing_linked_material.quantity_type = linked_quantity_types
+                            existing_linked_material.is_linked = True
+                            existing_linked_material.edit_by_id = str(current_user.id)
+                            existing_linked_material.update_date = datetime.datetime.now()
+                            existing_linked_material.save()
+                            
+                            # คำนวณ result ใหม่
+                            calculate_result(existing_linked_material)
+                            linked_updated_count += 1
+                        except Exception as e:
+                            print(f"Error updating existing linked material: {e}")
+                            continue
+                    else:
+                        # สร้าง Material ใหม่
+                        try:
+                            new_linked_material = Material(
+                                month=month,
+                                name=linked_form.material_name,
+                                scope=linked_form.ghg_scope,
+                                sub_scope=linked_form.ghg_sup_scope,
+                                year=year,
+                                day=1,
+                                form_and_formula=str(linked_form.id),
+                                department=department,
+                                campus=campus,
+                                edit_by_id=str(current_user.id),
+                                update_date=datetime.datetime.now(),
+                                quantity_type=linked_quantity_types,
+                                is_linked=True,
+                            )
+                            new_linked_material.save()
+                            
+                            # คำนวณ result ตามสูตรของ linked material
+                            calculate_result(new_linked_material)
+                            linked_created_count += 1
+                        except Exception as e:
+                            print(f"Error creating new linked material: {e}")
+                            continue
+
+        # สร้างข้อความแสดงผล
+        total_updated = updated_count + linked_updated_count
+        message = f"อัปเดต Material สำเร็จ! ({updated_count} รายการหลัก"
+        
+        if linked_updated_count > 0:
+            message += f", {linked_updated_count} รายการที่เชื่อมโยงอัปเดต"
+        if linked_created_count > 0:
+            message += f", {linked_created_count} รายการที่เชื่อมโยงสร้างใหม่"
+        message += ")"
+
+        return _success_response(message, form.ghg_scope)
+
+    except Exception as e:
+        return _error_response(f"เกิดข้อผิดพลาดในการอัปเดต: {str(e)}")
 
 
 # === HELPER METHODS ===
