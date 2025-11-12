@@ -54,19 +54,36 @@
           {% endif %}
         </div>
 
-        <!-- Download PDF Button -->
-        {% if has_permission("ดาวน์โหลดรายงานสัดส่วนการปล่อย") %}
-        <div>
-          <div class="text-[11px] uppercase tracking-wide text-gray-500 mb-1">ดาวน์โหลด</div>
-          <button class="btn btn-xs md:btn-sm btn-success text-white"
-                  hx-get="{{ url_for('proportions.download_pdf_modal', year=selected_year) }}"
-                  hx-target="body"
-                  hx-swap="beforeend">
-            <i data-feather="download" class="w-3.5 h-3.5 mr-1"></i>
-            PDF
-          </button>
+        <!-- Preview and Download PDF Buttons -->
+        <div class="flex gap-2">
+          <!-- Preview Button -->
+          {% if has_permission("พรีวิวรายงานสัดส่วนการปล่อย") %}
+          <div>
+            <div class="text-[11px] uppercase tracking-wide text-gray-500 mb-1">ตัวอย่าง</div>
+            <button class="btn btn-xs md:btn-sm btn-info text-white"
+                    hx-get="{{ url_for('proportions.preview_pdf_modal', year=selected_year) }}"
+                    hx-target="body"
+                    hx-swap="beforeend">
+              <i data-feather="eye" class="w-3.5 h-3.5 mr-1"></i>
+              Preview
+            </button>
+          </div>
+          {% endif %}
+          
+          <!-- Download Button -->
+          {% if has_permission("ดาวน์โหลดรายงานสัดส่วนการปล่อย") %}
+          <div>
+            <div class="text-[11px] uppercase tracking-wide text-gray-500 mb-1">ดาวน์โหลด</div>
+            <button class="btn btn-xs md:btn-sm btn-success text-white"
+                    hx-get="{{ url_for('proportions.download_pdf_modal', year=selected_year) }}"
+                    hx-target="body"
+                    hx-swap="beforeend">
+              <i data-feather="download" class="w-3.5 h-3.5 mr-1"></i>
+              PDF
+            </button>
+          </div>
+          {% endif %}
         </div>
-        {% endif %}
       </div>
 
     </div>

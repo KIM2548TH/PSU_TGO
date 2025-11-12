@@ -1,0 +1,53 @@
+<!-- Preview PDF Modal Fragment สำหรับ HTMX -->
+<div class="modal modal-open" id="preview-pdf-modal">
+  <div class="modal-box w-11/12 max-w-md">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="font-bold text-lg">ตัวอย่าง PDF</h3>
+      <button class="btn btn-sm btn-circle btn-ghost" onclick="document.getElementById('preview-pdf-modal').remove()">✕</button>
+    </div>
+    
+    <form hx-post="{{ url_for('proportions.preview_pdf_data') }}" 
+          hx-target="body" 
+          hx-swap="beforeend"
+          hx-indicator="#preview-loading">
+      <div class="space-y-4">
+        <!-- ปีที่เลือก (hidden) -->
+        <input type="hidden" name="year" value="{{ selected_year }}">
+        
+        <!-- ชื่อรายงาน -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อรายงาน</label>
+          <input type="text" name="report_title" 
+                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                 value="รายงานสัดส่วนการปล่อยก๊าซเรือนกระจก ปี {{ selected_year }}"
+                 placeholder="ป้อนชื่อรายงาน">
+        </div>
+        
+        <!-- หมายเหตุ -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">หมายเหตุ (ไม่บังคับ)</label>
+          <textarea name="notes" rows="3" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="เพิ่มหมายเหตุหรือข้อมูลเพิ่มเติม..."></textarea>
+        </div>
+      </div>
+      
+      <!-- Loading Indicator -->
+      <div id="preview-loading" class="hidden text-center py-4">
+        <div class="inline-flex items-center">
+          <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500 mr-2"></div>
+          <span class="text-gray-600">กำลังสร้างตัวอย่าง...</span>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="modal-action">
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('preview-pdf-modal').remove()">ยกเลิก</button>
+        <button type="submit" class="btn btn-info">
+          <i data-feather="eye" class="w-4 h-4 mr-2"></i>
+          ดูตัวอย่าง
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

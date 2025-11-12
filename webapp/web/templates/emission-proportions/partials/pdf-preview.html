@@ -1,0 +1,277 @@
+<!-- PDF Preview Content Template - เปลี่ยนให้แสดงใน modal เดียว -->
+{% if error_message %}
+  <div class="alert alert-error shadow-lg">
+    <div>
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span>{{ error_message }}</span>
+    </div>
+  </div>
+{% else %}
+  <script>
+    // Function to download PDF directly using the same data from preview
+    function downloadPdfDirectly() {
+      // Create a hidden form to submit PDF download request
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = "{{ url_for('proportions.download_pdf') }}";
+      form.target = '_blank'; // Open in new tab to trigger download
+      
+      // Add form fields with the same data used for preview
+      const fields = {
+        'year': '{{ page_meta.selected_year }}',
+        'report_title': '{{ page_meta.title }}',
+        'notes': '{{ notes if notes else "" }}'
+      };
+      
+      // Create hidden inputs
+      for (const [key, value] of Object.entries(fields)) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
+      }
+      
+      // Add form to body and submit
+      document.body.appendChild(form);
+      form.submit();
+      
+      // Remove form after submission
+      setTimeout(() => {
+        document.body.removeChild(form);
+      }, 100);
+    }
+  </script>
+  <!-- ลบ modal แรกและสร้าง modal ใหม่ทั้งหมด -->
+  <script>
+    // ลบ modal ทั้งหมดที่มีอยู่
+    document.querySelectorAll('.modal').forEach(modal => {
+      if (modal.id !== 'pdf-preview-display-modal') {
+        modal.remove();
+      }
+    });
+    
+    // ลบ backdrop ทั้งหมด
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+    
+    // ซ่อน body overflow
+    document.body.style.overflow = 'hidden';
+  </script>
+
+  <!-- Preview Modal ใหม่ - ขนาดกำลังดี -->
+  <div class="fixed top-0 left-0 w-full h-full flex items-center justify-center" 
+       style="background-color: rgba(0, 0, 0, 0.5); z-index: 9999;" 
+       id="pdf-preview-display-modal">
+    <div class="bg-white rounded-lg shadow-2xl flex flex-col overflow-hidden" 
+         style="width: 85vw; height: 85vh; max-width: 72rem;">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-3 border-b bg-gray-50 flex-shrink-0">
+        <div class="flex items-center space-x-2">
+          <!-- Document Icon -->
+          <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <h3 class="text-lg font-bold text-gray-800">ตัวอย่าง PDF</h3>
+        </div>
+        
+        <div class="flex items-center space-x-2">
+          <!-- Download PDF Button -->
+          <button class="btn btn-sm bg-green-600 hover:bg-green-700 text-white border-none"
+                  onclick="downloadPdfDirectly()">
+            <i data-feather="download" class="w-4 h-4 mr-1"></i>
+            Download PDF
+          </button>
+          
+          <!-- Close Button -->
+          <button class="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-200 rounded-full transition-colors" 
+                  onclick="document.getElementById('pdf-preview-display-modal').remove(); document.body.style.overflow = 'auto';">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Content Area -->
+      <div class="flex-1 overflow-y-auto bg-gray-100 p-4">
+        <!-- PDF-like Container -->
+        <div class="bg-white border border-gray-300 shadow-lg mx-auto max-w-4xl min-h-full">
+          <div class="p-4">
+            
+            <!-- Header Section - เหมือนรูปแบบ PDF จริง -->
+            <div class="text-center mb-6">
+              <!-- Title -->
+              <h1 class="text-2xl font-bold text-blue-800 mb-4">{{ page_meta.title }}</h1>
+              
+              <!-- University Name -->
+              <div class="mb-4">
+                <h2 class="text-lg font-bold text-gray-700">มหาวิทยาลัยสงขลานครินทร์</h2>
+              </div>
+              
+              <!-- Meta Information - Simple Layout แบบ PDF -->
+              <div class="max-w-2xl mx-auto mb-6">
+                <div class="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                  <!-- Left Column -->
+                  <div class="text-left space-y-2">
+                    <div class="flex">
+                      <span class="text-gray-600 w-24">Campus:</span>
+                      <span class="font-medium text-gray-800">{{ page_meta.campus }}</span>
+                    </div>
+                    <div class="flex">
+                      <span class="text-gray-600 w-24">Department:</span>
+                      <span class="font-medium text-gray-800">{{ page_meta.department }}</span>
+                    </div>
+                  </div>
+                  
+                  <!-- Right Column -->
+                  <div class="text-left space-y-2">
+                    <div class="flex">
+                      <span class="text-gray-600 w-32">Year:</span>
+                      <span class="font-medium text-gray-800">{{ page_meta.selected_year }}</span>
+                    </div>
+                    <div class="flex">
+                      <span class="text-gray-600 w-32">สร้างรายงานเมื่อ:</span>
+                      <span class="font-medium text-gray-800">{{ generated_date }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Data Content - จำลองตารางแบบ PDF จริง -->
+            <div class="space-y-4">
+              {% for scope in scope_data %}
+                <!-- Scope Header Table - เหมือน PDF จริง -->
+                <div class="mb-3">
+                  {% if scope.scope == 1 %}
+                    <div class="bg-purple-600 text-white p-3 grid grid-cols-4 gap-4 text-center font-bold">
+                  {% elif scope.scope == 2 %}
+                    <div class="bg-green-600 text-white p-3 grid grid-cols-4 gap-4 text-center font-bold">
+                  {% else %}
+                    <div class="bg-blue-600 text-white p-3 grid grid-cols-4 gap-4 text-center font-bold">
+                  {% endif %}
+                    <div class="text-left truncate overflow-hidden whitespace-nowrap" title="Scope {{ scope.scope }} - {% if scope.scope == 1 %}การปล่อยมลพิษทางตรง{% elif scope.scope == 2 %}การปล่อยมลพิษทางอ้อม{% else %}การปล่อยมลพิษ (อื่นๆ){% endif %}">
+                      Scope {{ scope.scope }} - 
+                      {% if scope.scope == 1 %}การปล่อยมลพิษทางตรง
+                      {% elif scope.scope == 2 %}การปล่อยมลพิษทางอ้อม  
+                      {% else %}การปล่อยมลพิษ (อื่นๆ){% endif %}
+                    </div>
+                    <div>{{ scope.material_count }} รายการ</div>
+                    <div>{{ '{:,.2f}'.format(scope.scope_total) }} tonCO₂e</div>
+                    <div>{{ scope.scope_percentage|round(2) }}% ของทั้งหมด</div>
+                  </div>
+
+                  <!-- Sub-scopes และ Materials Table (แสดงแค่ตัวอย่าง) -->
+                  {% for sub_scope in scope.sub_scopes[:2] %}
+                    <!-- Sub-scope Container with spacing -->
+                    <div class="{% if not loop.first %}mt-6{% endif %}">
+                      <!-- Sub-scope Preview -->
+                      {% if scope.scope == 1 %}
+                        <div class="bg-gray-50 border border-gray-300 p-2 grid grid-cols-4 gap-4 text-center text-purple-600 font-medium">
+                      {% elif scope.scope == 2 %}
+                        <div class="bg-gray-50 border border-gray-300 p-2 grid grid-cols-4 gap-4 text-center text-green-600 font-medium">
+                      {% else %}
+                        <div class="bg-gray-50 border border-gray-300 p-2 grid grid-cols-4 gap-4 text-center text-blue-600 font-medium">
+                      {% endif %}
+                        <div class="text-left truncate overflow-hidden whitespace-nowrap" title="{{ scope.scope }}.{{ sub_scope.sub_scope }} - {{ sub_scope.ghg_name }}">{{ scope.scope }}.{{ sub_scope.sub_scope }} - {{ sub_scope.ghg_name }}</div>
+                        <div>{{ sub_scope.materials|length }} รายการ</div>
+                        <div>{{ '{:,.2f}'.format(sub_scope.sub_scope_total) }} tonCO₂e</div>
+                        <div>{{ sub_scope.sub_scope_percent_scope1_2_3|round(2) }}%</div>
+                      </div>
+
+                      <!-- Sample Materials (แสดงแค่ 2 รายการแรก) -->
+                      <div class="border-l border-r border-b border-gray-300">
+                        <!-- Table Header -->
+                        <div class="bg-gray-100 border-b border-gray-300 p-2 grid grid-cols-4 gap-4 text-center text-sm font-medium text-gray-700">
+                          <div class="text-left">รายการ</div>
+                          <div>TOTAL (tonCO₂e)</div>
+                          <div>% (SCOPE 1+2)</div>
+                          <div>% (ALL)</div>
+                        </div>
+                        
+                        {% for material in sub_scope.materials[:2] %}
+                          <div class="border-b border-gray-200 p-2 grid grid-cols-4 gap-4 text-center text-sm {% if loop.index is even %}bg-gray-50{% else %}bg-white{% endif %}">
+                            <div class="text-left truncate overflow-hidden whitespace-nowrap" title="{{ material.name }}">{{ material.name }}</div>
+                            <div>{{ '{:,.2f}'.format(material.result2) }}</div>
+                            <div>{{ material.percent_scope1_2|round(2) if material.percent_scope1_2 is defined else '0.00' }}</div>
+                            <div>{{ material.percent_scope1_2_3|round(2) if material.percent_scope1_2_3 is defined else '0.00' }}</div>
+                          </div>
+                        {% endfor %}
+                        
+                        {% if sub_scope.materials|length > 2 %}
+                          <div class="bg-gray-100 p-2 text-center text-sm text-gray-500 italic border-b border-gray-200">
+                            ... และอีก {{ sub_scope.materials|length - 2 }} รายการ
+                          </div>
+                        {% endif %}
+                        
+                        <!-- Sub-scope Total -->
+                        <div class="{% if scope.scope == 1 %}bg-purple-50{% elif scope.scope == 2 %}bg-green-50{% else %}bg-blue-50{% endif %} p-2 grid grid-cols-4 gap-4 text-center text-sm font-bold">
+                          <div class="text-left">รวมทั้งหมด</div>
+                          <div>{{ '{:,.2f}'.format(sub_scope.sub_scope_total) }}</div>
+                          <div>{{ sub_scope.sub_scope_percent_scope1_2|round(2) }}</div>
+                          <div>{{ sub_scope.sub_scope_percent_scope1_2_3|round(2) }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  {% endfor %}
+                  
+                  {% if scope.sub_scopes|length > 2 %}
+                    <div class="bg-gray-100 p-2 text-center text-sm text-gray-500 italic mt-4">
+                      ... และอีก {{ scope.sub_scopes|length - 2 }} sub-scope
+                    </div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+
+              
+              
+              <!-- Grand Total - เหมือน PDF จริง -->
+              <div class="mt-6">
+                <div class="bg-gray-400 text-white p-4 text-center font-bold text-lg">
+                  รวมทั้งหมด ({{ selected_year }}) • {{ '{:,.2f}'.format(grand_total) }} tonCO₂e • 100% ของทั้งหมด
+                </div>
+              </div>
+
+              <!-- Notes Section - เหมือน PDF จริง -->
+              {% if notes %}
+                <div class="mt-6 border border-gray-300">
+                  <!-- Notes Header -->
+                  <div class="bg-gray-50 p-3 border-b-2 border-blue-500">
+                    <h3 class="font-bold text-gray-900">หมายเหตุและข้อสังเกต (Notes & Observations)</h3>
+                  </div>
+                  
+                  <!-- Notes Content -->
+                  <div class="p-4 bg-white">
+                    <div class="text-gray-700 leading-relaxed">
+                      {% set note_paragraphs = notes.split('\n') %}
+                      {% for paragraph in note_paragraphs %}
+                        {% if paragraph.strip() %}
+                          <div class="mb-2">
+                            {% if note_paragraphs|length > 1 and paragraph.strip() %}
+                              • {{ paragraph.strip() }}
+                            {% else %}
+                              {{ paragraph.strip() }}
+                            {% endif %}
+                          </div>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  </div>
+                  
+                  <!-- Notes Footer -->
+                  <div class="bg-gray-50 p-2 border-t border-gray-200 text-right">
+                    <div class="text-sm text-gray-500">
+                      หมายเหตุถูกบันทึกเมื่อ: {{ generated_date }}
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}

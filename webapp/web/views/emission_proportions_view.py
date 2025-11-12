@@ -359,6 +359,18 @@ def download_pdf_modal():
                          selected_year=selected_year)
 
 
+@module.route("/preview-pdf", methods=["GET"])
+@login_required
+@permissions_required_all(["พรีวิวรายงานสัดส่วนการปล่อย"])
+def preview_pdf_modal():
+    """
+    Show PDF preview modal
+    """
+    selected_year = request.args.get("year", datetime.datetime.now().year, type=int)
+    return render_template("emission-proportions/partials/preview-pdf-modal.html", 
+                         selected_year=selected_year)
+
+
 @module.route("/download-pdf", methods=["POST"])
 @login_required
 @permissions_required_all(["ดาวน์โหลดรายงานสัดส่วนการปล่อย"])
@@ -1156,6 +1168,214 @@ def download_pdf():
         # ถ้าเป็น HTMX request ให้ส่งกลับ error message
         return create_htmx_response(
             "emission-proportions/partials/pdf-success.html",
+            {"error_message": f"เกิดข้อผิดพลาด: {str(e)}"},
+            error_message=f"เกิดข้อผิดพลาด: {str(e)}"
+        )
+
+
+@module.route("/preview-pdf", methods=["POST"])
+@login_required
+@permissions_required_all(["พรีวิวรายงานสัดส่วนการปล่อย"])
+def preview_pdf_data():
+    """
+    Get PDF preview data
+    """
+    try:
+        # รับข้อมูลจากฟอร์ม
+        report_title = request.form.get("report_title", "รายงานสัดส่วนการปล่อยก๊าซเรือนกระจก")
+        notes = request.form.get("notes", "")
+        selected_year = int(request.form.get("year", datetime.datetime.now().year))
+        
+        # ดึงข้อมูลเดียวกับหน้าหลัก
+        user_campus = current_user.campus_id
+        user_department = current_user.department_key
+        
+        # ดึงข้อมูล materials
+        base_year_filter = {
+            "campus": user_campus,
+            "result2__ne": None,
+            "result2__exists": True,
+            "year": selected_year,
+        }
+        if user_department and user_department.strip():
+            base_year_filter["department"] = user_department
+
+        materials = Material.objects(**base_year_filter).order_by("scope", "sub_scope", "name")
+
+        # Group by scope/sub_scope (เหมือนกับหน้าหลัก)
+        scopes = {}
+        grand_total = 0
+        scope_totals = {}
+        scope_material_counts = {}
+        
+        for m in materials:
+            scope = m.scope
+            sub_scope = m.sub_scope
+            result2 = float(m.result2) if m.result2 else 0.0
+            if scope not in scopes:
+                scopes[scope] = {}
+                scope_totals[scope] = 0
+                scope_material_counts[scope] = 0
+            if sub_scope not in scopes[scope]:
+                scopes[scope][sub_scope] = []
+            scopes[scope][sub_scope].append(m)
+            scope_totals[scope] += result2
+            scope_material_counts[scope] += 1
+            grand_total += result2
+
+        # Prepare data for template (เหมือนกับหน้าหลัก)
+        scope_data = []
+        for scope in sorted(scopes.keys()):
+            sub_scopes = []
+            for sub_scope in sorted(scopes[scope].keys()):
+                # รวม material ที่ชื่อเดียวกัน
+                material_dict = {}
+                for mat in scopes[scope][sub_scope]:
+                    key = mat.name
+                    if key in material_dict:
+                        material_dict[key]["result2"] += float(mat.result2) if mat.result2 else 0.0
+                        # รวม quantity_type ถ้ามี
+                        if mat.quantity_type:
+                            for qt in mat.quantity_type:
+                                material_dict[key]["quantity_info"].append({
+                                    "field": qt.field,
+                                    "amount": qt.amount,
+                                    "unit": qt.unit
+                                })
+                    else:
+                        quantity_info = []
+                        if mat.quantity_type:
+                            for qt in mat.quantity_type:
+                                quantity_info.append({
+                                    "field": qt.field,
+                                    "amount": qt.amount,
+                                    "unit": qt.unit
+                                })
+                        
+                        material_dict[key] = {
+                            "name": mat.name,
+                            "result2": float(mat.result2) if mat.result2 else 0.0,
+                            "quantity_info": quantity_info,
+                        }
+
+                # สร้าง materials_list จาก dict
+                materials_list = []
+                for item in material_dict.values():
+                    # คำนวณ percentage ต่าง ๆ เหมือนใน PDF จริง
+                    percent_scope1_2 = (
+                        (item["result2"] / (scope_totals.get(1, 0) + scope_totals.get(2, 0)) * 100)
+                        if (scope_totals.get(1, 0) + scope_totals.get(2, 0)) > 0
+                        else 0
+                    )
+                    percent_scope1_2_3 = (
+                        (item["result2"] / grand_total * 100) if grand_total > 0 else 0
+                    )
+                    
+                    materials_list.append({
+                        "name": item["name"],
+                        "result2": item["result2"],
+                        "quantity_info": item["quantity_info"],
+                        "percent_scope1_2": percent_scope1_2,
+                        "percent_scope1_2_3": percent_scope1_2_3,
+                        "year": selected_year,
+                    })
+                
+                sub_scope_total = sum(
+                    float(mat.result2) if mat.result2 else 0.0
+                    for mat in scopes[scope][sub_scope]
+                )
+                
+                # ดึงชื่อ ghg_name จาก Scope model
+                scope_obj = Scope.objects(
+                    ghg_scope=scope,
+                    ghg_sup_scope=sub_scope,
+                    campus=user_campus,
+                    department=user_department,
+                ).first()
+                ghg_name = scope_obj.ghg_name if scope_obj else f"{scope}.{sub_scope}"
+
+                sub_scope_percent_scope1 = (
+                    (sub_scope_total / scope_totals.get(1, 1) * 100)
+                    if scope_totals.get(1, 0) > 0
+                    else 0
+                )
+                sub_scope_percent_scope1_2 = (
+                    (
+                        sub_scope_total
+                        / (scope_totals.get(1, 0) + scope_totals.get(2, 0))
+                        * 100
+                    )
+                    if (scope_totals.get(1, 0) + scope_totals.get(2, 0)) > 0
+                    else 0
+                )
+                sub_scope_percent_scope1_2_3 = (
+                    (sub_scope_total / grand_total * 100) if grand_total > 0 else 0
+                )
+                
+                sub_scopes.append({
+                    "sub_scope": sub_scope,
+                    "ghg_name": ghg_name,
+                    "materials": materials_list,
+                    "sub_scope_total": sub_scope_total,
+                    "sub_scope_percent_scope1": sub_scope_percent_scope1,
+                    "sub_scope_percent_scope1_2": sub_scope_percent_scope1_2,
+                    "sub_scope_percent_scope1_2_3": sub_scope_percent_scope1_2_3,
+                })
+            
+            scope_data.append({
+                "scope": scope,
+                "scope_total": scope_totals[scope],
+                "material_count": scope_material_counts[scope],
+                "scope_percentage": (
+                    (scope_totals[scope] / grand_total * 100) if grand_total > 0 else 0
+                ),
+                "sub_scopes": sub_scopes,
+            })
+
+        # สร้าง page_meta
+        campus_name = CampusAndDepartment.get_campus_name(user_campus) if hasattr(CampusAndDepartment, "get_campus_name") else user_campus
+        department_name = CampusAndDepartment.get_department_name(user_campus, user_department) if user_department else "-"
+        
+        total_materials = len(materials)
+        total_scopes = len(scope_totals.keys())
+        scope_coverage = [
+            {
+                "scope": s,
+                "total": scope_totals[s],
+                "percent": (scope_totals[s] / grand_total * 100) if grand_total > 0 else 0,
+            }
+            for s in sorted(scope_totals.keys())
+        ]
+
+        page_meta = {
+            "title": report_title,
+            "description": "สรุปสัดส่วนการปล่อยตาม Scope / Sub-Scope และสัดส่วนต่อภาพรวมทั้งหมด",
+            "campus": campus_name,
+            "department": department_name,
+            "selected_year": selected_year,
+            "total_materials": total_materials,
+            "total_scopes": total_scopes,
+            "grand_total": grand_total,
+            "scope_coverage": scope_coverage,
+        }
+
+        # สร้าง generated_date สำหรับ preview
+        generated_date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
+
+        return render_template(
+            "emission-proportions/partials/pdf-preview.html",
+            scope_data=scope_data,
+            grand_total=grand_total,
+            scope_totals=scope_totals,
+            selected_year=selected_year,
+            page_meta=page_meta,
+            notes=notes,
+            generated_date=generated_date
+        )
+
+    except Exception as e:
+        return create_htmx_response(
+            "emission-proportions/partials/pdf-preview.html",
             {"error_message": f"เกิดข้อผิดพลาด: {str(e)}"},
             error_message=f"เกิดข้อผิดพลาด: {str(e)}"
         )
