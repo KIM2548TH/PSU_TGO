@@ -1,0 +1,178 @@
+<div class="flex justify-between items-center mb-4 flex-shrink-0">
+    <h3 class="font-bold text-xl">แก้ไขสิทธิ์การเข้าถึง Scope</h3>
+    <button type="button" 
+            class="btn btn-sm btn-circle btn-ghost"
+            onclick="document.getElementById('modal').classList.remove('modal-open')">
+      ✕
+    </button>
+</div>
+
+<div class="flex-1 overflow-y-auto">
+    <form hx-post="{{ url_for('department_management.update_user_scopes', user_id=user.id) }}"
+          hx-target="#users-table-container"
+          hx-swap="innerHTML">
+        
+        <!-- User Info -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold">
+                    <span class="text-lg font-bold">{{ (user.name[0] if user.name else user.username[0])|upper }}</span>
+                </div>
+                <div>
+                    <div class="font-medium">{{ user.name if user.name else user.username }}</div>
+                    <div class="text-sm text-gray-500">{{ user.email }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Status -->
+        <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+            <label class="block text-sm font-bold text-gray-700 mb-3">
+                <i data-feather="user" class="w-4 h-4 inline mr-2"></i>
+                สถานะผู้ใช้
+            </label>
+            <div class="flex gap-4">
+                <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="radio" name="status" value="active" class="radio radio-success" 
+                           {% if user.status == 'active' %}checked{% endif %}>
+                    <span class="text-sm font-medium text-green-700">เปิดใช้งาน (Active)</span>
+                </label>
+                <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="radio" name="status" value="disactive" class="radio radio-error" 
+                           {% if user.status == 'disactive' %}checked{% endif %}>
+                    <span class="text-sm font-medium text-red-700">ปิดใช้งาน (Inactive)</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Scopes Selection -->
+        {% for scope_type in [1, 2, 3] %}
+        <div class="mb-6">
+            <!-- Scope Header with Theme Colors -->
+            {% if scope_type == 1 %}
+                {% set bg_color = "bg-purple-50" %}
+                {% set border_color = "border-purple-100" %}
+                {% set icon_bg = "bg-purple-500" %}
+                {% set text_color = "text-purple-500" %}
+                {% set badge_bg = "bg-purple-500" %}
+                {% set scope_title = "Direct Emission" %}
+                {% set scope_icon = "layers" %}
+                {% set card_border = "border-purple-200" %}
+                {% set card_hover = "hover:border-purple-400" %}
+                {% set checkbox_color = "checkbox-primary" %}
+                {% set number_color = "text-purple-500" %}
+            {% elif scope_type == 2 %}
+                {% set bg_color = "bg-green-50" %}
+                {% set border_color = "border-green-100" %}
+                {% set icon_bg = "bg-green-500" %}
+                {% set text_color = "text-green-500" %}
+                {% set badge_bg = "bg-green-500" %}
+                {% set scope_title = "Indirect Emission" %}
+                {% set scope_icon = "zap" %}
+                {% set card_border = "border-green-200" %}
+                {% set card_hover = "hover:border-green-400" %}
+                {% set checkbox_color = "checkbox-success" %}
+                {% set number_color = "text-green-500" %}
+            {% elif scope_type == 3 %}
+                {% set bg_color = "bg-blue-50" %}
+                {% set border_color = "border-blue-100" %}
+                {% set icon_bg = "bg-blue-500" %}
+                {% set text_color = "text-blue-500" %}
+                {% set badge_bg = "bg-blue-500" %}
+                {% set scope_title = "Indirect Emission (Other)" %}
+                {% set scope_icon = "globe" %}
+                {% set card_border = "border-blue-200" %}
+                {% set card_hover = "hover:border-blue-400" %}
+                {% set checkbox_color = "checkbox-info" %}
+                {% set number_color = "text-blue-500" %}
+            {% endif %}
+            
+            <div class="{{ bg_color }} {{ border_color }} border rounded-lg p-4 mb-3">
+                <div class="flex items-center gap-3">
+                    <div class="{{ icon_bg }} p-2 rounded-full">
+                        <i data-feather="{{ scope_icon }}" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-lg {{ text_color }}">
+                            Scope {{ scope_type }} - {{ scope_title }}
+                        </h4>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" 
+                                class="btn btn-xs btn-outline {{ text_color }}"
+                                onclick="selectAllScope({{ scope_type }})">
+                            เลือกทั้งหมด
+                        </button>
+                        <button type="button" 
+                                class="btn btn-xs btn-outline btn-secondary"
+                                onclick="deselectAllScope({{ scope_type }})">
+                            ยกเลิกทั้งหมด
+                        </button>
+                    </div>
+                    <span class="badge {{ badge_bg }} text-white">
+                        {{ scopes_by_type[scope_type]|length }} sub-scopes
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Sub Scopes Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 ml-4">
+                {% for sub_scope_id, sub_scope_data in scopes_by_type[scope_type].items() %}
+                <div class="border {{ card_border }} rounded-lg p-3 {{ card_hover }} transition-colors bg-white shadow-sm">
+                    <label class="flex items-start cursor-pointer">
+                        <input type="checkbox" 
+                               name="ghg_scope_{{ scope_type }}" 
+                               value="{{ sub_scope_data.id }}" 
+                               class="checkbox {{ checkbox_color }} checkbox-sm mt-1 mr-3 scope-{{ scope_type }}-checkbox"
+                               {% if sub_scope_data.id in (user.ghg_scope_1 if scope_type == 1 else user.ghg_scope_2 if scope_type == 2 else user.ghg_scope_3) or [] %}checked{% endif %}>
+                        <div class="flex-1">
+                            <div class="font-semibold text-sm {{ number_color }} mb-1">
+                                {{ scope_type }}.{{ sub_scope_data.id }}
+                            </div>
+                            <div class="text-xs text-gray-600 leading-relaxed">
+                                {{ sub_scope_data.name }}
+                            </div>
+                        </div>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+        
+        <!-- Submit Button - Fixed at bottom -->
+        <div class="flex justify-end mt-6 pt-4 border-t border-gray-200 flex-shrink-0">
+            <button type="button" class="btn btn-outline mr-2"
+                    onclick="document.getElementById('modal').classList.remove('modal-open')">
+                ยกเลิก
+            </button>
+            <button type="submit" class="btn btn-primary">
+                <i data-feather="check" class="w-4 h-4 mr-2"></i>
+                บันทึกการเปลี่ยนแปลง
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // ฟังก์ชันเลือกทั้งหมดสำหรับ scope ที่ระบุ
+    function selectAllScope(scopeType) {
+        const checkboxes = document.querySelectorAll(`.scope-${scopeType}-checkbox`);
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = true;
+        });
+    }
+
+    // ฟังก์ชันยกเลิกการเลือกทั้งหมดสำหรับ scope ที่ระบุ
+    function deselectAllScope(scopeType) {
+        const checkboxes = document.querySelectorAll(`.scope-${scopeType}-checkbox`);
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+    }
+
+    // เรียกใช้ feather icons
+    if (window.feather) { 
+        feather.replace(); 
+    }
+</script>

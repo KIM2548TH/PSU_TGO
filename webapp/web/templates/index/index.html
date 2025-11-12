@@ -57,6 +57,17 @@
               </a>
             </li>
             {% endif %}
+            
+            <!-- Department Management - ตรวจสอบ permission ก่อนแสดง -->
+            {% if has_permission("เข้าถึงหน้าจัดการผู้ใช้ในหน่วยงาน") %}
+            <li>
+              <a href="/department-management" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path.startswith('/department-management') %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
+                <i data-feather="user-check"></i>
+                <span class="text-md">จัดการผู้ใช้ในหน่วยงาน</span>
+              </a>
+            </li>
+            {% endif %}
+            
             {% if has_permission("เข้าถึงหน้าจัดการสิทธิ์") %}
             <li>
               <a href="/role-management" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/role-management/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
@@ -65,6 +76,9 @@
               </a>
             </li>
             {% endif %}
+            
+
+            
             {% if has_permission("เข้าถึงหน้าแหล่งปล่อยก๊าซเรือนกระจก") %}
             <li>
               <a href="/form-management/" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/form-management/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
@@ -176,9 +190,9 @@
       <div class="flex items-center gap-2">
         <a href="/profile/" class="flex items-center gap-2 text-white hover:text-white/80">
           <div class="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white font-bold border border-white/30">
-            <span class="text-lg font-bold">{{ current_user.username[0]|upper if current_user else 'U' }}</span>
+            <span class="text-lg font-bold">{{ current_user.name[0]|upper if current_user.name else current_user.username[0]|upper if current_user else 'U' }}</span>
           </div>
-          <span class="ml-2 text-base font-medium">{{ current_user.username if current_user else 'Username' }}</span>
+          <span class="ml-2 text-base font-medium">{{ current_user.name if current_user.name else current_user.username if current_user else 'Username' }}</span>
         </a>
       </div>
     </nav>

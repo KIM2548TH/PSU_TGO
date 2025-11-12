@@ -15,6 +15,9 @@
     {% elif path.startswith('/users-management') %}
       {% set page_title = t.sidebar_user %}
       {% set page_subtitle = t.subtitle_user %}
+    {% elif path.startswith('/department-management') %}
+      {% set page_title = 'จัดการผู้ใช้ในหน่วยงาน' %}
+      {% set page_subtitle = 'จัดการ scope ของผู้ใช้ในหน่วยงานเดียวกัน' %}
     {% elif path.startswith('/role-management') %}
       {% set page_title = t.sidebar_role %}
       {% set page_subtitle = t.subtitle_role %}
@@ -71,9 +74,9 @@
     <!-- User info -->
     <a href="/profile/" class="flex items-center gap-2">
       <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold">
-        <span class="text-lg font-bold">{{ current_user.username[0]|upper }}</span>
+        <span class="text-lg font-bold">{{ (current_user.name[0] if current_user.name else current_user.username[0])|upper }}</span>
       </div>
-      <span class="ml-2 text-base font-medium text-base-content">{{ current_user.username }}</span>
+      <span class="ml-2 text-base font-medium text-base-content">{{ current_user.name if current_user.name else "-" }}</span>
     </a>
   </div>
 </nav>

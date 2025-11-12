@@ -1,0 +1,58 @@
+<form hx-post="{{ url_for('department_management.create_user') }}"
+      hx-target="#users-table-container"
+      hx-swap="innerHTML">
+    
+    {{ form.hidden_tag() }}
+    
+    <h2 class="text-xl font-bold mb-4">เพิ่มผู้ใช้ในหน่วยงาน</h2>
+    
+    <p class="text-sm text-gray-500">
+      มหาวิทยาลัยสงขลานครินทร์
+    </p>
+    {% if current_campus or current_department %}
+    <div class="flex items-center gap-1 text-xs text-gray-400 mb-4">
+      {% if current_campus %}
+        <span class="inline-flex items-center gap-1">
+          <i data-feather="map-pin" class="w-3 h-3"></i>
+          วิทยาเขต: {{ current_campus }}
+        </span>
+      {% endif %}
+      {% if current_department %}
+        <span class="inline-flex items-center gap-1">
+          <i data-feather="building" class="w-3 h-3"></i>
+          หน่วยงาน: {{ current_department }}
+        </span>
+      {% endif %}
+    </div>
+    {% endif %}
+    
+    <div class="mb-4">
+        {{ form.username.label(class="block text-sm font-medium mb-1") }}
+        {{ form.username(class="input input-bordered w-full") }}
+    </div>
+    
+    <div class="mb-4">
+        {{ form.name.label(class="block text-sm font-medium mb-1") }}
+        {{ form.name(class="input input-bordered w-full") }}
+    </div>
+    
+    <div class="mb-4">
+        {{ form.password.label(class="block text-sm font-medium mb-1") }}
+        {{ form.password(class="input input-bordered w-full", type="password") }}
+    </div>
+    
+    <div class="mb-4">
+        {{ form.confirm_password.label(class="block text-sm font-medium mb-1") }}
+        {{ form.confirm_password(class="input input-bordered w-full", type="password") }}
+    </div>
+    
+    <div class="mt-6 flex justify-end space-x-2">
+        <button type="button" class="btn btn-outline"
+                onclick="document.getElementById('modal').classList.remove('modal-open')">
+            ยกเลิก
+        </button>
+        <button type="submit" class="btn btn-primary">
+            สร้างผู้ใช้
+        </button>
+    </div>
+</form>

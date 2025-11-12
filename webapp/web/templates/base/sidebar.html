@@ -24,6 +24,17 @@
         </a>
       </li>
       {% endif %}
+
+      <!-- Department Management - ตรวจสอบ permission ก่อนแสดง -->
+      {% if has_permission("เข้าถึงหน้าจัดการผู้ใช้ในหน่วยงาน") %}
+      <li>
+        <a href="/department-management" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path.startswith('/department-management') %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
+          <i data-feather="user-check"></i>
+          <span class="text-md">จัดการผู้ใช้ในหน่วยงาน</span>
+        </a>
+      </li>
+      {% endif %}
+      
       {% if has_permission("เข้าถึงหน้าจัดการสิทธิ์") %}
       <li>
         <a href="/role-management" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/role-management/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
@@ -32,6 +43,9 @@
         </a>
       </li>
       {% endif %}
+      
+
+      
       {% if has_permission("เข้าถึงหน้าแหล่งปล่อยก๊าซเรือนกระจก") %}
       <li>
         <a href="/form-management/" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/form-management/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">

@@ -18,11 +18,14 @@
             <td class="px-4 py-3">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold">
-                  <span class="text-lg font-bold">{{ user.username[0]|upper }}</span>
+                  <span class="text-lg font-bold">{{ (user.name[0] if user.name else user.username[0])|upper }}</span>
                 </div>
                 <div>
-                  <div class="font-medium">{{ user.username }}</div>
+                  <div class="font-medium">{{ user.name if user.name else "-" }}</div>
                   <div class="text-sm text-gray-500">{{ user.email }}</div>
+                  {% if user.username %}
+                    <div class="text-xs text-gray-400">username: {{ user.username }}</div>
+                  {% endif %}
                 </div>
               </div>
             </td>

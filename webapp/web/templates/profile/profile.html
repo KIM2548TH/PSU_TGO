@@ -8,9 +8,9 @@
     <div class="col-span-1 card bg-base-100 shadow-md p-6 flex flex-col items-center h-86">
       <h2 class="text-lg font-bold text-base-content mb-4">{{ t.profile_overview }}</h2>
       <div class="w-32 h-32 rounded-full bg-primary text-primary-content flex items-center justify-center mb-4">
-        <span class="text-4xl font-bold">{{ user.username[0]|upper }}</span>
+        <span class="text-4xl font-bold">{{ (user.name[0] if user.name else user.username[0])|upper }}</span>
       </div>
-      <h2 class="text-lg font-bold text-base-content mt-2">{{ user.username or "-" }}</h2>
+      <h2 class="text-lg font-bold text-base-content mt-2">{{ user.name if user.name else  "-" }}</h2>
       <p class="text-sm text-base-content/70">{{ user.roles | join(', ') if user.roles else "-" }}</p>
       <button class="btn btn-outline btn-primary mt-4 w-full">{{ t.change_photo }}</button>
     </div>
@@ -19,11 +19,19 @@
     <div class="col-span-2 card bg-base-100 shadow-md p-6 h-full ">
       <h2 class="text-lg font-bold text-base-content mb-4">{{ t.personal_information }}</h2>
       <div class="space-y-6">
-        <!-- Username -->
+        <!-- Name -->
         <div class="flex items-center space-x-4">
           <i data-feather="user" class="w-6 h-6 stroke-gray-500"></i>
           <div>
-            <h3 class="text-sm font-bold text-base-content">{{ t.username }}</h3>
+            <h3 class="text-sm font-bold text-base-content">{{ t.name or 'Name' }}</h3>
+            <p class="text-base text-base-content">{{ user.name if user.name else  "-" }}</p>
+          </div>
+        </div>
+        <!-- Username -->
+        <div class="flex items-center space-x-4">
+          <i data-feather="at-sign" class="w-6 h-6 stroke-gray-500"></i>
+          <div>
+            <h3 class="text-sm font-bold text-base-content">username</h3>
             <p class="text-base text-base-content">{{ user.username or "-" }}</p>
           </div>
         </div>

@@ -1,0 +1,71 @@
+{% extends "/base/default_page.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+  <!-- Header Section -->
+  <div class="card shadow-lg bg-base-100 p-6 rounded-lg">
+    <div>
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-3">
+          <h2 class="text-2xl font-bold">
+            จัดการผู้ใช้ในหน่วยงาน
+          </h2>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-4 mb-0">
+        <p class="text-sm text-gray-500">
+          มหาวิทยาลัยสงขลานครินทร์
+        </p>
+        {% if current_campus or current_department %}
+        <div class="flex items-center gap-1 text-xs text-gray-400">
+          {% if current_campus %}
+            <span class="inline-flex items-center gap-1">
+              <i data-feather="map-pin" class="w-3 h-3"></i>
+              วิทยาเขต: {{ current_campus }}
+            </span>
+          {% endif %}
+          {% if current_department %}
+            <span class="inline-flex items-center gap-1">
+              <i data-feather="building" class="w-3 h-3"></i>
+              หน่วยงาน: {{ current_department }}
+            </span>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Add User Section -->
+  <div class="flex gap-4 items-center mb-6">
+    <div class="flex-1">
+      <input type="text" 
+             name="search" 
+             placeholder="ค้นหาผู้ใช้..." 
+             class="input input-bordered w-full"
+             hx-get="{{ url_for('department_management.load_users_table') }}" 
+             hx-target="#users-table-container" 
+             hx-swap="innerHTML" 
+             hx-trigger="keyup changed delay:500ms, search">
+    </div>
+    <button class="btn btn-primary" 
+            hx-get="{{ url_for('department_management.load_register_form') }}" 
+            hx-target="#modal-content" 
+            hx-swap="innerHTML" 
+            onclick="document.getElementById('modal').classList.add('modal-open')">
+      <i data-feather="plus" class="w-4 h-4 mr-2"></i>
+      เพิ่มผู้ใช้
+    </button>
+  </div>
+
+  <!-- Users Table -->
+  <div id="users-table-container">
+    {% include "/department-management/users-table.html" %}
+  </div>
+</div>
+
+<script>
+  feather.replace();
+</script>
+{% endblock content %}
