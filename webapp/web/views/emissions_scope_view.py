@@ -19,10 +19,40 @@ def emissions_scope():
     user = current_user
     user.campus = CampusAndDepartment.get_campus_name(user.campus_id)
     user.department = CampusAndDepartment.get_department_name(user.campus_id, user.department_key)
+    
     # ดึงข้อมูล Scope ที่ตรงกับ campus และ department ของ current_user
-    scopes = Scope.objects(
-        campus=user.campus_id, department=user.department_key
-    ).order_by("ghg_scope", "ghg_sup_scope")
+    # และกรองเฉพาะ scope ที่อยู่ในฟิลด์ของ user เท่านั้น
+    scopes = []
+    
+    # ดึง Scope 1 ที่อยู่ในฟิลด์ ghg_scope_1 ของ user
+    if user.ghg_scope_1:
+        scope_1_list = Scope.objects(
+            ghg_scope=1,
+            ghg_sup_scope__in=user.ghg_scope_1,
+            campus=user.campus_id, 
+            department=user.department_key
+        )
+        scopes.extend(scope_1_list)
+    
+    # ดึง Scope 2 ที่อยู่ในฟิลด์ ghg_scope_2 ของ user
+    if user.ghg_scope_2:
+        scope_2_list = Scope.objects(
+            ghg_scope=2,
+            ghg_sup_scope__in=user.ghg_scope_2,
+            campus=user.campus_id, 
+            department=user.department_key
+        )
+        scopes.extend(scope_2_list)
+    
+    # ดึง Scope 3 ที่อยู่ในฟิลด์ ghg_scope_3 ของ user
+    if user.ghg_scope_3:
+        scope_3_list = Scope.objects(
+            ghg_scope=3,
+            ghg_sup_scope__in=user.ghg_scope_3,
+            campus=user.campus_id, 
+            department=user.department_key
+        )
+        scopes.extend(scope_3_list)
 
     # ดึงปีทั้งหมดที่มีในฐานข้อมูล Material สำหรับ dropdown
     all_years = Material.objects().distinct("year")
