@@ -103,10 +103,13 @@
         sidebar.style.width = newSidebarWidth + 'px';
       }
       
-      // ปรับ margin-left ของ main content
+      // ปรับ margin-left ของ main content ขึ้นกับสถานะ sidebar-toggle
       const mainContent = document.getElementById('main-content');
       if (mainContent) {
-        mainContent.style.marginLeft = newSidebarWidth + 'px';
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        // ถ้าไม่มี checkbox ให้ถือว่า sidebar เปิดอยู่
+        const sidebarOpen = sidebarToggle ? !sidebarToggle.checked : true;
+        mainContent.style.marginLeft = sidebarOpen ? (newSidebarWidth + 'px') : '0px';
       }
       
       // บันทึกค่า zoom ใน localStorage
@@ -125,6 +128,12 @@
     document.addEventListener('DOMContentLoaded', function() {
       // โหลดค่า zoom ที่บันทึกไว้
       loadSavedZoom();
+
+      // ติด listener ให้อัพเดตเมื่อ toggle sidebar
+      const sidebarToggle = document.getElementById('sidebar-toggle');
+      if (sidebarToggle) {
+        sidebarToggle.addEventListener('change', applyZoom);
+      }
       
       // ป้องกันการใช้คีย์ลัดซูมของเบราว์เซอร์
       document.addEventListener('keydown', function(e) {
