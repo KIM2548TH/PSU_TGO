@@ -9,6 +9,17 @@ from ..utils.acl import permissions_required_all
 module = Blueprint("department_management", __name__, url_prefix="/department-management")
 
 
+def _sort_users(users):
+    """
+    เรียงลำดับผู้ใช้ตามสถานะ (active ก่อน inactive) และชื่อตามตัวอักษร
+    """
+    users_list = list(users)
+    return sorted(users_list, key=lambda user: (
+        0 if user.status == 'active' else 1,  # active ก่อน inactive
+        (user.name or user.username).lower()  # เรียงตามชื่อตัวอักษร
+    ))
+
+
 @module.route("/", methods=["GET"])
 @login_required
 @permissions_required_all(["เข้าถึงหน้าจัดการผู้ใช้ในหน่วยงาน"])
@@ -23,6 +34,9 @@ def department_management():
             campus_id=current_user.campus_id,
             department_key=current_user.department_key
         )
+        
+        # เรียงลำดับผู้ใช้
+        users = _sort_users(users)
         
         for user in users:
             user.campus = CampusAndDepartment.get_campus_name(user.campus_id)
@@ -40,7 +54,7 @@ def department_management():
         _add_scope_display_names(users)
 
         # คำนวณ pagination
-        total_users = users.count()
+        total_users = len(users)
         per_page = 10
         total_pages = (total_users + per_page - 1) // per_page
 
@@ -162,6 +176,9 @@ def update_user_scopes(user_id):
             department_key=current_user.department_key
         )
         
+        # เรียงลำดับผู้ใช้
+        users = _sort_users(users)
+        
         for u in users:
             u.campus = CampusAndDepartment.get_campus_name(u.campus_id)
             u.department = CampusAndDepartment.get_department_name(
@@ -251,6 +268,9 @@ def load_users_table():
         total_pages = (total_users + per_page - 1) // per_page
         users = users.skip((page - 1) * per_page).limit(per_page)
         
+        # เรียงลำดับผู้ใช้
+        users = _sort_users(users)
+        
         for user in users:
             user.campus = CampusAndDepartment.get_campus_name(user.campus_id)
             user.department = CampusAndDepartment.get_department_name(
@@ -319,6 +339,9 @@ def create_user():
                     campus_id=current_user.campus_id,
                     department_key=current_user.department_key
                 )
+                
+                # เรียงลำดับผู้ใช้
+                users = _sort_users(users)
                 
                 for u in users:
                     u.campus = CampusAndDepartment.get_campus_name(u.campus_id)

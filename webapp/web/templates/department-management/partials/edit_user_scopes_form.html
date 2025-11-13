@@ -14,34 +14,34 @@
         
         <!-- User Info -->
         <div class="bg-gray-50 rounded-lg p-4 mb-6">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold">
-                    <span class="text-lg font-bold">{{ (user.name[0] if user.name else user.username[0])|upper }}</span>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold">
+                        <span class="text-lg font-bold">{{ (user.name[0] if user.name else user.username[0])|upper }}</span>
+                    </div>
+                    <div>
+                        <div class="font-medium">{{ user.name if user.name else user.username }}</div>
+                        <div class="text-sm text-gray-500">{{ user.email }}</div>
+                    </div>
                 </div>
-                <div>
-                    <div class="font-medium">{{ user.name if user.name else user.username }}</div>
-                    <div class="text-sm text-gray-500">{{ user.email }}</div>
+                <div class="text-right">
+                    <div class="flex items-center text-sm font-medium text-gray-700 mb-2">
+                        <i data-feather="user-check" class="w-4 h-4 mr-2"></i>
+                        สถานะผู้ใช้
+                    </div>
+                    <div class="flex gap-2">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="status" value="active" class="radio radio-sm mr-1" 
+                                   {% if user.status == 'active' %}checked{% endif %}>
+                            <span class="text-[10px] font-medium">Active</span>
+                        </label>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="status" value="disactive" class="radio radio-sm mr-1" 
+                                   {% if user.status == 'disactive' %}checked{% endif %}>
+                            <span class="text-[10px] font-medium">Inactive</span>
+                        </label>
+                    </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- User Status -->
-        <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
-            <label class="block text-sm font-bold text-gray-700 mb-3">
-                <i data-feather="user" class="w-4 h-4 inline mr-2"></i>
-                สถานะผู้ใช้
-            </label>
-            <div class="flex gap-4">
-                <label class="flex items-center space-x-2 cursor-pointer">
-                    <input type="radio" name="status" value="active" class="radio radio-success" 
-                           {% if user.status == 'active' %}checked{% endif %}>
-                    <span class="text-sm font-medium text-green-700">เปิดใช้งาน (Active)</span>
-                </label>
-                <label class="flex items-center space-x-2 cursor-pointer">
-                    <input type="radio" name="status" value="disactive" class="radio radio-error" 
-                           {% if user.status == 'disactive' %}checked{% endif %}>
-                    <span class="text-sm font-medium text-red-700">ปิดใช้งาน (Inactive)</span>
-                </label>
             </div>
         </div>
 
@@ -59,7 +59,7 @@
                 {% set scope_icon = "layers" %}
                 {% set card_border = "border-purple-200" %}
                 {% set card_hover = "hover:border-purple-400" %}
-                {% set checkbox_color = "checkbox-primary" %}
+                {% set checkbox_color = "checkbox-secondary" %}
                 {% set number_color = "text-purple-500" %}
             {% elif scope_type == 2 %}
                 {% set bg_color = "bg-green-50" %}
@@ -83,7 +83,7 @@
                 {% set scope_icon = "globe" %}
                 {% set card_border = "border-blue-200" %}
                 {% set card_hover = "hover:border-blue-400" %}
-                {% set checkbox_color = "checkbox-info" %}
+                {% set checkbox_color = "checkbox-primary" %}
                 {% set number_color = "text-blue-500" %}
             {% endif %}
             
@@ -123,7 +123,7 @@
                         <input type="checkbox" 
                                name="ghg_scope_{{ scope_type }}" 
                                value="{{ sub_scope_data.id }}" 
-                               class="checkbox {{ checkbox_color }} checkbox-sm mt-1 mr-3 scope-{{ scope_type }}-checkbox"
+                               class="checkbox checkbox-sm mt-1 mr-3 scope-{{ scope_type }}-checkbox"
                                {% if sub_scope_data.id in (user.ghg_scope_1 if scope_type == 1 else user.ghg_scope_2 if scope_type == 2 else user.ghg_scope_3) or [] %}checked{% endif %}>
                         <div class="flex-1">
                             <div class="font-semibold text-sm {{ number_color }} mb-1">

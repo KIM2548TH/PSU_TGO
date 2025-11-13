@@ -55,7 +55,95 @@
     </div>
     <!-- Feather Replace Script -->
     <script>
+    // Zoom functionality
+    let currentZoom = 1;
+    const zoomStep = 0.1;
+    const minZoom = 0.5;
+    const maxZoom = 2;
+
+    function zoomIn() {
+      if (currentZoom < maxZoom) {
+        currentZoom += zoomStep;
+        applyZoom();
+      }
+    }
+
+    function zoomOut() {
+      if (currentZoom > minZoom) {
+        currentZoom -= zoomStep;
+        applyZoom();
+      }
+    }
+
+    function resetZoom() {
+      currentZoom = 1;
+      applyZoom();
+    }
+
+    function applyZoom() {
+      // ใช้ transform scale แทน zoom เพื่อให้ตัวอักษรขยายจริง
+      document.body.style.transform = `scale(${currentZoom})`;
+      document.body.style.transformOrigin = 'top left';
+      
+      // คำนวณความกว้างและความสูงของ viewport หลังจาก scale
+      const scaledWidth = window.innerWidth / currentZoom;
+      const scaledHeight = window.innerHeight / currentZoom;
+      
+      // ปรับขนาด body ให้พอดีกับ scale
+      document.body.style.width = scaledWidth + 'px';
+      document.body.style.height = scaledHeight + 'px';
+      
+      // คำนวณความกว้างของ sidebar และ margin ของ main content ตาม zoom
+      const baseSidebarWidth = 256; // 16rem * 16px = 256px (w-64)
+      const newSidebarWidth = baseSidebarWidth;
+      
+      // ปรับความกว้างของ sidebar (ไม่ต้องคูณ currentZoom เพราะ scale จัดการให้แล้ว)
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar) {
+        sidebar.style.width = newSidebarWidth + 'px';
+      }
+      
+      // ปรับ margin-left ของ main content
+      const mainContent = document.getElementById('main-content');
+      if (mainContent) {
+        mainContent.style.marginLeft = newSidebarWidth + 'px';
+      }
+      
+      // บันทึกค่า zoom ใน localStorage
+      localStorage.setItem('pageZoom', currentZoom);
+    }
+
+    // โหลดค่า zoom ที่บันทึกไว้
+    function loadSavedZoom() {
+      const savedZoom = localStorage.getItem('pageZoom');
+      if (savedZoom) {
+        currentZoom = parseFloat(savedZoom);
+        applyZoom();
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
+      // โหลดค่า zoom ที่บันทึกไว้
+      loadSavedZoom();
+      
+      // ป้องกันการใช้คีย์ลัดซูมของเบราว์เซอร์
+      document.addEventListener('keydown', function(e) {
+        // ตรวจจับ Ctrl+Plus, Ctrl+Minus, Ctrl+0 (Windows/Linux)
+        // และ Cmd+Plus, Cmd+Minus, Cmd+0 (Mac)
+        if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=' || e.key === '-' || e.key === '0')) {
+          e.preventDefault();
+          
+          // เรียกฟังก์ชันซูมของเราแทน
+          if (e.key === '+' || e.key === '=') {
+            zoomIn();
+          } else if (e.key === '-') {
+            zoomOut();
+          } else if (e.key === '0') {
+            resetZoom();
+          }
+        }
+      });
+      
       // เรียก feather.replace() เมื่อโหลดหน้าครั้งแรก
       if (typeof feather !== 'undefined') {
         feather.replace();
