@@ -6,6 +6,18 @@ from ...models import User, Role, Permission, CampusAndDepartment
 
 module = Blueprint("profile", __name__, url_prefix="/profile")
 
+# ดู profile ของ user ใด ๆ (readonly ถ้าไม่ใช่เจ้าของ)
+@module.route("/view/<username>", methods=["GET"])
+@login_required
+def view_profile(username):
+    user = User.objects(username=username).first()
+    if not user:
+        return render_template("/profile/profile.html", error_msg="ไม่พบผู้ใช้")
+    user.campus = CampusAndDepartment.get_campus_name(user.campus_id)
+    user.department = CampusAndDepartment.get_department_name(user.campus_id, user.department_key)
+    is_owner = (current_user.username == user.username)
+    return render_template("/profile/profile.html", user=user, is_owner=is_owner)
+
 @module.route("/", methods=["get", "post"])
 @login_required
 def profile():
@@ -14,7 +26,7 @@ def profile():
     user.department = CampusAndDepartment.get_department_name(user.campus_id,user.department_key)
 
     print(user.campus)
-    return render_template("/profile/profile.html", user=user)
+    return render_template("/profile/profile.html", user=user, is_owner=True)
 
 
 @module.route("/load-edit-profile", methods=["GET", "POST"])

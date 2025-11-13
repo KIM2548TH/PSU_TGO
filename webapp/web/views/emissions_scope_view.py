@@ -295,11 +295,41 @@ def scope_description(ghg_scope, ghg_sup_scope):
             campus_name = scope.campus
             department_name = scope.department
 
+        # ดึงผู้รับผิดชอบ subscope นี้ (username, name, email)
+        from ...models import User
+        responsibles = []
+        if scope.ghg_scope == 1:
+            users = User.objects(
+                campus_id=current_user.campus_id,
+                department_key=current_user.department_key,
+                ghg_scope_1=scope.ghg_sup_scope
+            )
+        elif scope.ghg_scope == 2:
+            users = User.objects(
+                campus_id=current_user.campus_id,
+                department_key=current_user.department_key,
+                ghg_scope_2=scope.ghg_sup_scope
+            )
+        elif scope.ghg_scope == 3:
+            users = User.objects(
+                campus_id=current_user.campus_id,
+                department_key=current_user.department_key,
+                ghg_scope_3=scope.ghg_sup_scope
+            )
+        else:
+            users = []
+        for u in users:
+            responsibles.append({
+                "username": u.username,
+                "name": u.name,
+                "email": u.email
+            })
         return render_template(
             "/emissions-scope/partials/scope-description-modal.html", 
             scope=scope,
             campus_name=campus_name,
-            department_name=department_name
+            department_name=department_name,
+            responsibles=responsibles
         )
 
     except Exception as e:
