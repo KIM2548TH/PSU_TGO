@@ -107,11 +107,35 @@
         </div>
       </div>
 
-      <!-- Active Filters - ไม่มี HTMX -->
-      <div id="active-filters" class="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
-        <span class="text-sm font-medium">{{ t.active_filters }}</span>
-        <span class="badge badge-primary badge-sm">{{ user.campus }}</span>
-        <span class="badge badge-secondary badge-sm">{{ user.department }}</span>
+      <!-- Active Filters with PDF Buttons -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-4 border-t border-gray-200">
+        <!-- Active Filters -->
+        <div id="active-filters" class="flex flex-wrap gap-2">
+          <span class="text-sm font-medium">{{ t.active_filters }}</span>
+          <span class="badge badge-primary badge-sm">{{ user.campus }}</span>
+          <span class="badge badge-secondary badge-sm">{{ user.department }}</span>
+        </div>
+        
+        <!-- PDF Action Buttons -->
+        <div id="pdf-actions" class="flex gap-2">
+          <!-- Preview Button -->
+          <button class="btn btn-sm btn-info text-white opacity-50 cursor-not-allowed" 
+                  id="preview-pdf-btn"
+                  disabled
+                  title="กรุณาเลือก Scope, Sub Scope และ Year ก่อน">
+            <i data-feather="eye" class="w-3.5 h-3.5 mr-1"></i>
+            <span class="hidden sm:inline">Preview</span>
+          </button>
+          
+          <!-- Download Button -->
+          <button class="btn btn-sm btn-success text-white opacity-50 cursor-not-allowed" 
+                  id="download-pdf-btn"
+                  disabled
+                  title="กรุณาเลือก Scope, Sub Scope และ Year ก่อน">
+            <i data-feather="download" class="w-3.5 h-3.5 mr-1"></i>
+            <span class="hidden sm:inline">PDF</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -219,6 +243,87 @@
        hx-trigger="load"
        hx-swap="outerHTML"></div>
 </div>
+
+<script>
+// Function to check if PDF buttons should be enabled
+function checkPdfButtonsState() {
+  const selectedScopes = document.querySelectorAll('[name="selected_scopes"]:checked');
+  const selectedSubScopes = document.querySelectorAll('[name="selected_sub_scopes"]:checked');
+  const selectedYear = document.querySelector('[name="selected_year"]:checked');
+  
+  const hasRequiredSelections = selectedScopes.length > 0 && selectedSubScopes.length > 0 && selectedYear;
+  
+  const previewBtn = document.getElementById('preview-pdf-btn');
+  const downloadBtn = document.getElementById('download-pdf-btn');
+  
+  if (hasRequiredSelections) {
+    // Enable buttons
+    previewBtn.disabled = false;
+    previewBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    previewBtn.classList.add('cursor-pointer');
+    previewBtn.title = 'พรีวิวรายงาน PDF';
+    
+    downloadBtn.disabled = false;
+    downloadBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    downloadBtn.classList.add('cursor-pointer');
+    downloadBtn.title = 'ดาวน์โหลดรายงาน PDF';
+    
+    // Add click handlers
+    previewBtn.onclick = function() {
+      // Load preview modal via HTMX
+      htmx.ajax('GET', '/summary/preview-pdf-modal', {
+        target: 'body',
+        swap: 'beforeend',
+        values: {
+          'selected_year': selectedYear ? selectedYear.value : '',
+        }
+      });
+    };
+    
+    downloadBtn.onclick = function() {
+      // Load download modal via HTMX
+      htmx.ajax('GET', '/summary/download-pdf-modal', {
+        target: 'body',  
+        swap: 'beforeend',
+        values: {
+          'selected_year': selectedYear ? selectedYear.value : '',
+        }
+      });
+    };
+    
+  } else {
+    // Disable buttons
+    previewBtn.disabled = true;
+    previewBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    previewBtn.classList.remove('cursor-pointer');
+    previewBtn.title = 'กรุณาเลือก Scope, Sub Scope และ Year ก่อน';
+    previewBtn.onclick = null;
+    
+    downloadBtn.disabled = true;
+    downloadBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    downloadBtn.classList.remove('cursor-pointer');
+    downloadBtn.title = 'กรุณาเลือก Scope, Sub Scope และ Year ก่อน';
+    downloadBtn.onclick = null;
+  }
+}
+
+// Event listeners for form changes
+document.addEventListener('DOMContentLoaded', function() {
+  checkPdfButtonsState();
+  
+  // Listen for changes in scopes, sub-scopes, and year selections
+  document.addEventListener('change', function(e) {
+    if (e.target.matches('[name="selected_scopes"], [name="selected_sub_scopes"], [name="selected_year"]')) {
+      setTimeout(checkPdfButtonsState, 100); // Small delay to ensure DOM is updated
+    }
+  });
+  
+  // Listen for HTMX events that might affect selections
+  document.addEventListener('htmx:afterSwap', function(e) {
+    setTimeout(checkPdfButtonsState, 100);
+  });
+});
+</script>
 
 
 

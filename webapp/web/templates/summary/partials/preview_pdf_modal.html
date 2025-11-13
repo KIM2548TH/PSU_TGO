@@ -1,0 +1,164 @@
+<!-- Preview PDF Modal -->
+<div class="modal modal-open" id="preview-pdf-modal">
+  <div class="modal-box max-w-5xl max-h-[90vh]">
+    <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+      <i data-feather="eye" class="w-5 h-5 text-info"></i>
+      ตัวอย่างรายงานสรุปผล Carbon Footprint
+    </h3>
+    
+    <!-- Loading State -->
+    <div id="pdf-preview-loading" class="text-center py-8">
+      <div class="loading loading-spinner loading-lg text-info"></div>
+      <p class="mt-4 text-gray-600">กำลังสร้างตัวอย่างรายงาน...</p>
+    </div>
+    
+    <!-- Preview Content -->
+    <div id="pdf-preview-content" class="hidden">
+      <!-- Report Info -->
+      <div class="bg-base-200 p-4 rounded-lg mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div><strong>Campus:</strong> {{ user.campus }}</div>
+          <div><strong>Department:</strong> {{ user.department }}</div>
+          <div><strong>Selected Year:</strong> <span id="preview-selected-year">{{ selected_year }}</span></div>
+          <div><strong>Time Period:</strong> <span id="preview-time-period">Week</span></div>
+          <div><strong>Total Scopes:</strong> <span id="preview-total-scopes">-</span></div>
+          <div><strong>Total Sub Scopes:</strong> <span id="preview-total-sub-scopes">-</span></div>
+        </div>
+      </div>
+      
+      <!-- Preview Frame -->
+      <div class="border rounded-lg bg-white shadow-inner">
+        <div class="bg-gray-50 p-3 border-b flex items-center justify-between">
+          <span class="text-sm font-medium text-gray-700">รายงานตัวอย่าง</span>
+          <div class="flex gap-2">
+            <button class="btn btn-xs btn-ghost" onclick="document.getElementById('preview-frame').style.zoom = '0.8'">
+              <i data-feather="zoom-out" class="w-3 h-3"></i>
+            </button>
+            <button class="btn btn-xs btn-ghost" onclick="document.getElementById('preview-frame').style.zoom = '1'">
+              <i data-feather="maximize-2" class="w-3 h-3"></i>
+            </button>
+            <button class="btn btn-xs btn-ghost" onclick="document.getElementById('preview-frame').style.zoom = '1.2'">
+              <i data-feather="zoom-in" class="w-3 h-3"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div id="preview-frame" class="p-6 max-h-[60vh] overflow-auto">
+          <!-- Preview content will be loaded here -->
+          <div class="text-center py-8 text-gray-400">
+            กำลังโหลดตัวอย่าง...
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="modal-action">
+      <button type="button" 
+              class="btn btn-ghost" 
+              onclick="this.closest('.modal').remove()">
+        ปิด
+      </button>
+      <button type="button" 
+              class="btn btn-success"
+              onclick="this.closest('.modal').remove(); document.getElementById('download-pdf-btn').click();">
+        <i data-feather="download" class="w-4 h-4 mr-2"></i>
+        ดาวน์โหลด PDF
+      </button>
+    </div>
+  </div>
+  
+  <!-- Close modal when clicking outside -->
+  <div class="modal-backdrop" onclick="this.closest('.modal').remove()"></div>
+</div>
+
+<script>
+  // Update feather icons
+  if (typeof feather !== 'undefined') {
+    feather.replace();
+  }
+  
+  // Load preview data
+  function loadPreviewData() {
+    // Simulate loading preview data
+    setTimeout(() => {
+      // Update preview info
+      const selectedYear = document.querySelector('[name="selected_year"]:checked');
+      if (selectedYear) {
+        document.getElementById('preview-selected-year').textContent = selectedYear.value;
+      }
+      
+      const selectedTimePeriod = document.querySelector('[name="time_period"]:checked');
+      if (selectedTimePeriod) {
+        const periodLabels = {
+          'Day': 'รายวัน',
+          'week': 'รายสัปดาห์', 
+          'month': 'รายเดือน'
+        };
+        document.getElementById('preview-time-period').textContent = periodLabels[selectedTimePeriod.value] || selectedTimePeriod.value;
+      }
+      
+      const selectedScopes = Array.from(document.querySelectorAll('[name="selected_scopes"]:checked'));
+      document.getElementById('preview-total-scopes').textContent = selectedScopes.length;
+      
+      const selectedSubScopes = Array.from(document.querySelectorAll('[name="selected_sub_scopes"]:checked'));
+      document.getElementById('preview-total-sub-scopes').textContent = selectedSubScopes.length;
+      
+      // Create preview content
+      const previewFrame = document.getElementById('preview-frame');
+      previewFrame.innerHTML = `
+        <div class="space-y-6">
+          <!-- Report Header -->
+          <div class="text-center border-b pb-4">
+            <h1 class="text-xl font-bold text-blue-800">รายงานสรุปผล Carbon Footprint</h1>
+            <p class="text-sm text-gray-600 mt-2">มหาวิทยาลัยสงขลานครินทร์</p>
+            <p class="text-xs text-gray-500">Campus: {{ user.campus }} | Department: {{ user.department }}</p>
+          </div>
+          
+          <!-- Summary Stats -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-blue-50 p-4 rounded-lg text-center">
+              <div class="text-2xl font-bold text-blue-600">XX,XXX</div>
+              <div class="text-sm text-gray-600">Total CO₂ Emissions</div>
+              <div class="text-xs text-gray-500">tCO₂e</div>
+            </div>
+            <div class="bg-green-50 p-4 rounded-lg text-center">
+              <div class="text-2xl font-bold text-green-600">${selectedScopes.length}</div>
+              <div class="text-sm text-gray-600">Scopes Analyzed</div>
+            </div>
+            <div class="bg-purple-50 p-4 rounded-lg text-center">
+              <div class="text-2xl font-bold text-purple-600">${selectedSubScopes.length}</div>
+              <div class="text-sm text-gray-600">Sub Scopes</div>
+            </div>
+          </div>
+          
+          <!-- Sample Chart -->
+          <div class="bg-gray-50 p-6 rounded-lg text-center">
+            <div class="text-gray-400 mb-4">
+              <i data-feather="bar-chart-2" class="w-12 h-12 mx-auto"></i>
+            </div>
+            <p class="text-sm text-gray-600">กราฟและแผนภูมิแสดงสัดส่วนการปล่อย CO₂</p>
+            <p class="text-xs text-gray-500 mt-2">จะแสดงข้อมูลจริงในไฟล์ PDF ที่ดาวน์โหลด</p>
+          </div>
+          
+          <!-- Note -->
+          <div class="text-xs text-gray-400 text-center pt-4 border-t">
+            <p>* นี่เป็นเพียงตัวอย่างเท่านั้น รายงานจริงจะมีข้อมูลและกราฟครบถ้วน</p>
+          </div>
+        </div>
+      `;
+      
+      // Hide loading, show content
+      document.getElementById('pdf-preview-loading').classList.add('hidden');
+      document.getElementById('pdf-preview-content').classList.remove('hidden');
+      
+      // Update feather icons in preview
+      if (typeof feather !== 'undefined') {
+        feather.replace();
+      }
+    }, 1500);
+  }
+  
+  // Start loading preview
+  loadPreviewData();
+</script>

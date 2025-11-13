@@ -79,6 +79,77 @@
         <span class="ml-1 text-gray-800 break-words min-w-0">{{ department_name if department_name else scope.department }}</span>
       </div>
     </div>
+    <!-- ผู้รับผิดชอบ subscope -->
+    <div class="mt-4">
+        <div class="flex items-center justify-between mb-2">
+          <div class="font-semibold text-sm text-gray-700 flex items-center gap-2">
+            ผู้รับผิดชอบ:
+            {% if responsibles and responsibles|length > 1 %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold gap-1">
+                <i data-feather="users" class="w-4 h-4"></i>
+                {{ responsibles|length }}
+              </span>
+            {% endif %}
+          </div>
+          {% if responsibles and responsibles|length > 1 %}
+            <button type="button" class="btn btn-xs btn-outline btn-primary" onclick="document.getElementById('responsible-dropdown').classList.toggle('hidden')">
+              ดูผู้รับผิดชอบทั้งหมด ({{ responsibles|length }})
+            </button>
+          {% endif %}
+        </div>
+        {% if responsibles and responsibles|length > 0 %}
+          {% set show_dropdown = responsibles|length > 1 %}
+          <div class="flex flex-col">
+            {% set first_user = responsibles[0] %}
+            <a href="{{ url_for('profile.view_profile', username=first_user.username) }}" class="flex items-center gap-3 bg-gray-50 rounded-lg p-3 border border-gray-200 hover:bg-blue-50 transition-colors w-full">
+              <div class="flex-shrink-0">
+                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-200 text-blue-700">
+                  <i data-feather="user" class="w-6 h-6"></i>
+                </span>
+              </div>
+              <div class="flex flex-col min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="font-semibold text-base text-gray-900 break-words">{{ first_user.name }}</span>
+                  <span class="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-full font-mono">{{ first_user.username }}</span>
+                </div>
+                <div class="flex items-center gap-2 mt-1">
+                  <i data-feather="mail" class="w-4 h-4 text-blue-600"></i>
+                  <span class="text-blue-600 underline text-sm break-words">{{ first_user.email }}</span>
+                </div>
+              </div>
+            </a>
+            {% if show_dropdown %}
+              <div id="responsible-dropdown" class="hidden mt-2">
+                {% for user in responsibles[1:] %}
+                  <a href="{{ url_for('profile.view_profile', username=user.username) }}" class="flex items-center gap-3 bg-gray-50 rounded-lg p-3 border border-gray-200 mb-2 hover:bg-blue-50 transition-colors w-full">
+                    <div class="flex-shrink-0">
+                      <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-200 text-blue-700">
+                        <i data-feather="user" class="w-6 h-6"></i>
+                      </span>
+                    </div>
+                    <div class="flex flex-col min-w-0">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-base text-gray-900 break-words">{{ user.name }}</span>
+                        <span class="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-full font-mono">{{ user.username }}</span>
+                      </div>
+                      <div class="flex items-center gap-2 mt-1">
+                        <i data-feather="mail" class="w-4 h-4 text-blue-600"></i>
+                        <span class="text-blue-600 underline text-sm break-words">{{ user.email }}</span>
+                      </div>
+                    </div>
+                  </a>
+                {% endfor %}
+              </div>
+              <script>
+                // Ensure feather icons are replaced after dropdown is shown
+                document.getElementById('responsible-dropdown').addEventListener('transitionend', function() { feather.replace(); });
+              </script>
+            {% endif %}
+          </div>
+        {% else %}
+          <div class="text-xs text-gray-500">ยังไม่มีผู้รับผิดชอบสำหรับ Scope นี้</div>
+        {% endif %}
+    </div>
     {% if scope.head_table %}
     <div class="divider my-4 sm:my-6"></div>
     <div class="space-y-3">

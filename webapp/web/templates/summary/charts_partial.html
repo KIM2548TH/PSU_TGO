@@ -58,13 +58,10 @@
     
     // Force destroy ALL chart instances aggressively
     function destroyAllChartsAggressively() {
-      console.log('🔥 AGGRESSIVE CHART CLEANUP STARTING...');
-      
-      // Method 1: Destroy specific global charts
+      // Destroy only chart instances, do not remove canvas
       ['emissionsOverTimeChart', 'categoryBreakdownChart'].forEach(chartName => {
         if (window[chartName]) {
           try {
-            console.log(`Destroying ${chartName}...`);
             window[chartName].destroy();
             delete window[chartName];
           } catch (e) {
@@ -72,84 +69,17 @@
           }
         }
       });
-      
-      // Method 2: Destroy ALL Chart.js instances globally
-      if (typeof Chart !== 'undefined') {
-        if (Chart.instances) {
-          Object.keys(Chart.instances).forEach(key => {
-            try {
-              Chart.instances[key].destroy();
-              delete Chart.instances[key];
-            } catch (e) {
-              console.warn('Error destroying chart instance:', e);
-            }
-          });
-        }
-        
-        // Clear Chart registry
-        if (Chart.registry && Chart.registry.plugins) {
-          try {
-            Chart.registry.plugins.clear();
-          } catch (e) {
-            console.warn('Error clearing Chart registry:', e);
-          }
-        }
-      }
-      
-      // Method 3: NUCLEAR CANVAS RESET
-      document.querySelectorAll('#charts-container canvas').forEach((canvas, index) => {
-        console.log(`Resetting canvas ${index}...`);
-        
-        // Get parent container
-        const parent = canvas.parentNode;
-        const canvasId = canvas.id;
-        
-        // Remove old canvas completely
-        canvas.remove();
-        
-        // Create brand new canvas element
-        const newCanvas = document.createElement('canvas');
-        newCanvas.id = canvasId;
-        
-        // Apply styles based on canvas type
-        if (canvasId === 'emissionsOverTimeChart') {
-          newCanvas.style.cssText = 'max-width: 100% !important; max-height: 350px !important; position: relative !important;';
-        } else if (canvasId === 'categoryBreakdownChart') {
-          newCanvas.style.cssText = 'max-width: 220px !important; max-height: 220px !important; position: relative !important;';
-        }
-        
-        // Add to parent
-        parent.appendChild(newCanvas);
-      });
-      
-      // Method 4: Force CSS reset
-      const style = document.createElement('style');
-      style.textContent = `
-        #charts-container canvas {
-          position: relative !important;
-          width: auto !important;
-          height: auto !important;
-          max-width: 100% !important;
-          display: block !important;
-          left: 0 !important;
-          top: 0 !important;
-          transform: none !important;
-        }
-      `;
-      document.head.appendChild(style);
-      
-      console.log('🔥 AGGRESSIVE CHART CLEANUP COMPLETED');
     }
 
     // HTMX Event Listeners
-    document.addEventListener('htmx:beforeRequest', function(evt) {
-      if (evt.detail.target && (
-          evt.detail.target.id === 'charts-container' || 
-          evt.detail.target.closest('#charts-container')
-        )) {
-        destroyAllChartsAggressively();
-      }
-    });
+    // document.addEventListener('htmx:beforeRequest', function(evt) {
+    //   if (evt.detail.target && (
+    //       evt.detail.target.id === 'charts-container' || 
+    //       evt.detail.target.closest('#charts-container')
+    //     )) {
+    //     destroyAllChartsAggressively();
+    //   }
+    // });
 
     document.addEventListener('htmx:beforeSwap', function(evt) {
       if (evt.detail.target && evt.detail.target.id === 'charts-container') {
@@ -273,7 +203,10 @@
               options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: false, // Disable animation to prevent sizing issues
+                animation: {
+                  duration: 900,
+                  easing: 'easeOutQuart'
+                },
                 plugins: {
                   legend: { display: true },
                   tooltip: {
@@ -339,7 +272,10 @@
               options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                animation: false, // Disable animation to prevent sizing issues
+                animation: {
+                  duration: 900,
+                  easing: 'easeOutQuart'
+                },
                 plugins: {
                   legend: { display: false },
                   tooltip: {
@@ -374,11 +310,11 @@
 
       function init(){
         console.log('🚀 Initializing charts...');
-        const selectedYear = {{ selected_year | tojson }};
-        const rawDailyData = {{ data.daily_data | tojson }};
-        const previousYearData = {{ previous_year_data.daily_data | tojson }};
-        const categoryLabels = {{ data.category_data.keys() | list | tojson }};
-        const categoryValues = {{ data.category_data.values() | list | tojson }};
+  var selectedYear = {{ selected_year | tojson | safe }}
+  var rawDailyData = {{ data.daily_data | tojson | safe }}
+  var previousYearData = {{ previous_year_data.daily_data | tojson | safe }}
+  var categoryLabels = {{ data.category_data.keys() | list | tojson | safe }}
+  var categoryValues = {{ data.category_data.values() | list | tojson | safe }}
         const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
         const curVals = months.map(m=>rawDailyData[m]||0);
         const prevVals = months.map(m=>previousYearData[m]||0);
@@ -390,7 +326,7 @@
       }
       
       // Wait longer for DOM to be completely ready
-      setTimeout(init, 500);
+  setTimeout(init, 900);
     })();
   </script>
 </div>

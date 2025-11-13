@@ -80,7 +80,8 @@
         hx-get="/profile/load-edit-profile" 
         hx-target="#modal-content" 
         hx-swap="innerHTML" 
-        hx-on="htmx:afterRequest: document.getElementById('modal').classList.add('modal-open')">
+        hx-on="htmx:afterRequest: document.getElementById('modal').classList.add('modal-open')"
+        {% if not is_owner %}disabled style="pointer-events:none;opacity:0.6;"{% endif %}>
           {{ t.edit_profile }}
       </button>
     </div>
@@ -94,7 +95,7 @@
             <h3 class="text-base font-bold text-base-content">{{ t.email_notifications }}</h3>
             <p class="text-sm text-base-content/70">{{ t.manage_email_notifications }}</p>
           </div>
-          <button class="btn btn-outline btn-primary">{{ t.configure }}</button>
+          <button class="btn btn-outline btn-primary" {% if not is_owner %}disabled style="pointer-events:none;opacity:0.6;"{% endif %}>{{ t.configure }}</button>
         </div>
         <div class="flex justify-between items-center">
           <div>
@@ -106,7 +107,8 @@
             hx-get="{{ url_for('profile.load_check_password_form') }}"
             hx-target="#modal-content"
             hx-swap="innerHTML"
-            hx-on="htmx:afterRequest: document.getElementById('modal').classList.add('modal-open')">
+            hx-on="htmx:afterRequest: document.getElementById('modal').classList.add('modal-open')"
+            {% if not is_owner %}disabled style="pointer-events:none;opacity:0.6;"{% endif %}>
             {{ t.update_password }}
           </button>
         </div>
@@ -115,7 +117,7 @@
             <h3 class="text-base font-bold text-base-content">{{ t.sign_out }}</h3>
             <p class="text-sm text-base-content/70">{{ t.sign_out_desc }}</p>
           </div>
-          <button class="btn btn-outline btn-error">
+          <button class="btn btn-outline btn-error" {% if not is_owner %}disabled style="pointer-events:none;opacity:0.6;"{% endif %}>
             <a href="/users/logout">
               {{ t.sign_out }}
             </a>

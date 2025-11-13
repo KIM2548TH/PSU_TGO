@@ -5,6 +5,9 @@ from ...models.materail_model import Material, QuantityType
 from datetime import datetime, timedelta
 from bson import ObjectId
 from ..utils.acl import permissions_required_all
+import urllib.parse
+import json
+import base64
 
 module = Blueprint("summary", __name__, url_prefix="/summary")
 
@@ -698,6 +701,285 @@ def clear_all_sub_scopes():
 @module.route("/update-scope-selection", methods=["POST"])
 @login_required
 def update_scope_selection():
+    """Update scope selection in session"""
+    user = current_user
+    selected_scopes = request.form.getlist("selected_scopes")
+    session['selected_scopes'] = selected_scopes
+    return {"status": "success"}
+
+
+@module.route("/download-pdf-modal", methods=["GET"])
+@login_required
+@permissions_required_all(["เข้าถึงหน้าสรุปผล"])
+def download_pdf_modal():
+    """Show PDF download modal"""
+    user = current_user
+    user.campus = CampusAndDepartment.get_campus_name(user.campus_id)
+    user.department = CampusAndDepartment.get_department_name(user.campus_id, user.department_key)
+    
+    selected_year = request.args.get("selected_year", datetime.now().year)
+    
+    return render_template(
+        "/summary/partials/download_pdf_modal.html", 
+        user=user,
+        selected_year=selected_year
+    )
+
+
+@module.route("/preview-pdf-modal", methods=["GET"])
+@login_required
+@permissions_required_all(["เข้าถึงหน้าสรุปผล"])
+def preview_pdf_modal():
+    """Show PDF preview modal"""
+    user = current_user
+    user.campus = CampusAndDepartment.get_campus_name(user.campus_id)
+    user.department = CampusAndDepartment.get_department_name(user.campus_id, user.department_key)
+    
+    selected_year = request.args.get("selected_year", datetime.now().year)
+    
+    return render_template(
+        "/summary/partials/preview_pdf_modal.html", 
+        user=user,
+        selected_year=selected_year
+    )
+
+
+@module.route("/download-pdf", methods=["POST"])
+@login_required
+@permissions_required_all(["เข้าถึงหน้าสรุปผล"])
+def download_pdf():
+    """Generate and download PDF report of summary"""
+    try:
+        import io
+        from reportlab.lib.pagesizes import A4
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.lib import colors
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+        import urllib.parse
+        import json
+        from flask import make_response, send_file
+        
+        # Get form data
+        report_title = request.form.get("report_title", "รายงานสรุปผล Carbon Footprint")
+        notes = request.form.get("notes", "")
+        pdf_format = request.form.get("pdf_format", "summary")
+        is_htmx = request.form.get("htmx_request") == "1"
+        
+        # Get user info
+        user = current_user
+        user.campus = CampusAndDepartment.get_campus_name(user.campus_id)
+        user.department = CampusAndDepartment.get_department_name(user.campus_id, user.department_key)
+        
+        # Get selected data from session and form
+        selected_scopes = session.get('selected_scopes', []) or request.form.getlist("selected_scopes")
+        selected_sub_scopes = session.get('selected_sub_scopes', []) or request.form.getlist("selected_sub_scopes")
+        selected_year = request.form.get("selected_year", datetime.now().year)
+        time_period = request.form.get("time_period", "week")
+        
+        if not selected_sub_scopes:
+            if is_htmx:
+                return create_htmx_response(
+                    "/components/toast-notification.html",
+                    error_message="กรุณาเลือก Sub Scope ก่อนสร้างรายงาน"
+                )
+            return jsonify({"error": "กรุณาเลือก Sub Scope ก่อนสร้างรายงาน"}), 400
+        
+        # Calculate data using existing function
+        data = calculate_emissions_data(user, selected_sub_scopes, time_period, int(selected_year))
+        
+        # Register Thai font
+        try:
+            # Try Windows fonts first
+            thai_font_name = "TH-Sarabun-PSK"
+            thai_font_bold = "TH-Sarabun-PSK-Bold"
+            
+            try:
+                pdfmetrics.registerFont(TTFont(thai_font_name, "C:/Windows/Fonts/THSarabunPSK.ttf"))
+                pdfmetrics.registerFont(TTFont(thai_font_bold, "C:/Windows/Fonts/THSarabunPSKBold.ttf"))
+            except:
+                # Fallback fonts
+                thai_font_name = "Helvetica"
+                thai_font_bold = "Helvetica-Bold"
+        except Exception as e:
+            thai_font_name = "Helvetica"
+            thai_font_bold = "Helvetica-Bold"
+        
+        # Create PDF
+        pdf_buffer = io.BytesIO()
+        doc = SimpleDocTemplate(pdf_buffer, pagesize=A4, topMargin=0.5*inch, bottomMargin=0.5*inch)
+        styles = getSampleStyleSheet()
+        
+        # Define styles
+        title_style = ParagraphStyle(
+            'SummaryTitle',
+            parent=styles['Heading1'],
+            fontSize=20,
+            spaceAfter=10,
+            textColor=colors.Color(30/255, 64/255, 175/255),
+            alignment=1,
+            fontName=thai_font_bold,
+            keepWithNext=True
+        )
+        
+        # Create story
+        story = []
+        
+        # Title
+        story.append(Paragraph(report_title, title_style))
+        story.append(Spacer(1, 20))
+        
+        # Meta info
+        generated_date = datetime.now().strftime("%d/%m/%Y %H:%M")
+        meta_data = [
+            ['Campus:', user.campus, 'Year:', str(selected_year)],
+            ['Department:', user.department, 'สร้างรายงานเมื่อ:', generated_date],
+            ['Time Period:', time_period, 'Total Scopes:', str(len(selected_scopes))],
+        ]
+        
+        meta_table = Table(meta_data, colWidths=[1.5*inch, 2.0*inch, 1.5*inch, 2.5*inch])
+        meta_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (-1, -1), thai_font_name),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ]))
+        story.append(meta_table)
+        story.append(Spacer(1, 20))
+        
+        # Summary statistics
+        summary_data = [
+            ['Total CO₂ Emissions:', f"{data['total_emissions']:,.2f} tCO₂e"],
+            ['Average per Period:', f"{data['daily_average']:,.2f} tCO₂e"],
+            ['Year Change:', f"{data['year_change_percent']:+.1f}% ({data['year_change_trend']})"],
+            ['Materials Count:', str(data['materials_count'])],
+        ]
+        
+        summary_table = Table(summary_data, colWidths=[3*inch, 3*inch])
+        summary_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (-1, -1), thai_font_name),
+            ('FONTSIZE', (0, 0), (-1, -1), 11),
+            ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 8),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('BACKGROUND', (0, 0), (0, -1), colors.lightgrey),
+        ]))
+        story.append(summary_table)
+        story.append(Spacer(1, 20))
+        
+        # Scope breakdown if detailed format
+        if pdf_format == "detailed" and data['scope_data']:
+            scope_header = Paragraph("Scope Breakdown", styles['Heading2'])
+            story.append(scope_header)
+            story.append(Spacer(1, 10))
+            
+            scope_data_table = [['Scope', 'Sub Scope', 'Emissions (tCO₂e)', 'Percentage']]
+            
+            for scope_key, scope_info in data['scope_data'].items():
+                percentage = (scope_info['emissions'] / data['total_emissions'] * 100) if data['total_emissions'] > 0 else 0
+                scope_data_table.append([
+                    f"Scope {scope_info['ghg_scope']}",
+                    f"{scope_info['ghg_sup_scope']}",
+                    f"{scope_info['emissions']:,.2f}",
+                    f"{percentage:.1f}%"
+                ])
+            
+            scope_table = Table(scope_data_table, colWidths=[1.5*inch, 1.5*inch, 2*inch, 1.5*inch])
+            scope_table.setStyle(TableStyle([
+                ('FONTNAME', (0, 0), (-1, -1), thai_font_name),
+                ('FONTSIZE', (0, 0), (-1, -1), 9),
+                ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 6),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+                ('TOPPADDING', (0, 0), (-1, -1), 4),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
+                ('FONTNAME', (0, 0), (-1, 0), thai_font_bold),
+            ]))
+            story.append(scope_table)
+        
+        # Notes
+        if notes.strip():
+            story.append(Spacer(1, 20))
+            notes_header = Paragraph("หมายเหตุ", styles['Heading3'])
+            story.append(notes_header)
+            notes_para = Paragraph(notes, styles['Normal'])
+            story.append(notes_para)
+        
+        # Build PDF
+        doc.build(story)
+        pdf_buffer.seek(0)
+        
+        # Create response
+        filename = f"summary_report_{selected_year}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        
+        if is_htmx:
+            # For HTMX request, return success message
+            response_html = f"""
+            <div class="modal modal-open">
+              <div class="modal-box">
+                <h3 class="font-bold text-lg text-success">สร้างรายงานสำเร็จ!</h3>
+                <p class="py-4">รายงาน PDF ของคุณพร้อมดาวน์โหลดแล้ว</p>
+                <div class="modal-action">
+                  <a href="data:application/pdf;base64,{base64.b64encode(pdf_buffer.getvalue()).decode()}" 
+                     download="{filename}"
+                     class="btn btn-success">
+                    <i data-feather="download" class="w-4 h-4 mr-2"></i>
+                    ดาวน์โหลด PDF
+                  </a>
+                  <button class="btn btn-ghost" onclick="this.closest('.modal').remove()">ปิด</button>
+                </div>
+              </div>
+            </div>
+            <script>feather.replace();</script>
+            """
+            return response_html
+        else:
+            # For direct request, return PDF file
+            return send_file(
+                pdf_buffer,
+                mimetype='application/pdf',
+                as_attachment=True,
+                download_name=filename
+            )
+            
+    except Exception as e:
+        if is_htmx:
+            return create_htmx_response(
+                "/components/toast-notification.html",
+                error_message=f"เกิดข้อผิดพลาดในการสร้างรายงาน: {str(e)}"
+            )
+        return jsonify({"error": f"เกิดข้อผิดพลาดในการสร้างรายงาน: {str(e)}"}), 500
+
+
+def create_htmx_response(template_path, template_vars=None, success_message=None, error_message=None):
+    """Helper function for creating HTMX response with toast notification"""
+    if template_vars is None:
+        template_vars = {}
+    
+    from flask import make_response, render_template
+    
+    response = make_response(render_template(template_path, **template_vars))
+    
+    trigger_data = {}
+    if success_message:
+        trigger_data["showSuccess"] = urllib.parse.quote(success_message)
+    if error_message:
+        trigger_data["showError"] = urllib.parse.quote(error_message)
+    
+    if trigger_data:
+        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+    
+    return response
     """HTMX endpoint สำหรับอัปเดต scope selection"""
     user = current_user
     user.campus = CampusAndDepartment.get_campus_name(user.campus_id)
