@@ -71,6 +71,19 @@
       </select>
     </form>
 
+    <!-- Zoom Controls -->
+    <div class="flex items-center gap-1">
+      <button class="btn btn-ghost btn-sm btn-square" onclick="zoomOut()" title="ซูมออก">
+        <i data-feather="zoom-out" class="w-4 h-4"></i>
+      </button>
+      <button class="btn btn-ghost btn-sm btn-square" onclick="resetZoom()" title="รีเซ็ตซูม">
+        <i data-feather="maximize-2" class="w-4 h-4"></i>
+      </button>
+      <button class="btn btn-ghost btn-sm btn-square" onclick="zoomIn()" title="ซูมเข้า">
+        <i data-feather="zoom-in" class="w-4 h-4"></i>
+      </button>
+    </div>
+
     <!-- User info -->
     <a href="/profile/" class="flex items-center gap-2">
       <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold">
