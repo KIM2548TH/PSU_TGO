@@ -73,13 +73,13 @@
 
     <!-- Zoom Controls -->
     <div class="flex items-center gap-1">
-      <button class="btn btn-ghost btn-sm btn-square" onclick="zoomOut()" title="ซูมออก">
+      <button class="btn btn-ghost btn-sm btn-square" onclick="applyZoom((parseFloat(document.body.style.zoom || 1) - 0.1))" title="ซูมออก">
         <i data-feather="zoom-out" class="w-4 h-4"></i>
       </button>
-      <button class="btn btn-ghost btn-sm btn-square" onclick="resetZoom()" title="รีเซ็ตซูม">
+      <button class="btn btn-ghost btn-sm btn-square" onclick="applyZoom(1)" title="รีเซ็ตซูม">
         <i data-feather="maximize-2" class="w-4 h-4"></i>
       </button>
-      <button class="btn btn-ghost btn-sm btn-square" onclick="zoomIn()" title="ซูมเข้า">
+      <button class="btn btn-ghost btn-sm btn-square" onclick="applyZoom((parseFloat(document.body.style.zoom || 1) + 0.1))" title="ซูมเข้า">
         <i data-feather="zoom-in" class="w-4 h-4"></i>
       </button>
     </div>
@@ -93,3 +93,48 @@
     </a>
   </div>
 </nav>
+
+<script>
+function applyZoom(zoomLevel) {
+  // ตั้งค่า zoom สำหรับ body
+  document.body.style.zoom = zoomLevel;
+  
+  // คำนวณความกว้างของ sidebar ตาม zoom
+  const baseSidebarWidth = 256; // 16rem * 16px = 256px (w-64)
+  const newSidebarWidth = baseSidebarWidth * zoomLevel;
+  
+  // ปรับความกว้างของ sidebar
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) {
+    sidebar.style.width = newSidebarWidth + 'px';
+  }
+  
+  // ปรับ margin-left ของ main content ขึ้นกับสถานะ sidebar-toggle
+  const mainContent = document.getElementById('main-content');
+  if (mainContent) {
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    // ถ้าไม่มี checkbox ให้ถือว่า sidebar เปิดอยู่
+    const sidebarOpen = sidebarToggle ? !sidebarToggle.checked : true;
+    mainContent.style.marginLeft = sidebarOpen ? (newSidebarWidth + 'px') : '0px';
+  }
+  
+  // ปรับขนาดตัวอักษรให้ขยายมากขึ้นตาม zoom
+  const baseFontSize = 16; // 16px (1rem)
+  const newFontSize = baseFontSize * zoomLevel;
+  document.documentElement.style.fontSize = newFontSize + 'px';
+  
+  // บันทึกค่า zoom ใน localStorage
+  localStorage.setItem('pageZoom', zoomLevel);
+}
+
+// โหลดค่า zoom ที่บันทึกไว้เมื่อโหลดหน้า
+function loadSavedZoom() {
+  const savedZoom = localStorage.getItem('pageZoom');
+  if (savedZoom) {
+    applyZoom(parseFloat(savedZoom));
+  }
+}
+
+// เรียกฟังก์ชันโหลดค่า zoom เมื่อโหลดหน้าเสร็จ
+document.addEventListener('DOMContentLoaded', loadSavedZoom);
+</script>
