@@ -1,6 +1,6 @@
 <form 
   hx-post="{{ url_for('emissions.save_materials') }}"
-  hx-target="#table-container"
+  hx-target="#emissions-table-container"
   hx-swap="innerHTML"
 >
   <div class="mt-2">
@@ -25,10 +25,10 @@
 
     <!-- Hidden Inputs -->
     <input type="hidden" name="head" value="{{ head }}">
-    <input type="hidden" name="scope_id" value="{{ request.args.get('scope_id') }}">
-    <input type="hidden" name="sub_scope_id" value="{{ request.args.get('sub_scope_id') }}">
-    <input type="hidden" name="page" value="{{ request.args.get('page', 1) }}">
-    <input type="hidden" name="year" value="{{ request.args.get('year', '') }}">
+    <input type="hidden" name="scope_id" value="{{ scope_id }}">
+    <input type="hidden" name="sub_scope_id" value="{{ sub_scope_id }}">
+    <input type="hidden" name="page" value="{{ page or 1 }}">
+    <input type="hidden" name="year" value="{{ year }}">
     <input type="hidden" name="month_id" value="{{ month_id }}">
     <input type="hidden" name="input_label" value="{{ input_label }}">
     <input type="hidden" name="input_field" value="{{ input_field }}">
@@ -38,13 +38,13 @@
       <button type="button"
         class="btn btn-outline btn-error px-4 py-2 text-red rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out"
         hx-post="{{ url_for('emissions.delete_material') }}"
-        hx-target="#table-container"
+        hx-target="#emissions-table-container"
         hx-swap="innerHTML"
         hx-vals='{
-          "scope_id": "{{ request.args.get("scope_id") }}",
-          "sub_scope_id": "{{ request.args.get("sub_scope_id") }}",
+          "scope_id": "{{ scope_id }}",
+          "sub_scope_id": "{{ sub_scope_id }}",
           "month_id": "{{ month_id }}",
-          "year": "{{ request.args.get("year") }}",
+          "year": "{{ year }}",
           "head": "{{ head }}",
           "input_field": "{{ input_field }}"
         }'

@@ -25,6 +25,67 @@ import urllib.parse
 module = Blueprint("emissions", __name__, url_prefix="/emissions")
 
 
+def get_user_scopes():
+    """
+    Get all available scopes for the current user
+    Returns a list of dictionaries with scope information
+    """
+    try:
+        user_scopes = []
+        
+        # Get user's scope permissions from user model
+        user = current_user
+        
+        # Combine all scopes from all three scope categories
+        all_scope_numbers = []
+        if hasattr(user, 'ghg_scope_1') and user.ghg_scope_1:
+            all_scope_numbers.extend([(1, sub_scope) for sub_scope in user.ghg_scope_1])
+        if hasattr(user, 'ghg_scope_2') and user.ghg_scope_2:
+            all_scope_numbers.extend([(2, sub_scope) for sub_scope in user.ghg_scope_2])
+        if hasattr(user, 'ghg_scope_3') and user.ghg_scope_3:
+            all_scope_numbers.extend([(3, sub_scope) for sub_scope in user.ghg_scope_3])
+        
+        # Sort by scope number then sub scope number
+        all_scope_numbers.sort(key=lambda x: (x[0], x[1]))
+        
+        # Get scope details for each available scope
+        for scope_num, sub_scope_num in all_scope_numbers:
+            scope = Scope.objects(
+                ghg_scope=scope_num,
+                ghg_sup_scope=sub_scope_num,
+                campus=user.campus_id,
+                department=user.department_key,
+            ).first()
+            
+            if scope:
+                user_scopes.append({
+                    'scope_id': scope_num,
+                    'sub_scope_id': sub_scope_num,
+                    'ghg_name': scope.ghg_name,
+                    'display_name': f"Scope {scope_num}.{sub_scope_num}"
+                })
+        
+        return user_scopes
+        
+    except Exception as e:
+        print(f"Error getting user scopes: {e}")
+        return []
+
+
+def get_current_scope_index(user_scopes, scope_id, sub_scope_id):
+    """
+    Find the index of the current scope in the user_scopes list
+    """
+    try:
+        for i, scope in enumerate(user_scopes):
+            if scope['scope_id'] == scope_id and scope['sub_scope_id'] == sub_scope_id:
+                return i
+        return -1
+    except Exception as e:
+        print(f"Error getting current scope index: {e}")
+        return -1
+
+
 def calculate_grouped_input_types(head_table, page):
     """
     Calculate and group input types by headers for pagination.
@@ -94,6 +155,17 @@ def view_emissions():
         ghg_name = scope.ghg_name
     else:
         ghg_name = "Unknown Scope"
+    
+    # Get all available scopes for the user
+    user_scopes = get_user_scopes()
+    
+    # Find current scope index for navigation
+    current_scope_index = -1
+    for i, user_scope in enumerate(user_scopes):
+        if user_scope['scope_id'] == int(scope_id) and user_scope['sub_scope_id'] == int(sub_scope_id):
+            current_scope_index = i
+            break
+    
     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", selected_year)
     return render_template(
         "emissions-scope/view-emissions.html",
@@ -104,6 +176,8 @@ def view_emissions():
         ghg_name=ghg_name,
         current_year=current_year,  # ส่งปีปัจจุบันไปยังเทมเพลต
         selected_year=int(selected_year),  # ใช้ปีที่เลือกหรือปีปัจจุบัน
+        user_scopes=user_scopes,
+        current_scope_index=current_scope_index,
     )
 
 
@@ -151,6 +225,16 @@ def load_emissions_table():
         campus=current_user.campus_id,
     )
 
+    # Get all available scopes for the user
+    user_scopes = get_user_scopes()
+    
+    # Find current scope index for navigation
+    current_scope_index = -1
+    for i, user_scope in enumerate(user_scopes):
+        if user_scope['scope_id'] == int(scope_id) and user_scope['sub_scope_id'] == int(sub_scope_id):
+            current_scope_index = i
+            break
+
     if request.headers.get("HX-Request"):
         return render_template(
             "emissions-scope/partials/emissions-table.html",
@@ -166,6 +250,8 @@ def load_emissions_table():
             year=year,
             materials_form=materials_form,
             items_per_page=items_per_page,
+            user_scopes=user_scopes,
+            current_scope_index=current_scope_index,
         )
 
     return render_template(
@@ -175,6 +261,8 @@ def load_emissions_table():
         user=current_user,
         year=year,
         materials_form=materials_form,
+        user_scopes=user_scopes,
+        current_scope_index=current_scope_index,
     )
 
 
@@ -676,6 +764,12 @@ def save_materials():
         campus=current_user.campus_id,
     )
 
+    # Get all available scopes for the user
+    user_scopes = get_user_scopes()
+    
+    # Find current scope index for navigation
+    current_scope_index = get_current_scope_index(user_scopes, int(scope_id), int(sub_scope_id))
+
     if request.headers.get("HX-Request"):
 
         
@@ -694,6 +788,8 @@ def save_materials():
             year=year,
             materials_form=materials_form,
             items_per_page=items_per_page,  # ส่งจำนวนรายการต่อหน้า
+            user_scopes=user_scopes,
+            current_scope_index=current_scope_index,
         )
         
         response = make_response(table_html)
@@ -776,6 +872,12 @@ def delete_material():
                 "formula": form.formula,
             }
 
+    # Get all available scopes for the user
+    user_scopes = get_user_scopes()
+    
+    # Find current scope index for navigation
+    current_scope_index = get_current_scope_index(user_scopes, int(scope_id), int(sub_scope_id))
+
     materials = Material.objects(
         scope=int(scope_id),
         sub_scope=int(sub_scope_id),
@@ -800,6 +902,8 @@ def delete_material():
             year=year,
             materials_form=materials_form,
             items_per_page=items_per_page,
+            user_scopes=user_scopes,
+            current_scope_index=current_scope_index,
         )
         
         response = make_response(table_html)
@@ -887,6 +991,12 @@ def delete_all_materials():
             campus=current_user.campus_id,
         )
 
+        # Get all available scopes for user
+        user_scopes = get_user_scopes()
+        
+        # Find current scope index for navigation
+        current_scope_index = get_current_scope_index(user_scopes, int(scope_id), int(sub_scope_id))
+
         if request.headers.get("HX-Request"):
             # สร้าง response พร้อม toast notification
             table_html = render_template(
@@ -903,6 +1013,8 @@ def delete_all_materials():
                 year=year,
                 materials_form=materials_form,
                 items_per_page=items_per_page,
+                user_scopes=user_scopes,
+                current_scope_index=current_scope_index,
             )
             
             response = make_response(table_html)
