@@ -38,7 +38,20 @@
 {% set head_bg = scope_head_bg.get(scope_id|string, "bg-blue-600") %}
 {% set subhead_bg = scope_subhead_bg.get(scope_id|string, "bg-blue-500") %}
 {% set field_bg = scope_field_bg.get(scope_id|string, "bg-blue-50") %}
-
+    <!-- Pagination -->
+    <div class="w-full flex justify-center items-center mt-6 gap-4 py-4">
+        <button class="btn btn-circle {{ color.bg }} hover:{{ color.head }} {{ color.text }} shadow-md transition duration-200 {% if page <= 1 %}btn-disabled opacity-50{% endif %}"
+                {% if page > 1 %}hx-get="{{ url_for('emissions.load_emissions_table', scope_id=scope_id, sub_scope_id=sub_scope_id, page=page - 1, year=year) }}" hx-target="#emissions-table-container" hx-swap="innerHTML"{% endif %}>
+            <i data-feather="arrow-left" class="w-5 h-5"></i>
+        </button>
+        <span class="text-sm {{ color.text }}">
+            table กรอกที่ <span class="font-semibold">{{ page }}</span> จาก <span class="font-semibold">{{ total_pages }}</span>
+        </span>
+        <button class="btn btn-circle {{ color.bg }} hover:{{ color.head }} {{ color.text }} shadow-md transition duration-200 {% if page >= total_pages %}btn-disabled opacity-50{% endif %}"
+                {% if page < total_pages %}hx-get="{{ url_for('emissions.load_emissions_table', scope_id=scope_id, sub_scope_id=sub_scope_id, page=page + 1, year=year) }}" hx-target="#emissions-table-container" hx-swap="innerHTML"{% endif %}>
+            <i data-feather="arrow-right" class="w-5 h-5"></i>
+        </button>
+    </div>
 
     <div class="{{ color.border }} rounded-lg shadow-lg bg-white/80">
         <table class="table w-full table-striped" style="border-collapse: separate; border-spacing: 0;">
@@ -244,20 +257,7 @@
     </div>
     {% endif %}
 
-    <!-- Pagination -->
-    <div class="w-full flex justify-center items-center mt-6 gap-4 py-4">
-        <button class="btn btn-circle {{ color.bg }} hover:{{ color.head }} {{ color.text }} shadow-md transition duration-200 {% if page <= 1 %}btn-disabled opacity-50{% endif %}"
-                {% if page > 1 %}hx-get="{{ url_for('emissions.load_emissions_table', scope_id=scope_id, sub_scope_id=sub_scope_id, page=page - 1, year=year) }}" hx-target="#emissions-table-container" hx-swap="innerHTML"{% endif %}>
-            <i data-feather="arrow-left" class="w-5 h-5"></i>
-        </button>
-        <span class="text-sm {{ color.text }}">
-            table กรอกที่ <span class="font-semibold">{{ page }}</span> จาก <span class="font-semibold">{{ total_pages }}</span>
-        </span>
-        <button class="btn btn-circle {{ color.bg }} hover:{{ color.head }} {{ color.text }} shadow-md transition duration-200 {% if page >= total_pages %}btn-disabled opacity-50{% endif %}"
-                {% if page < total_pages %}hx-get="{{ url_for('emissions.load_emissions_table', scope_id=scope_id, sub_scope_id=sub_scope_id, page=page + 1, year=year) }}" hx-target="#emissions-table-container" hx-swap="innerHTML"{% endif %}>
-            <i data-feather="arrow-right" class="w-5 h-5"></i>
-        </button>
-    </div>
+
 
 <input type="hidden" name="year" value="{{ year }}">
 
