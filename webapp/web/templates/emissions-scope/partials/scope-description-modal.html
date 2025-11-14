@@ -81,7 +81,7 @@
     </div>
     <!-- ผู้รับผิดชอบ subscope -->
     <div class="mt-4">
-        <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center mb-2">
           <div class="font-semibold text-sm text-gray-700 flex items-center gap-2">
             ผู้รับผิดชอบ:
             {% if responsibles and responsibles|length > 1 %}
@@ -91,61 +91,90 @@
               </span>
             {% endif %}
           </div>
-          {% if responsibles and responsibles|length > 1 %}
-            <button type="button" class="btn btn-xs btn-outline btn-primary" onclick="document.getElementById('responsible-dropdown').classList.toggle('hidden')">
-              ดูผู้รับผิดชอบทั้งหมด ({{ responsibles|length }})
-            </button>
-          {% endif %}
         </div>
         {% if responsibles and responsibles|length > 0 %}
-          {% set show_dropdown = responsibles|length > 1 %}
-          <div class="flex flex-col">
-            {% set first_user = responsibles[0] %}
-            <a href="{{ url_for('profile.view_profile', username=first_user.username) }}" class="flex items-center gap-3 bg-gray-50 rounded-lg p-3 border border-gray-200 hover:bg-blue-50 transition-colors w-full">
-              <div class="flex-shrink-0">
-                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-200 text-blue-700">
-                  <i data-feather="user" class="w-6 h-6"></i>
-                </span>
-              </div>
-              <div class="flex flex-col min-w-0">
-                <div class="flex items-center gap-2">
-                  <span class="font-semibold text-base text-gray-900 break-words">{{ first_user.name }}</span>
-                  <span class="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-full font-mono">{{ first_user.username }}</span>
-                </div>
-                <div class="flex items-center gap-2 mt-1">
-                  <i data-feather="mail" class="w-4 h-4 text-blue-600"></i>
-                  <span class="text-blue-600 underline text-sm break-words">{{ first_user.email }}</span>
-                </div>
-              </div>
-            </a>
-            {% if show_dropdown %}
-              <div id="responsible-dropdown" class="hidden mt-2">
-                {% for user in responsibles[1:] %}
-                  <a href="{{ url_for('profile.view_profile', username=user.username) }}" class="flex items-center gap-3 bg-gray-50 rounded-lg p-3 border border-gray-200 mb-2 hover:bg-blue-50 transition-colors w-full">
-                    <div class="flex-shrink-0">
-                      <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-200 text-blue-700">
-                        <i data-feather="user" class="w-6 h-6"></i>
-                      </span>
-                    </div>
-                    <div class="flex flex-col min-w-0">
-                      <div class="flex items-center gap-2">
-                        <span class="font-semibold text-base text-gray-900 break-words">{{ user.name }}</span>
-                        <span class="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-full font-mono">{{ user.username }}</span>
-                      </div>
-                      <div class="flex items-center gap-2 mt-1">
-                        <i data-feather="mail" class="w-4 h-4 text-blue-600"></i>
-                        <span class="text-blue-600 underline text-sm break-words">{{ user.email }}</span>
-                      </div>
-                    </div>
+          {% set max_cards = 3 %}
+          {% set show_dropdown = responsibles|length > max_cards %}
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+            {% for user in responsibles[:max_cards] %}
+                <div class="relative flex items-center gap-2 bg-gray-50 rounded-md p-2 border border-gray-200 hover:bg-blue-50 transition-colors w-full cursor-pointer" onclick="toggleDropdown(this)">
+                  <a href="{{ url_for('profile.view_profile', username=user.username) }}" class="flex-shrink-0" onclick="event.stopPropagation();">
+                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-200 text-blue-700">
+                      <i data-feather="user" class="w-5 h-5"></i>
+                    </span>
                   </a>
-                {% endfor %}
-              </div>
-              <script>
-                // Ensure feather icons are replaced after dropdown is shown
-                document.getElementById('responsible-dropdown').addEventListener('transitionend', function() { feather.replace(); });
-              </script>
-            {% endif %}
+                  <span class="font-semibold text-sm text-gray-900 break-words flex-1">{{ user.display_name if user.display_name else user.name }}</span>
+                  <span class="ml-auto flex items-center justify-center w-6 h-6 text-blue-500 chevron-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 chevron-down" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 chevron-up hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg>
+                  </span>
+                  <div class="dropdown-details absolute left-0 top-full mt-1 z-10 hidden min-w-[200px] bg-white border border-gray-200 rounded shadow-lg p-3 text-left">
+                    <div class="flex items-center gap-2 mb-1">
+                      <i data-feather="user" class="w-4 h-4 text-blue-500"></i>
+                      <span class="text-xs text-gray-700">ชื่อจริง: {{ user.name }}</span>
+                    </div>
+                    <div class="flex items-center gap-2 mb-1">
+                      <i data-feather="hash" class="w-4 h-4 text-gray-500"></i>
+                      <span class="text-xs text-gray-700">Username: {{ user.username }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <i data-feather="mail" class="w-4 h-4 text-green-500"></i>
+                      <span class="text-xs text-gray-700">Email: {{ user.email }}</span>
+                    </div>
+                  </div>
+                </div>
+            {% endfor %}
           </div>
+          {% if show_dropdown %}
+            <div class="mt-2">
+              <button type="button" class="btn btn-xs btn-outline btn-primary" onclick="document.getElementById('responsible-dropdown').classList.toggle('hidden')">
+                ดูผู้รับผิดชอบเพิ่มเติม ({{ responsibles[max_cards:]|length }})
+              </button>
+              <div id="responsible-dropdown" class="hidden mt-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                  {% for user in responsibles[max_cards:] %}
+                    <div class="relative flex items-center gap-2 bg-gray-50 rounded-md p-2 border border-gray-200 hover:bg-blue-50 transition-colors w-full cursor-pointer" onclick="toggleDropdown(this)">
+                      <a href="{{ url_for('profile.view_profile', username=user.username) }}" class="flex-shrink-0" onclick="event.stopPropagation();">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-200 text-blue-700">
+                          <i data-feather="user" class="w-5 h-5"></i>
+                        </span>
+                      </a>
+                      <span class="font-semibold text-sm text-gray-900 break-words flex-1">{{ user.display_name if user.display_name else user.name }}</span>
+                      <span class="ml-auto flex items-center justify-center w-6 h-6 text-blue-500 chevron-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 chevron-down" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 chevron-up hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg>
+                      </span>
+                      <div class="dropdown-details absolute left-0 top-full mt-1 z-10 hidden min-w-[200px] bg-white border border-gray-200 rounded shadow-lg p-3 text-left">
+                        <div class="flex items-center gap-2 mb-1">
+                          <i data-feather="user" class="w-4 h-4 text-blue-500"></i>
+                          <span class="text-xs text-gray-700">ชื่อจริง: {{ user.name }}</span>
+                        </div>
+                        <div class="flex items-center gap-2 mb-1">
+                          <i data-feather="hash" class="w-4 h-4 text-gray-500"></i>
+                          <span class="text-xs text-gray-700">Username: {{ user.username }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <i data-feather="mail" class="w-4 h-4 text-green-500"></i>
+                          <span class="text-xs text-gray-700">Email: {{ user.email }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  <script>
+                    feather.replace();
+                    function toggleDropdown(card) {
+                      var details = card.querySelector('.dropdown-details');
+                      var chevronDown = card.querySelector('.chevron-down');
+                      var chevronUp = card.querySelector('.chevron-up');
+                      details.classList.toggle('hidden');
+                      chevronDown.classList.toggle('hidden');
+                      chevronUp.classList.toggle('hidden');
+                    }
+                  </script>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          {% endif %}
         {% else %}
           <div class="text-xs text-gray-500">ยังไม่มีผู้รับผิดชอบสำหรับ Scope นี้</div>
         {% endif %}
