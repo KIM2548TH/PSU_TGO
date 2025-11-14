@@ -39,7 +39,7 @@
 {% set subhead_bg = scope_subhead_bg.get(scope_id|string, "bg-blue-500") %}
 {% set field_bg = scope_field_bg.get(scope_id|string, "bg-blue-50") %}
 
-<div id="table-container" class="{{ color.bg }} min-h-screen py-6 px-2">
+
     <div class="{{ color.border }} rounded-lg shadow-lg bg-white/80">
         <table class="table w-full table-striped" style="border-collapse: separate; border-spacing: 0;">
             <thead style="position: sticky; top: 0; z-index: 10;">
@@ -183,6 +183,67 @@
             </tbody>
         </table>
     </div>
+    
+    <!-- Scope Navigation -->
+    {% if user_scopes and user_scopes|length > 1 %}
+    <div class="w-full flex justify-center items-center mt-6 mb-4 px-4">
+        <div class="flex items-center gap-2 bg-white rounded-full shadow-lg px-6 py-3 border border-gray-200">
+            <!-- Previous Button -->
+            <button id="prev-scope-btn" 
+                    class="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200 {% if current_scope_index <= 0 %}opacity-50 cursor-not-allowed{% endif %}"
+                    {% if current_scope_index > 0 %}
+                    hx-post="{{ url_for('emissions.view_emissions') }}"
+                    hx-vals='{"scope_id": "{{ user_scopes[current_scope_index-1].scope_id }}", "sub_scope_id": "{{ user_scopes[current_scope_index-1].sub_scope_id }}", "year_form_scope": "{{ year }}"}'
+                    hx-target="body"
+                    hx-swap="innerHTML"
+                    {% endif %}>
+                <i data-feather="chevron-left" class="w-5 h-5 text-gray-600"></i>
+            </button>
+            
+            <!-- Scope Indicators -->
+            <div class="flex items-center gap-1">
+                {% for scope in user_scopes %}
+                {% set scope_color_map = {
+                    "1": "bg-purple-500 hover:bg-purple-600",
+                    "2": "bg-green-500 hover:bg-green-600", 
+                    "3": "bg-blue-500 hover:bg-blue-600"
+                } %}
+                {% set indicator_color = scope_color_map.get(scope.scope_id|string, "bg-gray-500 hover:bg-gray-600") %}
+                {% set is_current = loop.index0 == current_scope_index %}
+                
+                <button class="scope-indicator w-8 h-8 rounded-full transition-all duration-200 flex items-center justify-center text-white text-xs font-medium
+                         {% if is_current %}{{ indicator_color }} scale-125 shadow-lg ring-2 ring-offset-2 {% if scope.scope_id == '1' %}ring-purple-500{% elif scope.scope_id == '2' %}ring-green-500{% else %}ring-blue-500{% endif %}{% else %}{{ indicator_color }} opacity-70 hover:opacity-100{% endif %}"
+                        {% if not is_current %}
+                        hx-post="{{ url_for('emissions.view_emissions') }}"
+                        hx-vals='{"scope_id": "{{ scope.scope_id }}", "sub_scope_id": "{{ scope.sub_scope_id }}", "year_form_scope": "{{ year }}"}'
+                        hx-target="body"
+                        hx-swap="innerHTML"
+                        {% endif %}
+                        title="{{ scope.display_name }} - {{ scope.ghg_name }}">
+                    {% if is_current %}
+                        <span class="font-bold">{{ scope.scope_id }}.{{ scope.sub_scope_id }}</span>
+                    {% else %}
+                        <span>{{ scope.scope_id }}.{{ scope.sub_scope_id }}</span>
+                    {% endif %}
+                </button>
+                {% endfor %}
+            </div>
+            
+            <!-- Next Button -->
+            <button id="next-scope-btn"
+                    class="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200 {% if current_scope_index >= user_scopes|length - 1 %}opacity-50 cursor-not-allowed{% endif %}"
+                    {% if current_scope_index < user_scopes|length - 1 %}
+                    hx-post="{{ url_for('emissions.view_emissions') }}"
+                    hx-vals='{"scope_id": "{{ user_scopes[current_scope_index+1].scope_id }}", "sub_scope_id": "{{ user_scopes[current_scope_index+1].sub_scope_id }}", "year_form_scope": "{{ year }}"}'
+                    hx-target="body"
+                    hx-swap="innerHTML"
+                    {% endif %}>
+                <i data-feather="chevron-right" class="w-5 h-5 text-gray-600"></i>
+            </button>
+        </div>
+    </div>
+    {% endif %}
+    
     <!-- Pagination -->
     <div class="w-full flex justify-center items-center mt-6 gap-4 py-4">
         <button class="btn btn-circle {{ color.bg }} hover:{{ color.head }} {{ color.text }} shadow-md transition duration-200 {% if page <= 1 %}btn-disabled opacity-50{% endif %}"
@@ -197,13 +258,16 @@
             <i data-feather="arrow-right" class="w-5 h-5"></i>
         </button>
     </div>
-</div>
+
 
 <input type="hidden" name="year" value="{{ year }}">
 
 <script>
     feather.replace();
 </script>
+
+<!-- Include scope navigation JavaScript -->
+<script src="{{ url_for('static', filename='js/scope-navigation.js') }}"></script>
 
 <style>
     .truncate {
