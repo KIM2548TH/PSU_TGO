@@ -231,8 +231,12 @@
 .table-striped thead th {
   border-bottom: 1.9px solid #e5e7eb; /* เส้นแบ่งด้านล่างของหัวข้อ */
   border-right: 1px solid #e5e7eb; /* เส้นแบ่งด้านขวาของแต่ละหัวข้อ */
-  background-color: #f9fafb; /* สีพื้นหลังของหัวข้อ */
   text-align: center; /* จัดข้อความให้อยู่ตรงกลาง */
+}
+
+/* สีพื้นหลังเริ่มต้นสำหรับตารางที่ไม่มีคลาสธีม แต่ยกเว้นคลาสที่ขึ้นต้นด้วย scope_ */
+.table-striped thead th:not([class*="bg-"]):not([class^="scope_"]) {
+  background-color: #f9fafb; /* สีพื้นหลังของหัวข้อเริ่มต้น */
 }
 
 /* ลบเส้นแบ่งด้านขวาของหัวข้อสุดท้าย */
