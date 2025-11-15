@@ -20,6 +20,16 @@ class Material(me.Document):
         default=None
     )  # ใช้ DynamicField เพื่อรองรับค่า null หรือค่าประเภทอื่น
     result2 = me.DynamicField(default=None)
+    
+    # Gas calculation results (7 types)
+    result_co2 = me.DynamicField(default=None)
+    result_ch4 = me.DynamicField(default=None)
+    result_n2o = me.DynamicField(default=None)
+    result_hfcs = me.DynamicField(default=None)
+    result_pfcs = me.DynamicField(default=None)
+    result_sf6 = me.DynamicField(default=None)
+    result_nf3 = me.DynamicField(default=None)
+    
     create_date = me.DateTimeField(default=datetime.datetime.now)
     update_date = me.DateTimeField(default=datetime.datetime.now)
     edit_by_id = me.StringField(required=True)  # แก้ไขให้เป็น StringField

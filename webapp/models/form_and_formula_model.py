@@ -35,6 +35,15 @@ class FormAndFormula(me.Document):
     formula = me.StringField(required=True)
     formula2 = me.StringField(required=False, default="")
     
+    # Gas calculation formulas (7 types)
+    formula_co2 = me.StringField(required=False, default="")
+    formula_ch4 = me.StringField(required=False, default="")
+    formula_n2o = me.StringField(required=False, default="")
+    formula_hfcs = me.StringField(required=False, default="")
+    formula_pfcs = me.StringField(required=False, default="")
+    formula_sf6 = me.StringField(required=False, default="")
+    formula_nf3 = me.StringField(required=False, default="")
+    
     create_date = me.DateTimeField(default=datetime.datetime.now)
     update_date = me.DateTimeField(default=datetime.datetime.now)
 
