@@ -4,414 +4,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>
-    {% block title %}
-    PSU-CFO
-    {% endblock %}
-  </title>
+  <title>PSU-CFO</title>
   <link rel="stylesheet" href="{{ 'css/app.css' | static_url }}">
   <script src="https://unpkg.com/feather-icons"></script>
   <script src="{{ 'node_modules/htmx.org/dist/htmx.min.js' | static_url }}"></script>
   <script src="{{ 'node_modules/cally/dist/cally.js' | static_url }}"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="{{ 'js/date-picker.js' | static_url }}"></script>
   <script src="{{ 'js/auto-refresh.js' | static_url }}"></script>
-  {% block head %}
-  {% endblock head %}
-</head>
-
-<body class="bg-base-200">
-  <div class="flex flex-col min-h-screen">
-
-    <!-- Sidebar Toggle -->
-    <input id="sidebar-toggle" type="checkbox" class="hidden peer" />
-
-    <!-- Overlay -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black opacity-0 pointer-events-none z-10 transition-opacity duration-300"></div>
-
-    <!-- Sidebar -->
-    <div id="sidebar" class="sidebar fixed top-0 left-0 h-full bg-base-100 shadow-md z-20 transition-transform duration-300">
-      <div class="flex flex-col h-full">
-        <!-- Logo Section - Fixed -->
-        <div class="flex-shrink-0 flex items-center gap-2 p-2 bg-base-100 border-b border-base-300">
-          <a href="/" class="flex items-center gap-4">
-            <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-primary-content font-bold">
-              <span class="text-xl font-bold">P</span>
-            </div>
-            <div>
-              <h1 class="text-xl font-bold text-base-content">PSU-CFO</h1>
-              <p class="text-sm text-base-content">PSU-CFO</p>
-            </div>
-          </a>
-        </div>
-
-        <!-- Menu Section - Scrollable -->
-        <div class="flex-1 overflow-y-auto">
-          <ul class="menu w-full p-2 bg-base-100 space-y-4">
-            <!-- Admin Functions -->
-            {% if has_permission("เข้าถึงหน้าจัดการผู้ใช้") %}
-            <li>
-              <a href="/users-management" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/users-management/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-                <i data-feather="users"></i>
-                <span class="text-md">{{ t.sidebar_user }}</span>
-              </a>
-            </li>
-            {% endif %}
-            
-            <!-- Department Management - ตรวจสอบ permission ก่อนแสดง -->
-            {% if has_permission("เข้าถึงหน้าจัดการผู้ใช้ในหน่วยงาน") %}
-            <li>
-              <a href="/department-management" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path.startswith('/department-management') %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-                <i data-feather="user-check"></i>
-                <span class="text-md">จัดการผู้ใช้ในหน่วยงาน</span>
-              </a>
-            </li>
-            {% endif %}
-            
-            {% if has_permission("เข้าถึงหน้าจัดการสิทธิ์") %}
-            <li>
-              <a href="/role-management" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/role-management/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-                <i data-feather="shield"></i>
-                <span class="text-md">{{ t.sidebar_role }}</span>
-              </a>
-            </li>
-            {% endif %}
-            
-
-            
-            {% if has_permission("เข้าถึงหน้าแหล่งปล่อยก๊าซเรือนกระจก") %}
-            <li>
-              <a href="/form-management/" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/form-management/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-                <i data-feather="file-text"></i>
-                <span class="text-md">{{ t.sidebar_form }}</span>
-              </a>
-            </li>
-            {% endif %}
-            {% if has_permission("เข้าถึงหน้าจัดการ GHG Scope") %}
-            <li>
-              <a href="/scope" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path.startswith('/scope') %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-                <i data-feather="layers"></i>
-                <span class="text-md">{{t.scope_management}}</span>
-              </a>
-            </li>
-            {% endif %}
-            {% if has_permission("เข้าถึงหน้าจัดการวิทยาเขตและหน่วยงาน") %}
-            <li>
-              <a href="/campus-department" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path.startswith('/campus-department') %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-                <i data-feather="map-pin"></i>
-                <span class="text-md">จัดการวิทยาเขตและหน่วยงาน</span>
-              </a>
-            </li>
-            {% endif %} 
-            <!-- User Functions -->
-            {% if has_permission("เข้าถึงหน้าข้อมูลการปล่อย") %}
-            <li>
-              <a href="/emissions-scope" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/emissions-scope' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-                <i data-feather="bar-chart-2"></i>
-                <span class="text-md">{{ t.sidebar_emissions }}</span>
-              </a>
-            </li>
-            {% endif %}
-            {% if has_permission("เข้าถึงหน้าภาพรวมความคืบหน้า") %}
-            <li>
-              <a href="/scope-progress" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path.startswith('/scope-progress') %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-                <i data-feather="activity"></i>
-                <span class="text-md">{{ t.overall_progress }}</span>
-              </a>
-            </li>
-            {% endif %}
-            {% if has_permission("เข้าถึงหน้าสัดส่วนการปล่อย") %}
-            <li>
-              <a href="/proportions" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/proportions' or request.path == '/proportions/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-                <i data-feather="pie-chart"></i>
-                <span class="text-md">{{ t.sidebar_proportions }}</span>
-              </a>
-            </li>
-            {% endif %}
-            {% if has_permission("เข้าถึงหน้าภาพรวมสัดส่วนการปล่อย") %}
-            <li>
-              <a href="/proportions/overview" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/proportions/overview/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-                <i data-feather="target"></i>
-                <span class="text-md">เข้าถึงหน้าภาพรวมสัดส่วนการปล่อย</span>
-              </a>
-            </li>
-            {% endif %}
-            {% if has_permission("เข้าถึงหน้าสรุปผล") %}
-            <li>
-              <a href="/summary" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/summary' or request.path == '/summary/' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-                <i data-feather="trending-up"></i>
-                <span class="text-md">{{ t.sidebar_summary }}</span>
-              </a>
-            </li>
-            {% endif %}
-            <!-- <li>
-              <a href="https://g.co/gemini/share/26ec7fb8617d" target="_blank" rel="noopener" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
-                <i data-feather="map"></i>
-                <span class="text-md">Pathway</span>
-              </a>
-            </li> -->
-            {% if has_permission("เข้าถึงหน้าสรุปผล") %}
-            <li>
-              <a href="/setting" class="flex items-center gap-4 rounded-lg p-3 font-bold {% if request.path == '/settings' %}bg-primary text-primary-content{% else %}hover:bg-primary/90 hover:text-primary-content/90{% endif %}">
-                <i data-feather="settings"></i>
-                <span class="text-md">{{ t.sidebar_settings }}</span>
-              </a>
-            </li>
-            {% endif %} 
-          </ul>
-        </div>
-
-        <!-- Logout Section - Fixed at Bottom -->
-        <div class="flex-shrink-0 border-t border-base-300 bg-base-100">
-          <div class="p-2">
-            <a href="/users/logout" class="flex items-center gap-3 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
-              <i data-feather="log-out"></i>
-              <span class="text-lg">{{ t.sidebar_logout }}</span>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Navbar - โปร่งใส -->
-    <nav class="navbar bg-black/20 backdrop-blur-sm p-3 flex justify-between items-center transition-all duration-300" id="navbar">
-      <!-- Sidebar Toggle Button -->
-      <div class="flex-none">
-        <label for="sidebar-toggle" class="btn btn-ghost btn-square text-white hover:bg-white/20">
-          <i data-feather="menu" class="h-6 w-6"></i>
-        </label>
-      </div>
-      <!-- Page Title -->
-      <div class="flex-1 flex flex-col pl-4">
-        <span class="text-lg font-bold text-white">PSU-CFO</span>
-        <span class="text-sm text-white/80">{{ t.subtitle_default }}</span>
-      </div>
-      <!-- User Profile -->
-      <div class="flex items-center gap-2">
-        <a href="/profile/" class="flex items-center gap-2 text-white hover:text-white/80">
-          <div class="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white font-bold border border-white/30">
-            <span class="text-lg font-bold">{{ current_user.name[0]|upper if current_user.name else current_user.username[0]|upper if current_user else 'U' }}</span>
-          </div>
-          <span class="ml-2 text-base font-medium">{{ current_user.name if current_user.name else current_user.username if current_user else 'Username' }}</span>
-        </a>
-      </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div id="main-content">
-      <!-- Hero Video Section -->
-      <section class="hero-video-section relative w-full h-screen overflow-hidden">
-        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover z-0">
-          <source src="/static/imagines/dashboard-image.mp4" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
-        <div class="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4">
-          <h1 class="text-4xl md:text-6xl font-bold animate-fade-up">Understand Your Impact on the Planet</h1>
-          <p class="mt-4 text-lg md:text-xl animate-fade-up delay-100 max-w-4xl">ถ้าเปลี่ยนมาใช้ชีวิตอย่างใส่ใจ ยั่งยืนต่อสิ่งแวดล้อม เรื่องที่สอนคือ Basic Python</p>
-          <div class="mt-6 space-x-4 animate-fade-up delay-200">
-            <a href="/summary" class="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 transition-colors">Calculate My Footprint ➜</a>
-            <a href="#" class="border border-white text-white px-6 py-3 rounded-full hover:bg-white hover:text-green-600 transition-colors">Learn More</a>
-          </div>
-        </div>
-      </section>
-
-      <!-- Content Area - ไม่ยืดหดตาม sidebar -->
-      <div class="content-area relative z-10 bg-gradient-to-b from-transparent to-white">
-        
-        <!-- About Section -->
-        <section class="py-20 px-4 lg:px-8 max-w-6xl mx-auto">
-          <div class="text-center mb-16">
-            <h2 class="text-4xl font-bold text-gray-800 mb-4">{{ t.about_title or 'About PSU-CFO' }}</h2>
-            <p class="text-xl text-gray-600">{{ t.about_subtitle or 'Prince of Songkla University Greenhouse Gas Organization' }}</p>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-              <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
-                <i data-feather="leaf" class="w-8 h-8 text-green-600"></i>
-              </div>
-              <h3 class="text-xl font-bold text-gray-800 mb-4">Environmental Impact</h3>
-              <p class="text-gray-600">Monitor and reduce greenhouse gas emissions across the university campus with comprehensive tracking and analysis.</p>
-            </div>
-            
-            <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-              <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
-                <i data-feather="bar-chart" class="w-8 h-8 text-blue-600"></i>
-              </div>
-              <h3 class="text-xl font-bold text-gray-800 mb-4">Data Analytics</h3>
-              <p class="text-gray-600">Advanced analytics and reporting tools to help visualize carbon footprint data and identify improvement opportunities.</p>
-            </div>
-            
-            <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-              <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6">
-                <i data-feather="users" class="w-8 h-8 text-purple-600"></i>
-              </div>
-              <h3 class="text-xl font-bold text-gray-800 mb-4">Community Engagement</h3>
-              <p class="text-gray-600">Engage students, faculty, and staff in sustainability initiatives and environmental awareness programs.</p>
-            </div>
-          </div>
-        </section>
-
-        <!-- Features Section -->
-        <section class="py-20 bg-gray-50">
-          <div class="px-4 lg:px-8 max-w-6xl mx-auto">
-            <div class="text-center mb-16">
-              <h2 class="text-4xl font-bold text-gray-800 mb-4">{{ t.key_features or 'Key Features' }}</h2>
-              <p class="text-xl text-gray-600">{{ t.key_features_subtitle or 'Comprehensive tools for environmental management' }}</p>
-            </div>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <h3 class="text-2xl font-bold text-gray-800 mb-6">{{ t.emissions_tracking or 'Emissions Tracking' }}</h3>
-                <div class="space-y-4">
-                  <div class="flex items-start gap-4">
-                    <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <i data-feather="check" class="w-4 h-4 text-white"></i>
-                    </div>
-                    <div>
-                      <h4 class="font-semibold text-gray-800">{{ t.scope_123 or 'Scope 1, 2, 3 Emissions' }}</h4>
-                      <p class="text-gray-600">{{ t.scope_123_desc or 'Track direct and indirect emissions across all university operations.' }}</p>
-                    </div>
-                  </div>
-                  
-                  <div class="flex items-start gap-4">
-                    <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <i data-feather="check" class="w-4 h-4 text-white"></i>
-                    </div>
-                    <div>
-                      <h4 class="font-semibold text-gray-800">{{ t.realtime_monitoring or 'Real-time Monitoring' }}</h4>
-                      <p class="text-gray-600">{{ t.realtime_monitoring_desc or 'Live data collection and analysis for immediate insights.' }}</p>
-                    </div>
-                  </div>
-                  
-                  <div class="flex items-start gap-4">
-                    <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <i data-feather="check" class="w-4 h-4 text-white"></i>
-                    </div>
-                    <div>
-                      <h4 class="font-semibold text-gray-800">{{ t.automated_reporting or 'Automated Reporting' }}</h4>
-                      <p class="text-gray-600">{{ t.automated_reporting_desc or 'Generate comprehensive reports with just a few clicks.' }}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="bg-white p-8 rounded-xl shadow-lg">
-                <div class="w-full h-64 bg-gradient-to-br from-green-400 to-blue-500 rounded-lg flex items-center justify-center">
-                  <i data-feather="trending-down" class="w-24 h-24 text-white"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Statistics Section -->
-        <section class="py-20">
-          <div class="px-4 lg:px-8 max-w-6xl mx-auto">
-            <div class="text-center mb-16">
-              <h2 class="text-4xl font-bold text-gray-800 mb-4">{{ t.our_impact or 'Our Impact' }}</h2>
-              <p class="text-xl text-gray-600">{{ t.our_impact_subtitle or 'Making a difference through data-driven decisions' }}</p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <div class="text-center">
-                <div class="text-4xl font-bold text-green-600 mb-2">25%</div>
-                <div class="text-gray-600">{{ t.co2_reduction or 'CO2 Reduction' }}</div>
-              </div>
-              
-              <div class="text-center">
-                <div class="text-4xl font-bold text-blue-600 mb-2">150+</div>
-                <div class="text-gray-600">{{ t.data_points or 'Data Points' }}</div>
-              </div>
-              
-              <div class="text-center">
-                <div class="text-4xl font-bold text-purple-600 mb-2">500+</div>
-                <div class="text-gray-600">{{ t.active_users or 'Active Users' }}</div>
-              </div>
-              
-              <div class="text-center">
-                <div class="text-4xl font-bold text-orange-600 mb-2">99.9%</div>
-                <div class="text-gray-600">{{ t.uptime or 'Uptime' }}</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Contact Section -->
-        <section class="py-20 bg-gray-800 text-white">
-          <div class="px-4 lg:px-8 max-w-6xl mx-auto text-center">
-            <h2 class="text-4xl font-bold mb-4">{{ t.get_started or 'Get Started Today' }}</h2>
-            <p class="text-xl text-gray-300 mb-8">{{ t.get_started_subtitle or 'Join us in creating a more sustainable future for our university and community.' }}</p>
-            
-            <div class="space-x-4">
-              <a href="#" class="bg-green-600 text-white px-8 py-3 rounded-full hover:bg-green-700 transition-colors inline-block">{{ t.start_tracking or 'Start Tracking' }}</a>
-              <a href="#" class="border border-white text-white px-8 py-3 rounded-full hover:bg-white hover:text-gray-800 transition-colors inline-block">{{ t.learn_more or 'Learn More' }}</a>
-            </div>
-          </div>
-        </section>
-
-        <!-- Additional Content for Scrolling -->
-        <section class="py-20 bg-white">
-          <div class="px-4 lg:px-8 max-w-6xl mx-auto">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-              <div>
-                <h3 class="text-3xl font-bold text-gray-800 mb-6">{{ t.sustainable_campus or 'Sustainable Campus Initiative' }}</h3>
-                <p class="text-gray-600 mb-6">{{ t.sustainable_campus_desc or 'Our comprehensive approach to campus sustainability includes energy management, waste reduction, transportation planning, and green building practices.' }}</p>
-                <ul class="space-y-3">
-                  <li class="flex items-center gap-3">
-                    <i data-feather="check-circle" class="w-5 h-5 text-green-500"></i>
-                    <span>{{ t.carbon_neutral or 'Carbon neutral campus by 2030' }}</span>
-                  </li>
-                  <li class="flex items-center gap-3">
-                    <i data-feather="check-circle" class="w-5 h-5 text-green-500"></i>
-                    <span>{{ t.renewable_energy or '100% renewable energy sources' }}</span>
-                  </li>
-                  <li class="flex items-center gap-3">
-                    <i data-feather="check-circle" class="w-5 h-5 text-green-500"></i>
-                    <span>{{ t.zero_waste or 'Zero waste to landfill program' }}</span>
-                  </li>
-                </ul>
-              </div>
-              
-              <div class="bg-gradient-to-br from-green-400 to-blue-500 p-8 rounded-xl text-white">
-                <h4 class="text-2xl font-bold mb-4">{{ t.environmental_dashboard or 'Environmental Dashboard' }}</h4>
-                <div class="space-y-4">
-                  <div class="flex justify-between items-center">
-                    <span>{{ t.energy_efficiency or 'Energy Efficiency' }}</span>
-                    <span class="font-bold">87%</span>
-                  </div>
-                  <div class="flex justify-between items-center">
-                    <span>{{ t.waste_reduction or 'Waste Reduction' }}</span>
-                    <span class="font-bold">72%</span>
-                  </div>
-                  <div class="flex justify-between items-center">
-                    <span>{{ t.water_conservation or 'Water Conservation' }}</span>
-                    <span class="font-bold">64%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {% block body %}
-        <div class="px-3 lg:px-5 py-10 mx-auto">
-          {% block content %}
-          <!-- เนื้อหาหน้าต่าง ๆ จะแสดงที่นี่ -->
-          {% endblock content %}
-        </div>
-        {% endblock body %}
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal -->
-  <div id="modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div id="modal-content" class="modal-box w-full max-w-none bg-white">
-      <!-- เนื้อหาจะถูกโหลดที่นี่ -->
-    </div>
-  </div>
-
+  <script src="{{ 'js/scope-navigation.js' | static_url }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
   <style>
     /* Sidebar Transition */
     .sidebar {
@@ -429,22 +31,18 @@
       transform: translateX(0);
     }
     
-    /* Navbar - เฉพาะตัวนี้หดขยายตาม sidebar */
+    /* Navbar - โปร่งใสและเปลี่ยนตอน scroll */
     .navbar {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       z-index: 15;
-      transition: margin-left 0.4s ease-in-out, width 0.4s ease-in-out, background-color 0.3s ease;
+      transition: all 0.3s ease;
+      background-color: rgba(0, 0, 0, 0.2) !important;
+      backdrop-filter: blur(10px);
     }
     
-    #sidebar-toggle:checked ~ .navbar {
-      margin-left: 16rem;
-      width: calc(100% - 16rem);
-    }
-    
-    /* Navbar Scroll Effect */
     .navbar.scrolled {
       background-color: rgba(255, 255, 255, 0.95) !important;
       backdrop-filter: blur(10px);
@@ -464,14 +62,14 @@
       border-color: #3b82f6 !important;
     }
     
-    /* Main Content - ไม่หดขยาย */
+    /* Main Content - ไม่หดขยายตาม sidebar */
     #main-content {
       margin-top: 0;
       position: relative;
       width: 100%;
     }
     
-    /* Hero Video Section - ไม่หดขยาย */
+    /* Hero Video Section - เต็มจอ */
     .hero-video-section {
       position: relative;
       width: 100%;
@@ -479,42 +77,53 @@
       z-index: 1;
     }
     
-    /* Content Area - ไม่หดขยาย ลบ transition ออก */
+    .hero-video-section video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+    
+    .hero-content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+      color: white;
+      padding: 1rem;
+    }
+    
+    /* Content Area - ไม่หดขยายตาม sidebar */
     .content-area {
       position: relative;
       z-index: 10;
       width: 100%;
-      /* ลบ transition และ margin-left ออก */
     }
-    
-    /* ลบ Content Area margin-left ออกทั้งหมด */
-    /* #sidebar-toggle:checked ~ #main-content .content-area {
-      margin-left: 16rem;
-    } */
     
     /* Overlay */
     #sidebar-overlay {
-      z-index: 20;
-      transition: opacity 0.3s ease;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      opacity: 0;
       pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 20;
     }
     
     #sidebar-toggle:checked ~ #sidebar-overlay {
-      opacity: 0.5;
+      opacity: 1;
       pointer-events: auto;
-    }
-    
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      #sidebar-toggle:checked ~ .navbar {
-        margin-left: 0;
-        width: 100%;
-      }
-      
-      /* ลบ responsive content area ออก */
-      /* #sidebar-toggle:checked ~ #main-content .content-area {
-        margin-left: 0;
-      } */
     }
     
     /* Animation Classes */
@@ -538,11 +147,455 @@
         transform: translateY(0);
       }
     }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .navbar {
+        margin-left: 0;
+        width: 100%;
+      }
+    }
   </style>
+</head>
+
+<body class="bg-base-200">
+  <!-- Sidebar Toggle - เริ่มต้นปิด -->
+  <input id="sidebar-toggle" type="checkbox" class="hidden peer" />
+
+  <!-- Overlay -->
+  <div id="sidebar-overlay"></div>
+
+  <!-- Sidebar -->
+  <div id="sidebar" class="sidebar">
+    <div class="flex flex-col h-full bg-base-100 shadow-md">
+      <!-- Logo Section -->
+      <div class="flex-shrink-0 flex items-center gap-2 p-2 bg-base-100 border-b border-base-300">
+        <a href="/" class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-primary-content font-bold">
+            <span class="text-xl font-bold">P</span>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold text-base-content">PSU-CFO</h1>
+            <p class="text-sm text-base-content">PSU-CFO</p>
+          </div>
+        </a>
+      </div>
+
+      <!-- Menu Section -->
+      <div class="flex-1 overflow-y-auto">
+        <ul class="menu w-full p-2 bg-base-100 space-y-4">
+          <!-- Admin Functions -->
+          {% if has_permission("เข้าถึงหน้าจัดการผู้ใช้") %}
+          <li>
+            <a href="/users-management" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
+              <i data-feather="users"></i>
+              <span class="text-md">{{ t.sidebar_user }}</span>
+            </a>
+          </li>
+          {% endif %}
+          
+          {% if has_permission("เข้าถึงหน้าจัดการผู้ใช้ในหน่วยงาน") %}
+          <li>
+            <a href="/department-management" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
+              <i data-feather="user-check"></i>
+              <span class="text-md">จัดการผู้ใช้ในหน่วยงาน</span>
+            </a>
+          </li>
+          {% endif %}
+          
+          {% if has_permission("เข้าถึงหน้าจัดการสิทธิ์") %}
+          <li>
+            <a href="/role-management" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
+              <i data-feather="shield"></i>
+              <span class="text-md">{{ t.sidebar_role }}</span>
+            </a>
+          </li>
+          {% endif %}
+          
+          {% if has_permission("เข้าถึงหน้าแหล่งปล่อยก๊าซเรือนกระจก") %}
+          <li>
+            <a href="/form-management/" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
+              <i data-feather="file-text"></i>
+              <span class="text-md">{{ t.sidebar_form }}</span>
+            </a>
+          </li>
+          {% endif %}
+          
+          {% if has_permission("เข้าถึงหน้าจัดการ GHG Scope") %}
+          <li>
+            <a href="/scope" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
+              <i data-feather="layers"></i>
+              <span class="text-md">{{t.scope_management}}</span>
+            </a>
+          </li>
+          {% endif %}
+          
+          {% if has_permission("เข้าถึงหน้าจัดการวิทยาเขตและหน่วยงาน") %}
+          <li>
+            <a href="/campus-department" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
+              <i data-feather="map-pin"></i>
+              <span class="text-md">{{ t.Manage_campuses_departments }}</span>
+            </a>
+          </li>
+          {% endif %}
+          
+          <!-- User Functions -->
+          {% if has_permission("เข้าถึงหน้าข้อมูลการปล่อย") %}
+          <li>
+            <a href="/emissions-scope" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
+              <i data-feather="bar-chart-2"></i>
+              <span class="text-md">{{ t.sidebar_emissions }}</span>
+            </a>
+          </li>
+          {% endif %}
+          
+          {% if has_permission("เข้าถึงหน้าภาพรวมความคืบหน้า") %}
+          <li>
+            <a href="/scope-progress" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
+              <i data-feather="activity"></i>
+              <span class="text-md">{{ t.overall_progress }}</span>
+            </a>
+          </li>
+          {% endif %}
+          
+          {% if has_permission("เข้าถึงหน้าสัดส่วนการปล่อย") %}
+          <li>
+            <a href="/proportions" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
+              <i data-feather="pie-chart"></i>
+              <span class="text-md">{{ t.sidebar_proportions }}</span>
+            </a>
+          </li>
+          {% endif %}
+          
+          {% if has_permission("เข้าถึงหน้าภาพรวมสัดส่วนการปล่อย") %}
+          <li>
+            <a href="/proportions/overview" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
+              <i data-feather="target"></i>
+              <span class="text-md">ภาพรวมสัดส่วนการปล่อย</span>
+            </a>
+          </li>
+          {% endif %}
+          
+          {% if has_permission("เข้าถึงหน้าสรุปผล") %}
+          <li>
+            <a href="/summary" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
+              <i data-feather="trending-up"></i>
+              <span class="text-md">{{ t.sidebar_summary }}</span>
+            </a>
+          </li>
+          {% endif %}
+          
+          {% if has_permission("เข้าถึงหน้าสรุปผล") %}
+          <li>
+            <a href="/setting" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
+              <i data-feather="settings"></i>
+              <span class="text-md">{{ t.sidebar_settings }}</span>
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+
+      <!-- Logout Section -->
+      <div class="flex-shrink-0 border-t border-base-300 bg-base-100">
+        <div class="p-2">
+          <a href="/users/logout" class="flex items-center gap-3 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
+            <i data-feather="log-out"></i>
+            <span class="text-lg">{{ t.sidebar_logout }}</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navbar - โปร่งใส -->
+  <nav class="navbar p-3 flex justify-between items-center">
+    <!-- Sidebar Toggle Button -->
+    <div class="flex-none">
+      <label for="sidebar-toggle" class="btn btn-ghost btn-square text-white hover:bg-white/20">
+        <i data-feather="menu" class="h-6 w-6"></i>
+      </label>
+    </div>
+    <!-- Page Title -->
+    <div class="flex-1 flex flex-col pl-4">
+      <span class="text-lg font-bold text-white">PSU-CFO</span>
+      <span class="text-sm text-white/80">{{ t.subtitle_default }}</span>
+    </div>
+    <!-- User Profile -->
+    <div class="flex items-center gap-2">
+      <a href="/profile/" class="flex items-center gap-2 text-white hover:text-white/80">
+        <div class="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white font-bold border border-white/30">
+          <span class="text-lg font-bold">{{ current_user.name[0]|upper if current_user.name else current_user.username[0]|upper if current_user else 'U' }}</span>
+        </div>
+        <span class="ml-2 text-base font-medium">{{ current_user.name if current_user.name else current_user.username if current_user else 'Username' }}</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div id="main-content">
+    <!-- Hero Video Section -->
+    <section class="hero-video-section">
+      <video autoplay muted loop playsinline>
+        <source src="/static/imagines/dashboard-image.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      <div class="hero-content">
+        <h1 class="text-4xl md:text-6xl font-bold animate-fade-up">Understand Your Impact on the Planet</h1>
+        <p class="mt-4 text-lg md:text-xl animate-fade-up delay-100 max-w-4xl">ถ้าเปลี่ยนมาใช้ชีวิตอย่างใส่ใจ ยั่งยืนต่อสิ่งแวดล้อม เรื่องที่สอนคือ Basic Python</p>
+        <div class="mt-6 space-x-4 animate-fade-up delay-200">
+          <a href="/summary" class="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 transition-colors">Calculate My Footprint ➜</a>
+          <a href="#" class="border border-white text-white px-6 py-3 rounded-full hover:bg-white hover:text-green-600 transition-colors">Learn More</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Content Area -->
+    <div class="content-area bg-gradient-to-b from-transparent to-white">
+      <!-- About Section -->
+      <section class="py-20 px-4 lg:px-8 max-w-6xl mx-auto">
+        <div class="text-center mb-16">
+          <h2 class="text-4xl font-bold text-gray-800 mb-4">{{ t.about_title or 'About PSU-CFO' }}</h2>
+          <p class="text-xl text-gray-600">{{ t.about_subtitle or 'Prince of Songkla University Greenhouse Gas Organization' }}</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
+              <i data-feather="leaf" class="w-8 h-8 text-green-600"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Environmental Impact</h3>
+            <p class="text-gray-600">Monitor and reduce greenhouse gas emissions across the university campus with comprehensive tracking and analysis.</p>
+          </div>
+          
+          <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+              <i data-feather="bar-chart" class="w-8 h-8 text-blue-600"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Data Analytics</h3>
+            <p class="text-gray-600">Advanced analytics and reporting tools to help visualize carbon footprint data and identify improvement opportunities.</p>
+          </div>
+          
+          <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+            <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6">
+              <i data-feather="users" class="w-8 h-8 text-purple-600"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Community Engagement</h3>
+            <p class="text-gray-600">Engage students, faculty, and staff in sustainability initiatives and environmental awareness programs.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features Section -->
+      <section class="py-20 bg-gray-50">
+        <div class="px-4 lg:px-8 max-w-6xl mx-auto">
+          <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-800 mb-4">{{ t.key_features or 'Key Features' }}</h2>
+            <p class="text-xl text-gray-600">{{ t.key_features_subtitle or 'Comprehensive tools for environmental management' }}</p>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800 mb-6">{{ t.emissions_tracking or 'Emissions Tracking' }}</h3>
+              <div class="space-y-4">
+                <div class="flex items-start gap-4">
+                  <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <i data-feather="check" class="w-4 h-4 text-white"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-gray-800">{{ t.scope_123 or 'Scope 1, 2, 3 Emissions' }}</h4>
+                    <p class="text-gray-600">{{ t.scope_123_desc or 'Track direct and indirect emissions across all university operations.' }}</p>
+                  </div>
+                </div>
+                
+                <div class="flex items-start gap-4">
+                  <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <i data-feather="check" class="w-4 h-4 text-white"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-gray-800">{{ t.realtime_monitoring or 'Real-time Monitoring' }}</h4>
+                    <p class="text-gray-600">{{ t.realtime_monitoring_desc or 'Live data collection and analysis for immediate insights.' }}</p>
+                  </div>
+                </div>
+                
+                <div class="flex items-start gap-4">
+                  <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <i data-feather="check" class="w-4 h-4 text-white"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-gray-800">{{ t.automated_reporting or 'Automated Reporting' }}</h4>
+                    <p class="text-gray-600">{{ t.automated_reporting_desc or 'Generate comprehensive reports with just a few clicks.' }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-white p-8 rounded-xl shadow-lg">
+              <div class="w-full h-64 bg-gradient-to-br from-green-400 to-blue-500 rounded-lg flex items-center justify-center">
+                <i data-feather="trending-down" class="w-24 h-24 text-white"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Statistics Section -->
+      <section class="py-20">
+        <div class="px-4 lg:px-8 max-w-6xl mx-auto">
+          <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-800 mb-4">{{ t.our_impact or 'Our Impact' }}</h2>
+            <p class="text-xl text-gray-600">{{ t.our_impact_subtitle or 'Making a difference through data-driven decisions' }}</p>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div class="text-center">
+              <div class="text-4xl font-bold text-green-600 mb-2">25%</div>
+              <div class="text-gray-600">{{ t.co2_reduction or 'CO2 Reduction' }}</div>
+            </div>
+            
+            <div class="text-center">
+              <div class="text-4xl font-bold text-blue-600 mb-2">150+</div>
+              <div class="text-gray-600">{{ t.data_points or 'Data Points' }}</div>
+            </div>
+            
+            <div class="text-center">
+              <div class="text-4xl font-bold text-purple-600 mb-2">500+</div>
+              <div class="text-gray-600">{{ t.active_users or 'Active Users' }}</div>
+            </div>
+            
+            <div class="text-center">
+              <div class="text-4xl font-bold text-orange-600 mb-2">99.9%</div>
+              <div class="text-gray-600">{{ t.uptime or 'Uptime' }}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Contact Section -->
+      <section class="py-20 bg-gray-800 text-white">
+        <div class="px-4 lg:px-8 max-w-6xl mx-auto text-center">
+          <h2 class="text-4xl font-bold mb-4">{{ t.get_started or 'Get Started Today' }}</h2>
+          <p class="text-xl text-gray-300 mb-8">{{ t.get_started_subtitle or 'Join us in creating a more sustainable future for our university and community.' }}</p>
+          
+          <div class="space-x-4">
+            <a href="#" class="bg-green-600 text-white px-8 py-3 rounded-full hover:bg-green-700 transition-colors inline-block">{{ t.start_tracking or 'Start Tracking' }}</a>
+            <a href="#" class="border border-white text-white px-8 py-3 rounded-full hover:bg-white hover:text-gray-800 transition-colors inline-block">{{ t.learn_more or 'Learn More' }}</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Additional Content for Scrolling -->
+      <section class="py-20 bg-white">
+        <div class="px-4 lg:px-8 max-w-6xl mx-auto">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div>
+              <h3 class="text-3xl font-bold text-gray-800 mb-6">{{ t.sustainable_campus or 'Sustainable Campus Initiative' }}</h3>
+              <p class="text-gray-600 mb-6">{{ t.sustainable_campus_desc or 'Our comprehensive approach to campus sustainability includes energy management, waste reduction, transportation planning, and green building practices.' }}</p>
+              <ul class="space-y-3">
+                <li class="flex items-center gap-3">
+                  <i data-feather="check-circle" class="w-5 h-5 text-green-500"></i>
+                  <span>{{ t.carbon_neutral or 'Carbon neutral campus by 2030' }}</span>
+                </li>
+                <li class="flex items-center gap-3">
+                  <i data-feather="check-circle" class="w-5 h-5 text-green-500"></i>
+                  <span>{{ t.renewable_energy or '100% renewable energy sources' }}</span>
+                </li>
+                <li class="flex items-center gap-3">
+                  <i data-feather="check-circle" class="w-5 h-5 text-green-500"></i>
+                  <span>{{ t.zero_waste or 'Zero waste to landfill program' }}</span>
+                </li>
+              </ul>
+            </div>
+            
+            <div class="bg-gradient-to-br from-green-400 to-blue-500 p-8 rounded-xl text-white">
+              <h4 class="text-2xl font-bold mb-4">{{ t.environmental_dashboard or 'Environmental Dashboard' }}</h4>
+              <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                  <span>{{ t.energy_efficiency or 'Energy Efficiency' }}</span>
+                  <span class="font-bold">87%</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span>{{ t.waste_reduction or 'Waste Reduction' }}</span>
+                  <span class="font-bold">72%</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span>{{ t.water_conservation or 'Water Conservation' }}</span>
+                  <span class="font-bold">64%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Zoom Slider Component -->
+  {% include 'components/zoom-slider.html' %}
+
+  <!-- Modal -->
+  <div id="modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div id="modal-content" class="modal-box w-full max-w-none bg-white">
+      <!-- เนื้อหาจะถูกโหลดที่นี่ -->
+    </div>
+  </div>
 
   <script>
     // Feather Replace Script
     feather.replace();
+
+    // Zoom function for index page
+    function applyZoom(zoomLevel) {
+      console.log('Index: Applying zoom:', zoomLevel);
+      
+      // Apply zoom to main content area
+      const mainContent = document.getElementById('main-content');
+      if (mainContent) {
+        mainContent.style.transform = `scale(${zoomLevel})`;
+        mainContent.style.transformOrigin = 'top left';
+        mainContent.style.width = zoomLevel !== 1 ? `${100 / zoomLevel}%` : '100%';
+        console.log('Index: Applied zoom to main-content:', mainContent.style.transform);
+      }
+      
+      // Apply zoom to sidebar as well
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar) {
+        const baseSidebarWidth = 256; // 16rem * 16px = 256px (w-64)
+        const newSidebarWidth = baseSidebarWidth * zoomLevel;
+        sidebar.style.width = newSidebarWidth + 'px';
+        console.log('Index: Applied zoom to sidebar width:', newSidebarWidth + 'px');
+      }
+      
+      // Update zoom slider if it exists
+      const slider = document.getElementById('zoom-slider');
+      if (slider) {
+        slider.value = zoomLevel;
+        // Update slider background
+        const percentage = ((zoomLevel - 0.5) / 1.5) * 100;
+        slider.style.background = `linear-gradient(to right, #003366 0%, #003366 ${percentage}%, #e5e7eb ${percentage}%, #e5e7eb 100%)`;
+        console.log('Index: Updated zoom slider:', slider.value);
+      }
+      
+      // Keep zoom slider component at constant size
+      const container = document.getElementById('zoom-slider-container');
+      if (container) {
+        const inverseScale = 1 / zoomLevel;
+        container.style.transform = `scale(${inverseScale})`;
+        container.style.transformOrigin = 'bottom right';
+        console.log('Index: Applied inverse scale to zoom container:', inverseScale);
+      }
+      
+      // Save zoom level to localStorage
+      localStorage.setItem('pageZoom', zoomLevel);
+      
+      // Trigger storage event to sync with other pages
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'pageZoom',
+        newValue: zoomLevel.toString(),
+        oldValue: localStorage.getItem('pageZoom'),
+        storageArea: localStorage
+      }));
+    }
 
     document.addEventListener('DOMContentLoaded', function () {
       const sidebarToggle = document.getElementById('sidebar-toggle');
@@ -562,11 +615,99 @@
           navbar.classList.remove('scrolled');
         }
       });
+
+      // Load saved zoom on index page
+      const savedZoom = localStorage.getItem('pageZoom');
+      if (savedZoom) {
+        const zoomLevel = parseFloat(savedZoom);
+        console.log('Index: Loading saved zoom:', zoomLevel);
+        applyZoom(zoomLevel);
+      } else {
+        console.log('Index: No saved zoom found, using default');
+        applyZoom(1);
+      }
+
+      // Add zoom slider event listener
+      const slider = document.getElementById('zoom-slider');
+      if (slider) {
+        slider.addEventListener('input', function(e) {
+          const zoomLevel = parseFloat(e.target.value);
+          applyZoom(zoomLevel);
+        });
+      }
+
+      // Add zoom button event listeners
+      const zoomInBtn = document.getElementById('zoom-in-btn');
+      const zoomOutBtn = document.getElementById('zoom-out-btn');
+      const resetBtn = document.getElementById('zoom-reset-btn');
+
+      if (zoomInBtn) {
+        zoomInBtn.addEventListener('click', function() {
+          const slider = document.getElementById('zoom-slider');
+          if (slider) {
+            const currentZoom = parseFloat(slider.value);
+            const newZoom = Math.min(currentZoom + 0.05, 2);
+            slider.value = newZoom;
+            applyZoom(newZoom);
+          }
+        });
+      }
+
+      if (zoomOutBtn) {
+        zoomOutBtn.addEventListener('click', function() {
+          const slider = document.getElementById('zoom-slider');
+          if (slider) {
+            const currentZoom = parseFloat(slider.value);
+            const newZoom = Math.max(currentZoom - 0.05, 0.5);
+            slider.value = newZoom;
+            applyZoom(newZoom);
+          }
+        });
+      }
+
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function() {
+          const slider = document.getElementById('zoom-slider');
+          if (slider) {
+            slider.value = 1;
+            applyZoom(1);
+          }
+        });
+      }
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+          if (e.key === '=' || e.key === '+') {
+            e.preventDefault();
+            const slider = document.getElementById('zoom-slider');
+            if (slider) {
+              const currentZoom = parseFloat(slider.value);
+              const newZoom = Math.min(currentZoom + 0.05, 2);
+              slider.value = newZoom;
+              applyZoom(newZoom);
+            }
+          } else if (e.key === '-') {
+            e.preventDefault();
+            const slider = document.getElementById('zoom-slider');
+            if (slider) {
+              const currentZoom = parseFloat(slider.value);
+              const newZoom = Math.max(currentZoom - 0.05, 0.5);
+              slider.value = newZoom;
+              applyZoom(newZoom);
+            }
+          } else if (e.key === '0') {
+            e.preventDefault();
+            const slider = document.getElementById('zoom-slider');
+            if (slider) {
+              slider.value = 1;
+              applyZoom(1);
+            }
+          }
+        }
+      });
     });
   </script>
-
-  {% block js %}
-  {% endblock js %}
 </body>
 
 </html>
