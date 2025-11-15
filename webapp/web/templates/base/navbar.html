@@ -1,4 +1,4 @@
-<nav class="navbar bg-base-100 p-3 shadow-md">
+<nav class="navbar bg-base-100 p-2 shadow-md">
   <!-- Sidebar Toggle Button -->
   <div class="flex-none">
     <label for="sidebar-toggle" class="btn btn-ghost btn-square">
@@ -71,18 +71,6 @@
       </select>
     </form>
 
-    <!-- Zoom Controls -->
-    <div class="flex items-center gap-1">
-      <button class="btn btn-ghost btn-sm btn-square" onclick="applyZoom((parseFloat(document.body.style.zoom || 1) - 0.1))" title="ซูมออก">
-        <i data-feather="zoom-out" class="w-4 h-4"></i>
-      </button>
-      <button class="btn btn-ghost btn-sm btn-square" onclick="applyZoom(1)" title="รีเซ็ตซูม">
-        <i data-feather="maximize-2" class="w-4 h-4"></i>
-      </button>
-      <button class="btn btn-ghost btn-sm btn-square" onclick="applyZoom((parseFloat(document.body.style.zoom || 1) + 0.1))" title="ซูมเข้า">
-        <i data-feather="zoom-in" class="w-4 h-4"></i>
-      </button>
-    </div>
 
     <!-- User info -->
     <a href="/profile/" class="flex items-center gap-2">
@@ -135,6 +123,29 @@ function loadSavedZoom() {
   }
 }
 
+// ฟังก์ชันสำหรับปรับ margin ของ main content เมื่อ sidebar toggle เปลี่ยนสถานะ
+function adjustMainContentMargin() {
+  const mainContent = document.getElementById('main-content');
+  const sidebarToggle = document.getElementById('sidebar-toggle');
+  
+  if (mainContent && sidebarToggle) {
+    const sidebarOpen = !sidebarToggle.checked;
+    const currentZoom = parseFloat(document.body.style.zoom || 1);
+    const baseSidebarWidth = 256; // 16rem * 16px = 256px (w-64)
+    const newSidebarWidth = baseSidebarWidth * currentZoom;
+    
+    mainContent.style.marginLeft = sidebarOpen ? (newSidebarWidth + 'px') : '0px';
+  }
+}
+
 // เรียกฟังก์ชันโหลดค่า zoom เมื่อโหลดหน้าเสร็จ
-document.addEventListener('DOMContentLoaded', loadSavedZoom);
+document.addEventListener('DOMContentLoaded', function() {
+  loadSavedZoom();
+  
+  // เพิ่ม event listener สำหรับ sidebar toggle
+  const sidebarToggle = document.getElementById('sidebar-toggle');
+  if (sidebarToggle) {
+    sidebarToggle.addEventListener('change', adjustMainContentMargin);
+  }
+});
 </script>

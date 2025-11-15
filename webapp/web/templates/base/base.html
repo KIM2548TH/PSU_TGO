@@ -34,7 +34,7 @@
     </div>
 
     <!-- Main Content -->
-    <div id="main-content" class="ml-64 flex-1 flex flex-col peer-checked:ml-0">
+    <div id="main-content" class="ml-64 flex-1 flex flex-col">
       <!-- Navbar -->
       <div class="z-1 w-full bg-base-100">
         {% include "base/navbar.html" %}
@@ -47,6 +47,9 @@
       </div>
     </div>
   </div>
+    <!-- Zoom Slider Component -->
+    {% include "components/zoom-slider.html" %}
+    
     <!-- Modal -->
     <div id="modal" class="modal">
       <div id="modal-content" class="modal-box w-full max-w-none">
