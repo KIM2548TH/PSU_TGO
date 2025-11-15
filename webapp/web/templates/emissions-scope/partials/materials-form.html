@@ -1,5 +1,5 @@
 <form hx-post="{{ url_for('emissions.save_materials') }}"
-      hx-target="#table-container"
+      hx-target="#emissions-table-container"
       hx-swap="innerHTML"
       class="max-w-screen-xl mx-auto w-full"
       style="max-height: 700px; overflow-y: auto;"
@@ -102,7 +102,7 @@
             <button type="button"
                 class="btn btn-outline btn-error px-4 py-2 text-red rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out"
                 hx-post="{{ url_for('emissions.delete_all_materials') }}"
-                hx-target="#table-container"
+                hx-target="#emissions-table-container"
                 hx-swap="innerHTML"
                 hx-vals='{
                     "scope_id": "{{ request.args.get("scope_id") }}",
