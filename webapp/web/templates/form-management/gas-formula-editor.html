@@ -62,9 +62,9 @@
             CO₂ Formula
           </span>
         </label>
-        <div class="flex gap-2">
+        <div class="flex items-start gap-3">
           <!-- ช่องแสดงสูตร -->
-          <div class="flex-1">
+          <div class="flex-1 pr-2">
             {% set formula_field = 'formula_co2' %}
             {% set gas_type = 'co2' %}
             {% set formula_value = form.formula_co2 or '' %}
@@ -72,19 +72,16 @@
           </div>
           
           <!-- ปุ่มเครื่องคิดเลข -->
-          <div class="flex-shrink-0">
-            <button type="button" 
-                    class="btn btn-outline px-3"
-                    hx-post="/gas-formula/calculator/show-gas"
-                    hx-target="#co2-calculator"
-                    hx-swap="innerHTML"
-                    hx-include="closest form"
-                    hx-vals='{"gas_type": "co2", "form_id": "{{ form.id }}"}'
-                    title="เปิดเครื่องคิดเลข">
-              <i data-feather="grid" class="w-4 h-4 mr-1"></i>
-              เครื่องคิดเลข
-            </button>
-          </div>
+          <button type="button" 
+                  class="btn btn-outline px-4 h-12 flex-shrink-0"
+                  hx-post="/gas-formula/calculator/show-gas"
+                  hx-target="#co2-calculator"
+                  hx-swap="innerHTML"
+                  hx-include="closest form"
+                  hx-vals='{"gas_type": "co2", "form_id": "{{ form.id }}"}'
+                  title="เปิดเครื่องคิดเลข">
+            <i data-feather="grid" class="w-4 h-4"></i>
+          </button>
         </div>
         
         <!-- Calculator Container -->
@@ -100,9 +97,9 @@
             CH₄ Formula
           </span>
         </label>
-        <div class="flex gap-2">
+        <div class="flex items-start gap-3">
           <!-- ช่องแสดงสูตร -->
-          <div class="flex-1">
+          <div class="flex-1 pr-2">
             {% set formula_field = 'formula_ch4' %}
             {% set gas_type = 'ch4' %}
             {% set formula_value = form.formula_ch4 or '' %}
@@ -110,19 +107,16 @@
           </div>
           
           <!-- ปุ่มเครื่องคิดเลข -->
-          <div class="flex-shrink-0">
-            <button type="button" 
-                    class="btn btn-outline px-3"
-                    hx-post="/gas-formula/calculator/show-gas"
-                    hx-target="#ch4-calculator"
-                    hx-swap="innerHTML"
-                    hx-include="closest form"
-                    hx-vals='{"gas_type": "ch4", "form_id": "{{ form.id }}"}'
-                    title="เปิดเครื่องคิดเลข">
-              <i data-feather="grid" class="w-4 h-4 mr-1"></i>
-              เครื่องคิดเลข
-            </button>
-          </div>
+          <button type="button" 
+                  class="btn btn-outline px-4 h-12 flex-shrink-0"
+                  hx-post="/gas-formula/calculator/show-gas"
+                  hx-target="#ch4-calculator"
+                  hx-swap="innerHTML"
+                  hx-include="closest form"
+                  hx-vals='{"gas_type": "ch4", "form_id": "{{ form.id }}"}'
+                  title="เปิดเครื่องคิดเลข">
+            <i data-feather="grid" class="w-4 h-4"></i>
+          </button>
         </div>
         
         <!-- Calculator Container -->
@@ -138,9 +132,9 @@
             N₂O Formula
           </span>
         </label>
-        <div class="flex gap-2">
+        <div class="flex items-start gap-3">
           <!-- ช่องแสดงสูตร -->
-          <div class="flex-1">
+          <div class="flex-1 pr-2">
             {% set formula_field = 'formula_n2o' %}
             {% set gas_type = 'n2o' %}
             {% set formula_value = form.formula_n2o or '' %}
@@ -148,18 +142,16 @@
           </div>
           
           <!-- ปุ่มเครื่องคิดเลข -->
-          <div class="flex-shrink-0">
-            <button type="button" 
-                    class="btn btn-outline px-3"
-                    hx-post="/gas-formula/calculator/show-gas"
-                    hx-target="#n2o-calculator"
-                    hx-swap="innerHTML"
-                    hx-include="closest form"
-                    hx-vals='{"gas_type": "n2o", "form_id": "{{ form.id }}"}'
-                    title="เปิดเครื่องคิดเลข">
-              <i data-feather="grid" class="w-4 h-4"></i>
-            </button>
-          </div>
+          <button type="button" 
+                  class="btn btn-outline px-4 h-12 flex-shrink-0"
+                  hx-post="/gas-formula/calculator/show-gas"
+                  hx-target="#n2o-calculator"
+                  hx-swap="innerHTML"
+                  hx-include="closest form"
+                  hx-vals='{"gas_type": "n2o", "form_id": "{{ form.id }}"}'
+                  title="เปิดเครื่องคิดเลข">
+            <i data-feather="grid" class="w-4 h-4"></i>
+          </button>
         </div>
         
         <!-- Calculator Container -->
@@ -175,9 +167,9 @@
             HFCs Formula
           </span>
         </label>
-        <div class="flex gap-2">
+        <div class="flex items-start gap-3">
           <!-- ช่องแสดงสูตร -->
-          <div class="flex-1">
+          <div class="flex-1 pr-2">
             {% set formula_field = 'formula_hfcs' %}
             {% set gas_type = 'hfcs' %}
             {% set formula_value = form.formula_hfcs or '' %}
@@ -185,18 +177,16 @@
           </div>
           
           <!-- ปุ่มเครื่องคิดเลข -->
-          <div class="flex-shrink-0">
-            <button type="button" 
-                    class="btn btn-outline px-3"
-                    hx-post="/gas-formula/calculator/show-gas"
-                    hx-target="#hfcs-calculator"
-                    hx-swap="innerHTML"
-                    hx-include="closest form"
-                    hx-vals='{"gas_type": "hfcs", "form_id": "{{ form.id }}"}'
-                    title="เปิดเครื่องคิดเลข">
-              <i data-feather="grid" class="w-4 h-4"></i>
-            </button>
-          </div>
+          <button type="button" 
+                  class="btn btn-outline px-4 h-12 flex-shrink-0"
+                  hx-post="/gas-formula/calculator/show-gas"
+                  hx-target="#hfcs-calculator"
+                  hx-swap="innerHTML"
+                  hx-include="closest form"
+                  hx-vals='{"gas_type": "hfcs", "form_id": "{{ form.id }}"}'
+                  title="เปิดเครื่องคิดเลข">
+            <i data-feather="grid" class="w-4 h-4"></i>
+          </button>
         </div>
         
         <!-- Calculator Container -->
@@ -211,9 +201,9 @@
             PFCs Formula
           </span>
         </label>
-        <div class="flex gap-2">
+        <div class="flex items-start gap-3">
           <!-- ช่องแสดงสูตร -->
-          <div class="flex-1">
+          <div class="flex-1 pr-2">
             {% set formula_field = 'formula_pfcs' %}
             {% set gas_type = 'pfcs' %}
             {% set formula_value = form.formula_pfcs or '' %}
@@ -221,18 +211,16 @@
           </div>
           
           <!-- ปุ่มเครื่องคิดเลข -->
-          <div class="flex-shrink-0">
-            <button type="button" 
-                    class="btn btn-outline px-3"
-                    hx-post="/gas-formula/calculator/show-gas"
-                    hx-target="#pfcs-calculator"
-                    hx-swap="innerHTML"
-                    hx-include="closest form"
-                    hx-vals='{"gas_type": "pfcs", "form_id": "{{ form.id }}"}'
-                    title="เปิดเครื่องคิดเลข">
-              <i data-feather="grid" class="w-4 h-4"></i>
-            </button>
-          </div>
+          <button type="button" 
+                  class="btn btn-outline px-4 h-12 flex-shrink-0"
+                  hx-post="/gas-formula/calculator/show-gas"
+                  hx-target="#pfcs-calculator"
+                  hx-swap="innerHTML"
+                  hx-include="closest form"
+                  hx-vals='{"gas_type": "pfcs", "form_id": "{{ form.id }}"}'
+                  title="เปิดเครื่องคิดเลข">
+            <i data-feather="grid" class="w-4 h-4"></i>
+          </button>
         </div>
         
         <!-- Calculator Container -->
@@ -247,9 +235,9 @@
             SF₆ Formula
           </span>
         </label>
-        <div class="flex gap-2">
+        <div class="flex items-start gap-3">
           <!-- ช่องแสดงสูตร -->
-          <div class="flex-1">
+          <div class="flex-1 pr-2">
             {% set formula_field = 'formula_sf6' %}
             {% set gas_type = 'sf6' %}
             {% set formula_value = form.formula_sf6 or '' %}
@@ -257,18 +245,16 @@
           </div>
           
           <!-- ปุ่มเครื่องคิดเลข -->
-          <div class="flex-shrink-0">
-            <button type="button" 
-                    class="btn btn-outline px-3"
-                    hx-post="/gas-formula/calculator/show-gas"
-                    hx-target="#sf6-calculator"
-                    hx-swap="innerHTML"
-                    hx-include="closest form"
-                    hx-vals='{"gas_type": "sf6", "form_id": "{{ form.id }}"}'
-                    title="เปิดเครื่องคิดเลข">
-              <i data-feather="grid" class="w-4 h-4"></i>
-            </button>
-          </div>
+          <button type="button" 
+                  class="btn btn-outline px-4 h-12 flex-shrink-0"
+                  hx-post="/gas-formula/calculator/show-gas"
+                  hx-target="#sf6-calculator"
+                  hx-swap="innerHTML"
+                  hx-include="closest form"
+                  hx-vals='{"gas_type": "sf6", "form_id": "{{ form.id }}"}'
+                  title="เปิดเครื่องคิดเลข">
+            <i data-feather="grid" class="w-4 h-4"></i>
+          </button>
         </div>
         
         <!-- Calculator Container -->
@@ -283,9 +269,9 @@
             NF₃ Formula
           </span>
         </label>
-        <div class="flex gap-2">
+        <div class="flex items-start gap-3">
           <!-- ช่องแสดงสูตร -->
-          <div class="flex-1">
+          <div class="flex-1 pr-2">
             {% set formula_field = 'formula_nf3' %}
             {% set gas_type = 'nf3' %}
             {% set formula_value = form.formula_nf3 or '' %}
@@ -293,18 +279,16 @@
           </div>
           
           <!-- ปุ่มเครื่องคิดเลข -->
-          <div class="flex-shrink-0">
-            <button type="button" 
-                    class="btn btn-outline px-3"
-                    hx-post="/gas-formula/calculator/show-gas"
-                    hx-target="#nf3-calculator"
-                    hx-swap="innerHTML"
-                    hx-include="closest form"
-                    hx-vals='{"gas_type": "nf3", "form_id": "{{ form.id }}"}'
-                    title="เปิดเครื่องคิดเลข">
-              <i data-feather="grid" class="w-4 h-4"></i>
-            </button>
-          </div>
+          <button type="button" 
+                  class="btn btn-outline px-4 h-12 flex-shrink-0"
+                  hx-post="/gas-formula/calculator/show-gas"
+                  hx-target="#nf3-calculator"
+                  hx-swap="innerHTML"
+                  hx-include="closest form"
+                  hx-vals='{"gas_type": "nf3", "form_id": "{{ form.id }}"}'
+                  title="เปิดเครื่องคิดเลข">
+            <i data-feather="grid" class="w-4 h-4"></i>
+          </button>
         </div>
         
         <!-- Calculator Container -->

@@ -139,69 +139,7 @@
           </div>
         {% endif %}
 
-        <!-- Formula Section -->
-        <div class="mt-6">
-          <label class="text-font">{{ t.formula }}</label>
-          <div class="relative mb-4" id="formula-container">
-            <div class="flex">
-              <input type="text" name="formula" id="formula" 
-                     class="input input-bordered w-full" 
-                     placeholder="e.g. diesel * 2.68" 
-                     value="{{ form.formula if form else '' }}"
-                     hx-post="/form-management/form-builder/preview"
-                     hx-target="#preview-content"
-                     hx-trigger="keyup delay:800ms, change"
-                     hx-include="closest form"
-                     required>
-              
-              <!-- Calculator Button -->
-              <button type="button" id="formula-dropdown-btn"
-                      class="btn btn-outline ml-2 px-3"
-                      hx-post="/form-management/calculator/show"
-                      hx-target="#calculator-placeholder"
-                      hx-swap="innerHTML"
-                      hx-include="closest form"
-                      title="{{ t.open_formula_calculator }}">
-                <i data-feather="grid" class="w-4 h-4 mr-1"></i>
-                <i data-feather="chevron-down" class="w-4 h-4"></i>
-              </button>
-            </div>
-            <!-- Placeholder สำหรับ calculator -->
-            <div id="calculator-placeholder"></div>
-          </div>
-        </div>
-
-        <!-- Hidden Storage สำหรับเก็บ Calculator (ซ่อนไว้) -->
-        <div id="calculator-storage" class="hidden">
-          <!-- Calculator จะถูกย้ายมาเก็บที่นี่เมื่อปิด -->
-        </div>
-
-        <!-- Formula 2 Section -->
-        <div class="mt-6">
-          <label class="text-font">{{ t.formula2 }}</label>
-          <div class="relative mb-4">
-            <input type="text" name="formula2" id="formula2" 
-                   class="input input-bordered w-full" 
-                   placeholder="e.g. diesel * 2.68" 
-                   value="{{ form.formula2 if form else '' }}"
-                   hx-post="/form-management/form-builder/preview"
-                   hx-target="#preview-content"
-                   hx-trigger="keyup delay:800ms, change"
-                   hx-include="closest form">
-          </div>
-        </div>
-
-        <!-- Formula Description -->
-        <div class="sm:col-span-2 mt-4">
-          <label class="text-font">{{ t.formula_description }}</label>
-          <textarea name="desc_formula" 
-                    class="textarea textarea-bordered w-full mt-1" 
-                    placeholder="{{ t.enter_formula_description }}"
-                    hx-post="/form-management/form-builder/preview"
-                    hx-target="#preview-content"
-                    hx-trigger="keyup delay:800ms, change"
-                    hx-include="closest form">{{ form.desc_formula if form else '' }}</textarea>
-        </div>
+        
 
         <!-- Action Buttons -->
         <div class="mt-6 flex justify-between">

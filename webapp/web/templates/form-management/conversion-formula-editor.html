@@ -67,9 +67,9 @@
       <!-- สูตรแปลงหน่วยหลัก -->
       <div class="mb-6">
         <label class="block text-sm font-medium text-gray-700 mb-2">สูตรแปลงหน่วยหลัก</label>
-        <div class="flex gap-2">
+        <div class="flex items-start gap-3">
           <!-- ช่องแสดงสูตร -->
-          <div class="flex-1">
+          <div class="flex-1 pr-2">
             {% set formula_field = 'formula' %}
             {% set conversion_type = 'conversion' %}
             {% set formula_value = form.formula or '' %}
@@ -78,14 +78,13 @@
           
           <!-- Calculator Button -->
           <button type="button" 
-                  class="btn btn-outline px-4"
+                  class="btn btn-outline px-4 h-12 flex-shrink-0"
                   hx-post="/gas-formula/calculator/show-conversion"
                   hx-target="#conversion-calculator"
                   hx-swap="innerHTML"
                   hx-include='[name="form_id"]'
                   title="เปิดเครื่องคิดเลข">
-            <i data-feather="grid" class="w-4 h-4 mr-1"></i>
-            เครื่องคิดเลข
+            <i data-feather="grid" class="w-4 h-4"></i>
           </button>
         </div>
         
@@ -96,9 +95,9 @@
       <!-- สูตรแปลงหน่วยที่ 2 (tonCO₂e) -->
       <div class="mb-6">
         <label class="block text-sm font-medium text-gray-700 mb-2">สูตรคำนวณ tonCO₂e</label>
-        <div class="flex gap-2">
+        <div class="flex items-start gap-3">
           <!-- ช่องแสดงสูตร -->
-          <div class="flex-1">
+          <div class="flex-1 pr-2">
             {% set formula_field = 'formula2' %}
             {% set conversion_type = 'conversion2' %}
             {% set formula_value = form.formula2 or '' %}
@@ -106,19 +105,16 @@
           </div>
           
           <!-- ปุ่มเครื่องคิดเลข -->
-          <div class="flex-shrink-0">
           <button type="button" 
-                  class="btn btn-outline px-4"
+                  class="btn btn-outline px-4 h-12 flex-shrink-0"
                   hx-post="/gas-formula/calculator/show-conversion2"
                   hx-target="#conversion2-calculator"
                   hx-swap="innerHTML"
                   hx-include="closest form"
                   hx-vals='{"form_id": "{{ form.id }}"}'
                   title="เปิดเครื่องคิดเลข">
-              <i data-feather="grid" class="w-4 h-4 mr-1"></i>
-              เครื่องคิดเลข
-            </button>
-          </div>
+            <i data-feather="grid" class="w-4 h-4"></i>
+          </button>
         </div>
         
         <!-- Calculator Container -->

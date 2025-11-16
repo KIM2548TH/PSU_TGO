@@ -13,7 +13,6 @@ from bson import ObjectId
 from bson.errors import InvalidId
 
 
-
 module = Blueprint("form_management", __name__, url_prefix="/form-management")
 
 
@@ -43,15 +42,42 @@ def form_management():
 @login_required
 def load_add_form_and_formula():
     """โหลดหน้าเพิ่มฟอร์มใหม่ พร้อม default values"""
-    # รับค่า default จาก query parameters
-    default_scope = request.args.get("default_scope")
-    default_sub_scope = request.args.get("default_sub_scope")
-    
-    return render_template(
-        "/form-management/add-form-and-formula.html",
-        default_scope=default_scope,
-        default_sub_scope=default_sub_scope,
-    )
+    try:
+        # รับค่า default จาก query parameters
+        default_scope = request.args.get("default_scope")
+        default_sub_scope = request.args.get("default_sub_scope")
+        
+        # แปลงเป็น int ถ้ามีค่า
+        if default_scope:
+            try:
+                default_scope = int(default_scope)
+            except ValueError:
+                default_scope = None
+                
+        if default_sub_scope:
+            try:
+                default_sub_scope = int(default_sub_scope)
+            except ValueError:
+                default_sub_scope = None
+        
+        return render_template(
+            "/form-management/add-form-and-formula.html",
+            default_scope=default_scope,
+            default_sub_scope=default_sub_scope,
+        )
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error in load_add_form_and_formula: {str(e)}")
+        print(f"Full traceback: {error_details}")
+        
+        # ส่งกลับหน้า error แทน
+        return render_template(
+            "/form-management/add-form-and-formula.html",
+            default_scope=None,
+            default_sub_scope=None,
+            error_msg=f"Error loading form: {str(e)}"
+        )
 
 
 @module.route("/load-edit-form", methods=["GET"])
@@ -402,7 +428,7 @@ def add_form_and_formula():
         desc_formula2 = request.form.get("desc_formula2", "")
         material_name = request.form.get("material_name")
         formula = request.form.get("formula")
-        formula2 = ""
+        formula2 = request.form.get("formula2", "")
         ghg_scope = request.form.get("scope")
         ghg_sup_scope = request.form.get("sup_scope")
 
@@ -411,8 +437,8 @@ def add_form_and_formula():
         is_linked = form_type == "linked"
         linked_material_name = request.form.get("linked_material_name", "")
 
-        # ตรวจสอบข้อมูลที่จำเป็น
-        if not material_name or not formula or not ghg_scope or not ghg_sup_scope:
+        # ตรวจสอบข้อมูลที่จำเป็น (formula ไม่จำเป็นต้องกรอก)
+        if not material_name or not ghg_scope or not ghg_sup_scope:
             return _error_response("กรุณากรอกข้อมูลให้ครบถ้วน")
 
         # ตรวจสอบชื่อวัสดุซ้ำ
@@ -714,6 +740,8 @@ def _setup_linked_form_fields(form_obj, linked_material_name):
 
 def _setup_normal_form_fields(form_obj):
     """ตั้งค่า input fields สำหรับ normal form"""
+
+    
     input_fields = []
     variables = []
     fields = request.form.getlist("field")
@@ -752,7 +780,8 @@ def _success_response(message, refresh_scope=None):
     response.headers['HX-Trigger'] = json.dumps(trigger_data)
     
     if refresh_scope:
-        response.headers['HX-Trigger-After-Swap'] = f'refreshScope{refresh_scope}'
+        # ใช้ HX-Refresh แทน HX-Trigger-After-Swap เพื่อให้โหลดหน้าใหม่อย่างสมบูรณ์
+        response.headers['HX-Refresh'] = 'true'
     
     return response
 
@@ -770,6 +799,10 @@ def _error_response(message):
 def get_sub_scopes(main_scope):
     """ดึง sub scopes ตาม main scope ที่เลือก และ render template"""
     try:
+        # รับค่า main_scope จาก URL parameter
+        if not main_scope:
+            return '<select name="sup_scope" class="select select-bordered w-full mt-1" required><option value="">กรุณาเลือก Main Scope ก่อน</option></select>'
+            
         print(f"get_sub_scopes called with main_scope: {main_scope}")
         print(f"Request args: {request.args}")
 

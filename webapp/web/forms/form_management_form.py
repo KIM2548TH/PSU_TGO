@@ -58,7 +58,7 @@ class FormAndFormulaForm(FlaskForm):
                                      choices=[],
                                      validators=[Optional()])
     
-    # Formula (now optional)
+    # Formula (optional - can be added later)
     formula = StringField("Formula", validators=[
         Optional(),
         Length(max=200, message="สูตรต้องมีความยาวไม่เกิน 200 ตัวอักษร")
