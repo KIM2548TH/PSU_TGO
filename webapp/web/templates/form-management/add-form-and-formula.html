@@ -31,7 +31,8 @@
       <form method="POST" 
             hx-post="{{ url_for('form_management.add_form_and_formula') }}"
             hx-target="#modal-content"
-            hx-swap="innerHTML">
+            hx-swap="innerHTML"
+            onsubmit="return validateForm(this)">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}"/>
         <input type="hidden" name="is_linked" value="false"/>
         

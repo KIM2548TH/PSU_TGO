@@ -24,7 +24,7 @@
         เลือก Sub Scope
       </h3>
       <button class="text-xs text-blue-600 hover:text-blue-800" 
-              hx-get="/form-management/scope/3?show_all=true"
+              hx-get="/form-management/scope3?show_all=true"
               hx-target="#scope-content-area"
               hx-swap="innerHTML">แสดงทั้งหมด</button>
     </div>
@@ -52,7 +52,7 @@
       <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-full p-2 shadow border border-blue-200">
         <li>
           <button class="w-full text-left {{ 'bg-blue-100 text-blue-800' if show_all else '' }}"
-                  hx-get="/form-management/scope/3?show_all=true"
+                  hx-get="/form-management/scope3?show_all=true"
                   hx-target="#scope-content-area"
                   hx-swap="innerHTML">
             <i data-feather="list" class="w-4 h-4"></i>
@@ -63,7 +63,7 @@
         {% set scope_key = "3." + sub_scope|string %}
         <li>
           <button class="w-full text-left {{ 'bg-blue-100 text-blue-800' if (filter_sub_scope == sub_scope) or (not filter_sub_scope and not show_all and loop.first) else '' }}"
-                  hx-get="/form-management/scope/3?filter_sub_scope={{ sub_scope }}"
+                  hx-get="/form-management/scope3?filter_sub_scope={{ sub_scope }}"
                   hx-target="#scope-content-area"
                   hx-swap="innerHTML">
             <i data-feather="folder" class="w-4 h-4"></i>

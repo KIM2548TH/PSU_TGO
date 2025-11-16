@@ -63,7 +63,7 @@ def save_conversion_formulas(form_id):
         # อัปเดต Material ทั้งหมดที่ใช้ฟอร์มนี้
         _update_materials_with_new_formulas(form_obj)
         
-        return success_response("บันทึกสูตรแปลงหน่วยสำเร็จ!", closeModal=True)
+        return success_response("บันทึกสูตรแปลงหน่วยสำเร็จ!", closeModal=True, refreshScope=form_obj.ghg_scope)
         
     except Exception as e:
         import traceback
@@ -124,7 +124,7 @@ def save_gas_formulas(form_id):
         # อัปเดต Material ทั้งหมดที่ใช้ฟอร์มนี้
         _update_materials_with_gas_formulas(form_obj)
         
-        return success_response("บันทึกสูตรก๊าซสำเร็จ!", closeModal=True)
+        return success_response("บันทึกสูตรก๊าซสำเร็จ!", closeModal=True, refreshScope=form_obj.ghg_scope)
         
     except Exception as e:
         import traceback

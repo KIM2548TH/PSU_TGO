@@ -7,11 +7,12 @@
   <div class="mb-6">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
       <!-- Scope 1 Card -->
-      <div hx-get="/form-management/scope/1"
+      <div hx-get="/form-management/scope1"
            hx-target="#scope-content-area"
            hx-trigger="click"
-           class="cursor-pointer">
-        <div class="p-4 rounded-xl border-2 border-purple-500 bg-purple-50 shadow-md hover:shadow-lg hover:bg-purple-100 transition-all duration-300">
+           class="cursor-pointer"
+           onclick="updateActiveScope('scope1')">
+        <div id="scope1-card" class="p-4 rounded-xl border-2 border-purple-500 bg-purple-50 shadow-md hover:shadow-lg hover:bg-purple-100 transition-all duration-300">
           <div class="flex items-center gap-4">
             <div class="bg-purple-100 p-2 rounded-full">
               <i data-feather="layers" class="w-6 h-6 text-purple-600"></i>
@@ -25,11 +26,12 @@
       </div>
 
       <!-- Scope 2 Card -->
-      <div hx-get="/form-management/scope/2"
+      <div hx-get="/form-management/scope2"
            hx-target="#scope-content-area"
            hx-trigger="click"
-           class="cursor-pointer">
-        <div class="p-4 rounded-xl border-2 border-gray-200 bg-white hover:border-green-500 hover:bg-green-50 hover:shadow-lg transition-all duration-300">
+           class="cursor-pointer"
+           onclick="updateActiveScope('scope2')">
+        <div id="scope2-card" class="p-4 rounded-xl border-2 border-gray-200 bg-white hover:border-green-500 hover:bg-green-50 hover:shadow-lg transition-all duration-300">
           <div class="flex items-center gap-4">
             <div class="bg-green-100 p-2 rounded-full">
               <i data-feather="zap" class="w-6 h-6 text-green-600"></i>
@@ -43,11 +45,12 @@
       </div>
 
       <!-- Scope 3 Card -->
-      <div hx-get="/form-management/scope/3"
+      <div hx-get="/form-management/scope3"
            hx-target="#scope-content-area"
            hx-trigger="click"
-           class="cursor-pointer">
-        <div class="p-4 rounded-xl border-2 border-gray-200 bg-white hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg transition-all duration-300">
+           class="cursor-pointer"
+           onclick="updateActiveScope('scope3')">
+        <div id="scope3-card" class="p-4 rounded-xl border-2 border-gray-200 bg-white hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg transition-all duration-300">
           <div class="flex items-center gap-4">
             <div class="bg-blue-100 p-2 rounded-full">
               <i data-feather="globe" class="w-6 h-6 text-blue-600"></i>
@@ -117,265 +120,65 @@
 
   <!-- Dynamic Content Area -->
   <div id="scope-content-area" class="bg-white rounded-xl shadow-lg p-6">
-    <!-- Default Scope 1 Content -->
-    <div class="mb-8">
-      <div class="flex items-center gap-3 mb-6">
-        <div class="bg-purple-100 p-3 rounded-full">
-          <i data-feather="layers" class="w-6 h-6 text-purple-600"></i>
-        </div>
-        <div class="flex-1">
-          <h2 class="text-2xl font-bold text-purple-800">Scope 1 - การปล่อยทางตรง</h2>
-          <p class="text-sm text-gray-600">การปล่อยก๊าซเรือนกระจกทางตรงจากกิจกรรมที่องค์กรควบคุมได้</p>
-        </div>
-        <span class="ml-auto badge bg-purple-100 text-purple-800 text-sm font-medium px-3 py-1 rounded-full">  
-          {{ forms|selectattr('ghg_scope', 'equalto', 1)|list|length }} ฟอร์ม
-        </span>
-      </div>
-      
-      {% set scope1_forms = forms|selectattr('ghg_scope', 'equalto', 1)|list %}
-      {% set scope1_sub_scopes = scope1_forms|map(attribute='ghg_sup_scope')|unique|sort %}
-
-      <!-- Sub Scope Dropdown - แสดงเสมอ -->
-      <div class="mb-6 bg-purple-50 rounded-lg p-4">
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="text-sm font-semibold text-purple-700">
-            <i data-feather="filter" class="w-4 h-4 inline mr-1"></i>
-            เลือก Sub Scope
-          </h3>
-          <button class="text-xs text-purple-600 hover:text-purple-800" 
-                  hx-get="/form-management/scope/1?show_all=true"
-                  hx-target="#scope-content-area"
-                  hx-swap="innerHTML">แสดงทั้งหมด</button>
-        </div>
-        
-        <div class="dropdown w-full">
-          <div tabindex="0" role="button" class="btn btn-outline btn-purple w-full justify-between">
-            <span>
-              {% if scope1_sub_scopes|length > 0 %}
-                {% set first_sub_scope = scope1_sub_scopes|first %}
-                {% set scope_key = "1." + first_sub_scope|string %}
-                Sub Scope {{ first_sub_scope }}
-                {% if scope_names.get(scope_key) %} - {{ scope_names.get(scope_key) }}{% endif %}
-              {% else %}
-                เลือก Sub Scope
-              {% endif %}
-            </span>
-            <i data-feather="chevron-down" class="w-4 h-4"></i>
-          </div>
-          <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-full p-2 shadow border border-purple-200">
-            <li>
-              <button class="w-full text-left"
-                      hx-get="/form-management/scope/1?show_all=true"
-                      hx-target="#scope-content-area"
-                      hx-swap="innerHTML">
-                <i data-feather="list" class="w-4 h-4"></i>
-                แสดงทั้งหมด
-              </button>
-            </li>
-            {% for sub_scope in scope1_sub_scopes %}
-            {% set scope_key = "1." + sub_scope|string %}
-            <li>
-              <button class="w-full text-left {{ 'bg-purple-100 text-purple-800' if loop.first else '' }}"
-                      hx-get="/form-management/scope/1?filter_sub_scope={{ sub_scope }}"
-                      hx-target="#scope-content-area"
-                      hx-swap="innerHTML">
-                <i data-feather="folder" class="w-4 h-4"></i>
-                <div class="flex-1">
-                  <div class="font-medium">Sub Scope {{ sub_scope }}</div>
-                  {% if scope_names.get(scope_key) %}
-                  <div class="text-xs text-gray-500">{{ scope_names.get(scope_key) }}</div>
-                  {% endif %}
-                </div>
-              </button>
-            </li>
-            {% endfor %}
-            {% if has_permission("เพิ่มฟอร์ม") %}
-            <li class="border-t border-gray-200 mt-2 pt-2">
-              <button class="w-full text-left text-purple-600"
-                      hx-get="{{ url_for('form_management.load_add_form_and_formula') }}?default_scope=1" 
-                      hx-target="#modal-content" 
-                      hx-swap="innerHTML">
-                <i data-feather="plus-circle" class="w-4 h-4"></i>
-                เพิ่ม Sub Scope ใหม่
-              </button>
-            </li>
-            {% endif %}
-          </ul>
-        </div>
-      </div>
-
-      <!-- Forms Content -->
-      {% if scope1_sub_scopes|length == 0 %}
-      <!-- แสดงเมื่อไม่มี Sub Scope -->
-      <div class="text-center py-12 bg-purple-50 rounded-lg border-2 border-dashed border-purple-300">
-        <div class="bg-purple-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-          <i data-feather="plus-circle" class="w-8 h-8 text-purple-600"></i>
-        </div>
-        <h3 class="text-lg font-semibold text-purple-700 mb-2">ยังไม่มี Sub Scope</h3>
-        <p class="text-purple-600 mb-4">เริ่มต้นสร้างฟอร์มแรกใน Scope 1</p>
-        {% if has_permission("เพิ่มฟอร์ม") %}
-        <button class="btn btn-primary"
-                hx-get="{{ url_for('form_management.load_add_form_and_formula') }}?default_scope=1" 
-                hx-target="#modal-content" 
-                hx-swap="innerHTML">
-          <i data-feather="plus" class="w-4 h-4 mr-2"></i>
-          เพิ่มฟอร์มใหม่
-        </button>
-        {% endif %}
-      </div>
-      {% else %}
-
-      {% for sub_scope in scope1_sub_scopes %}
-        {% set scope_key = "1." + sub_scope|string %}
-        {% set should_show = loop.first %}
-        
-        {% if should_show %}
-        <div class="mb-8">
-          <!-- Sub Scope Header -->
-          <div class="border-l-4 border-purple-400 pl-4 mb-4">
-            <h3 class="text-lg font-semibold text-purple-700">
-              {% if scope_names.get(scope_key) %}{{ scope_names.get(scope_key) }}{% else %}Sub Scope {{ sub_scope }}{% endif %}
-            </h3>
-            <p class="text-sm text-gray-500">รายการฟอร์มใน Sub Scope {{ sub_scope }}</p>
-          </div>
-
-          <!-- Forms Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {% for form in scope1_forms %}
-              {% if form.ghg_sup_scope == sub_scope %}
-              <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-                <div class="flex justify-between items-start mb-4">
-                  <div class="flex items-center gap-4 min-w-0 flex-1">
-                    <div class="bg-purple-100 text-purple-600 p-3 rounded-lg flex-shrink-0 relative">
-                      <i data-feather="file-text" class="w-5 h-5"></i>
-                      {% if form.is_linked %}
-                        <div class="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full border-2 border-white"></div>
-                      {% endif %}
-                    </div>
-                    <div class="min-w-0 flex-1">
-                      <h4 class="text-base font-semibold text-gray-800 break-words leading-relaxed mb-1">{{ form.material_name }}</h4>
-                      <p class="text-sm text-gray-500 break-words leading-relaxed">{{ form.desc_form[:50] }}{% if form.desc_form and form.desc_form|length > 50 %}...{% endif %}</p>
-                    </div>
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    {% if has_permission("แก้ไขฟอร์ม") %}
-                    <button class="text-blue-500 hover:text-blue-700 p-1 rounded-md hover:bg-blue-50 transition-colors" 
-                            title="แก้ไขฟอร์ม"
-                            hx-get="{{ url_for('form_management.load_edit_form_and_formula') }}?form_id={{ form.id }}"
-                            hx-target="#modal-content"
-                            hx-swap="innerHTML"
-                            hx-on:htmx:after-request="document.getElementById('modal').classList.add('modal-open')">
-                      <i data-feather="edit" class="w-4 h-4"></i>
-                    </button>
-                    <button class="text-purple-500 hover:text-purple-700 p-1 rounded-md hover:bg-purple-50 transition-colors" 
-                            title="แก้ไขสูตรแปลงหน่วย"
-                            hx-get="{{ url_for('gas_formula.load_conversion_formula_editor', form_id=form.id) }}"
-                            hx-target="#modal-content"
-                            hx-swap="innerHTML"
-                            hx-on:htmx:after-request="document.getElementById('modal').classList.add('modal-open')">
-                      <i data-feather="grid" class="w-4 h-4"></i>
-                    </button>
-                    <button class="text-green-500 hover:text-green-700 p-1 rounded-md hover:bg-green-50 transition-colors" 
-                            title="แก้ไขสูตรคำนวณก๊าซ"
-                            hx-get="{{ url_for('gas_formula.load_gas_formula_editor', form_id=form.id) }}"
-                            hx-target="#modal-content"
-                            hx-swap="innerHTML"
-                            hx-on:htmx:after-request="document.getElementById('modal').classList.add('modal-open')">
-                      <i data-feather="wind" class="w-4 h-4"></i>
-                    </button>
-                    <button class="text-orange-500 hover:text-orange-700 p-1 rounded-md hover:bg-orange-50 transition-colors" 
-                            title="อัปเดต Material"
-                            hx-post="{{ url_for('form_management.update_materials', form_id=form.id) }}"
-                            hx-confirm="ต้องการอัปเดต Material ทั้งหมดที่ใช้ฟอร์มนี้หรือไม่?"
-                            hx-indicator="#loading-spinner">
-                      <i data-feather="refresh-cw" class="w-4 h-4"></i>
-                    </button>
-                    <button class="text-cyan-500 hover:text-cyan-700 p-1 rounded-md hover:bg-cyan-50 transition-colors" 
-                            title="รีเฟรชคำนวณก๊าซ"
-                            hx-post="{{ url_for('gas_formula.refresh_gas_calculations', form_id=form.id) }}"
-                            hx-confirm="ต้องการรีเฟรชคำนวณก๊าซทั้งหมดหรือไม่?"
-                            hx-indicator="#loading-spinner">
-                      <i data-feather="activity" class="w-4 h-4"></i>
-                    </button>
-                    {% endif %}
-                  </div>
-                </div>
-                
-                <!-- Linked Form Information -->
-                {% if form.is_linked %}
-                <div class="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                  <div class="flex items-center gap-3">
-                    <i data-feather="link" class="w-4 h-4 text-orange-600"></i>
-                    <span class="text-sm font-medium text-orange-700 break-words">เชื่อมโยงจาก: {{ form.linked_material_name }}</span>
-                  </div>
-                </div>
-                {% endif %}
-                
-                <!-- Variables -->
-                {% if form.variables %}
-                <div class="mb-4">
-                  <p class="text-sm font-medium text-gray-600 mb-3">ตัวแปร</p>
-                  <div class="flex flex-wrap gap-2">
-                    {% for var in form.variables %}
-                    <div class="bg-yellow-100 text-yellow-800 text-sm px-3 py-1.5 rounded-md font-medium break-all">{{ var }}</div>
-                    {% endfor %}
-                  </div>
-                </div>
-                {% endif %}
-                
-                <!-- Formula -->
-                <div class="bg-gray-50 p-4 rounded-lg space-y-3">
-                  <div>
-                    <p class="text-sm font-medium text-gray-600 mb-2">สูตรคำนวณ</p>
-                    <p class="text-sm text-gray-800 font-mono break-all leading-relaxed">{{ form.formula or "ไม่ได้กำหนด" }}</p>
-                  </div>
-                  {% if form.formula2 %}
-                  <div class="border-t border-gray-200 pt-3">
-                    <p class="text-sm font-medium text-blue-600 mb-2">สูตรคำนวณ tonCO₂e</p>
-                    <div class="bg-blue-50 p-3 rounded">
-                      <p class="text-sm text-blue-800 font-mono break-all leading-relaxed">{{ form.formula2 or "ไม่ได้กำหนด" }}</p>
-                    </div>
-                  </div>
-                  {% else %}
-                  <div class="border-t border-gray-200 pt-3">
-                    <p class="text-sm font-medium text-blue-600 mb-2">สูตรคำนวณ tonCO₂e</p>
-                    <div class="bg-blue-50 p-3 rounded">
-                      <p class="text-sm text-blue-500 font-mono break-all leading-relaxed">ไม่ได้กำหนด</p>
-                    </div>
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-              {% endif %}
-            {% endfor %}
-            
-            <!-- Add New Form Card - แสดงเฉพาะเมื่อมี permission -->
-            {% if has_permission("เพิ่มฟอร์ม") %}
-            <div class="border-2 border-dashed border-purple-200 rounded-xl p-8 flex flex-col items-center justify-center text-center hover:border-purple-400 hover:bg-purple-50 transition-colors duration-200 cursor-pointer"
-                 hx-get="{{ url_for('form_management.load_add_form_and_formula') }}?default_scope=1&default_sub_scope={{ sub_scope }}" 
-                 hx-target="#modal-content" 
-                 hx-swap="innerHTML"
-                 hx-on:htmx:after-request="document.getElementById('modal').classList.add('modal-open')">
-              <div class="bg-purple-100 p-3 rounded-full mb-3">
-                <i data-feather="plus" class="w-6 h-6 text-purple-600"></i>
-              </div>
-              <h4 class="text-sm font-medium text-purple-700">เพิ่มฟอร์มใหม่</h4>
-              <p class="text-xs text-purple-500 mt-1">Sub Scope {{ sub_scope }}</p>
-            </div>
-            {% endif %}
-          </div>
-        </div>
-        {% endif %}
-      {% endfor %}
-      
-      {% endif %}
-    </div>
+    {% include 'form-management/partials/scope1-content.html' %}
   </div>
+  
+  <!-- HTMX Triggers for Scope Refresh -->
+  <div hx-get="/form-management/refresh-forms"
+       hx-trigger="refreshForms from:body"
+       hx-target="#scope-content-area"
+       hx-swap="innerHTML"
+       style="display: none;"></div>
+  <div hx-get="/form-management/scope1"
+       hx-trigger="refreshScope1 from:body"
+       hx-target="#scope-content-area"
+       hx-swap="innerHTML"
+       style="display: none;"></div>
+  <div hx-get="/form-management/scope2"
+       hx-trigger="refreshScope2 from:body"
+       hx-target="#scope-content-area"
+       hx-swap="innerHTML"
+       style="display: none;"></div>
+  <div hx-get="/form-management/scope3"
+       hx-trigger="refreshScope3 from:body"
+       hx-target="#scope-content-area"
+       hx-swap="innerHTML"
+       style="display: none;"></div>
 </div>
 
 <!-- Include Toast Component -->
 {% include 'components/toast.html' %}
 
-<!-- Pure HTMX - No JavaScript -->
+<script>
+function updateActiveScope(activeScope) {
+  // Reset all cards to default state
+  const scope1Card = document.getElementById('scope1-card');
+  const scope2Card = document.getElementById('scope2-card');
+  const scope3Card = document.getElementById('scope3-card');
+  
+  // Reset all cards
+  scope1Card.className = 'p-4 rounded-xl border-2 border-gray-200 bg-white hover:border-purple-500 hover:bg-purple-50 hover:shadow-lg transition-all duration-300';
+  scope2Card.className = 'p-4 rounded-xl border-2 border-gray-200 bg-white hover:border-green-500 hover:bg-green-50 hover:shadow-lg transition-all duration-300';
+  scope3Card.className = 'p-4 rounded-xl border-2 border-gray-200 bg-white hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg transition-all duration-300';
+  
+  // Set active card
+  switch(activeScope) {
+    case 'scope1':
+      scope1Card.className = 'p-4 rounded-xl border-2 border-purple-500 bg-purple-50 shadow-md hover:shadow-lg hover:bg-purple-100 transition-all duration-300';
+      break;
+    case 'scope2':
+      scope2Card.className = 'p-4 rounded-xl border-2 border-green-500 bg-green-50 shadow-md hover:shadow-lg hover:bg-green-100 transition-all duration-300';
+      break;
+    case 'scope3':
+      scope3Card.className = 'p-4 rounded-xl border-2 border-blue-500 bg-blue-50 shadow-md hover:shadow-lg hover:bg-blue-100 transition-all duration-300';
+      break;
+  }
+}
+
+// Initialize with scope1 active
+document.addEventListener('DOMContentLoaded', function() {
+  updateActiveScope('scope1');
+});
+</script>
 
 {% endblock content %}

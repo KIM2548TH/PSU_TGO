@@ -37,6 +37,60 @@ def form_management():
     )
 
 
+@module.route("/refresh-forms", methods=["GET"])
+@login_required
+def refresh_forms():
+    """รีเฟรชข้อมูลฟอร์ม (สำหรับ partial update)"""
+    try:
+        # รับค่า scope ที่ต้องการรีเฟรช
+        scope_id = request.args.get('scope', '1')  # default เป็น scope 1
+        filter_sub_scope = request.args.get('filter_sub_scope')
+        show_all = request.args.get('show_all', 'false').lower() == 'true'
+        
+        # ถ้าไม่มี scope parameter ให้ตรวจสอบจาก active scope ในหน้าปัจจุบัน
+        if not scope_id or scope_id == '1':
+            # พยายามตรวจสอบจาก referer หรือใช้ค่า default
+            referer = request.headers.get('Referer', '')
+            if 'scope2' in referer:
+                scope_id = '2'
+            elif 'scope3' in referer:
+                scope_id = '3'
+            else:
+                scope_id = '1'
+        
+        forms = FormAndFormula.objects().order_by(
+            "ghg_scope", "ghg_sup_scope", "material_name"
+        )
+
+        # ดึงข้อมูล scope names จาก Scope model
+        scopes = Scope.objects().order_by("ghg_scope", "ghg_sup_scope")
+        scope_names = {}
+
+        for scope in scopes:
+            key = f"{scope.ghg_scope}.{scope.ghg_sup_scope}"
+            scope_names[key] = scope.ghg_name
+
+        # เลือก template ตาม scope
+        template_map = {
+            '1': "form-management/partials/scope1-content.html",
+            '2': "form-management/partials/scope2-content.html",  
+            '3': "form-management/partials/scope3-content.html"
+        }
+        
+        template_name = template_map.get(scope_id, template_map['1'])
+        
+        return render_template(
+            template_name,
+            forms=forms,
+            scope_names=scope_names,
+            active_scope=scope_id,
+            filter_sub_scope=int(filter_sub_scope) if filter_sub_scope else None,
+            show_all=show_all
+        )
+    except Exception as e:
+        return f'<div class="alert alert-error">Error refreshing forms: {str(e)}</div>'
+
+
 # === FORM LOADING ROUTES ===
 @module.route("/load-add-form", methods=["GET"])
 @login_required
@@ -142,45 +196,29 @@ def load_edit_form_and_formula():
 
 
 # === SCOPE MANAGEMENT ROUTES ===
+@module.route("/scope1", methods=["GET"])
+@login_required
+def get_scope1_content():
+    """โหลด content สำหรับ scope 1"""
+    return _get_scope_content(1)
+
+@module.route("/scope2", methods=["GET"])
+@login_required
+def get_scope2_content():
+    """โหลด content สำหรับ scope 2"""
+    return _get_scope_content(2)
+
+@module.route("/scope3", methods=["GET"])
+@login_required
+def get_scope3_content():
+    """โหลด content สำหรับ scope 3"""
+    return _get_scope_content(3)
+
 @module.route("/scope/<int:scope_id>", methods=["GET"])
 @login_required
 def get_scope_content(scope_id):
-    """โหลด content ตาม scope ที่เลือก"""
-    try:
-        # โหลดข้อมูลใหม่
-        forms = FormAndFormula.objects().order_by(
-            "ghg_scope", "ghg_sup_scope", "material_name"
-        )
-        
-        scopes = Scope.objects().order_by("ghg_scope", "ghg_sup_scope")
-        scope_names = {}
-        for scope in scopes:
-            key = f"{scope.ghg_scope}.{scope.ghg_sup_scope}"
-            scope_names[key] = scope.ghg_name
-        
-        # รับพารามิเตอร์การกรอง
-        filter_sub_scope = request.args.get('filter_sub_scope')
-        show_all = request.args.get('show_all', 'false').lower() == 'true'
-        
-        # เลือก template ตาม scope
-        template_map = {
-            1: "form-management/partials/scope1-content.html",
-            2: "form-management/partials/scope2-content.html",  
-            3: "form-management/partials/scope3-content.html"
-        }
-        
-        template_name = template_map.get(scope_id, template_map[1])
-        
-        return render_template(
-            template_name,
-            forms=forms,
-            scope_names=scope_names,
-            active_scope=str(scope_id),
-            filter_sub_scope=int(filter_sub_scope) if filter_sub_scope else None,
-            show_all=show_all
-        )
-    except Exception as e:
-        return f'<div class="text-error">Error loading scope content: {str(e)}</div>'
+    """โหลด content ตาม scope ที่เลือก (เก็บไว้เพื่อความเข้ากันได้แบบย้อนหลัง)"""
+    return _get_scope_content(scope_id)
 
 
 # === CALCULATOR ROUTES ===
@@ -767,30 +805,20 @@ def _setup_normal_form_fields(form_obj):
 
 def _success_response(message, refresh_scope=None):
     """สร้าง success response พร้อม toast notification"""
-    response = make_response('')
-    import json
-    import urllib.parse
-    
-    encoded_message = urllib.parse.quote(message)
-    
-    trigger_data = {
-        "closeModal": True,
-        "showSuccess": encoded_message
-    }
-    response.headers['HX-Trigger'] = json.dumps(trigger_data)
+    trigger_data = {"closeModal": True}
     
     if refresh_scope:
-        # ใช้ HX-Refresh แทน HX-Trigger-After-Swap เพื่อให้โหลดหน้าใหม่อย่างสมบูรณ์
-        response.headers['HX-Refresh'] = 'true'
-    
-    return response
+        # รีเฟรชเฉพาะส่วนของฟอร์มและแสดง toast
+        # ส่ง scope ที่ถูกต้องกลับไปให้ HTMX
+        trigger_data[f"refreshScope{refresh_scope}"] = True
+        return success_response(message, **trigger_data)
+    else:
+        return success_response(message, **trigger_data)
 
 
 def _error_response(message):
-    """สร้าง error response"""
-    response = make_response(f'<div class="alert alert-error"><span>{message}</span></div>')
-    response.headers['HX-Retarget'] = '#modal-content'
-    return response, 400
+    """สร้าง error response พร้อม toast notification"""
+    return error_response(message, content=f'<div class="alert alert-error"><span>{message}</span></div>', HX_Retarget='#modal-content')
 
 
 # === SUB SCOPE ROUTES ===
@@ -1013,6 +1041,45 @@ def get_form_data(form_id):
         
     except Exception as e:
         return jsonify({"success": False, "message": f"Error loading form: {str(e)}"})
+
+
+def _get_scope_content(scope_id):
+    """Helper function สำหรับโหลด content ตาม scope"""
+    try:
+        # โหลดข้อมูลใหม่
+        forms = FormAndFormula.objects().order_by(
+            "ghg_scope", "ghg_sup_scope", "material_name"
+        )
+        
+        scopes = Scope.objects().order_by("ghg_scope", "ghg_sup_scope")
+        scope_names = {}
+        for scope in scopes:
+            key = f"{scope.ghg_scope}.{scope.ghg_sup_scope}"
+            scope_names[key] = scope.ghg_name
+        
+        # รับพารามิเตอร์การกรอง
+        filter_sub_scope = request.args.get('filter_sub_scope')
+        show_all = request.args.get('show_all', 'false').lower() == 'true'
+        
+        # เลือก template ตาม scope
+        template_map = {
+            1: "form-management/partials/scope1-content.html",
+            2: "form-management/partials/scope2-content.html",  
+            3: "form-management/partials/scope3-content.html"
+        }
+        
+        template_name = template_map.get(scope_id, template_map[1])
+        
+        return render_template(
+            template_name,
+            forms=forms,
+            scope_names=scope_names,
+            active_scope=str(scope_id),
+            filter_sub_scope=int(filter_sub_scope) if filter_sub_scope else None,
+            show_all=show_all
+        )
+    except Exception as e:
+        return f'<div class="text-error">Error loading scope content: {str(e)}</div>'
 
 
 def _convert_form_to_dict(form_obj):
