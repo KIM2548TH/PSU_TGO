@@ -570,102 +570,24 @@ def download_pdf():
         # สร้าง PDF ด้วย ReportLab (เหมือนหน้าเว็บ)
         generated_date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
         
-        # ลงทะเบียน Thai font สำหรับภาษาไทย - รองรับทั้ง Windows และ Linux
+        # โหลดฟอนต์ภาษาไทยจากโฟลเดอร์ static/fonts ในโปรเจกต์
         try:
-            thai_font_path = None
-            
-            # ตรวจสอบ OS และกำหนด possible fonts ตาม platform
-            import platform
-            system = platform.system().lower()
-            
-            if system == 'windows':
-                # Windows fonts
-                possible_fonts = [
-                    'C:/Windows/Fonts/tahoma.ttf',
-                    'C:/Windows/Fonts/tahomabd.ttf', 
-                    'C:/Windows/Fonts/arial.ttf',
-                    'C:/Windows/Fonts/cordia.ttf',
-                    'C:/Windows/Fonts/cordiau.ttf'
-                ]
-            else:
-                # Linux/Unix fonts (Ubuntu, CentOS, etc.)
-                possible_fonts = [
-                    '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-                    '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
-                    '/usr/share/fonts/TTF/DejaVuSans.ttf',
-                    '/usr/share/fonts/truetype/noto/NotoSansThai-Regular.ttf',
-                    # TLWG Thai fonts (ปรับ path ใหม่ตาม fc-cache ผลลัพธ์)
-                    '/usr/share/fonts/truetype/tlwg/Garuda.ttf',
-                    '/usr/share/fonts/truetype/tlwg/Kinnari.ttf',
-                    '/usr/share/fonts/truetype/tlwg/Laksaman.ttf',
-                    '/usr/share/fonts/truetype/tlwg/Norasi.ttf',
-                    '/usr/share/fonts/truetype/tlwg/Purisa.ttf',
-                    '/usr/share/fonts/truetype/tlwg/Sawasdee.ttf',
-                    '/usr/share/fonts/truetype/tlwg/TlwgMono.ttf',
-                    '/usr/share/fonts/truetype/tlwg/TlwgTypewriter.ttf',
-                    '/usr/share/fonts/truetype/tlwg/Umpush.ttf',
-                    '/usr/share/fonts/truetype/tlwg/Waree.ttf',
-                    # เพิ่ม font ไทยยอดนิยมจาก TLWG
-                    '/usr/share/fonts/truetype/tlwg/Loma.ttf',
-                    '/usr/share/fonts/truetype/tlwg/TlwgTypist.ttf',
-                    # รองรับ path เก่าด้วยในกรณีที่ระบบบางตัวใช้ path เก่า
-                    '/usr/share/fonts/truetype/thai/Garuda.ttf',
-                    '/usr/share/fonts/truetype/thai/Kinnari.ttf',
-                    '/usr/share/fonts/truetype/thai/Laksaman.ttf',
-                    '/usr/share/fonts/truetype/thai/Norasi.ttf',
-                    '/usr/share/fonts/truetype/thai/Purisa.ttf',
-                    '/usr/share/fonts/truetype/thai/Sawasdee.ttf',
-                    '/usr/share/fonts/truetype/thai/TlwgMono.ttf',
-                    '/usr/share/fonts/truetype/thai/TlwgTypewriter.ttf',
-                    '/usr/share/fonts/truetype/thai/Umpush.ttf',
-                    '/usr/share/fonts/truetype/thai/Waree.ttf'
-                ]
-            
-            # หา font ที่มีอยู่
-            for font_path in possible_fonts:
-                if os.path.exists(font_path):
-                    thai_font_path = font_path
-                    break
-            
-            if thai_font_path:
+            import os
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            font_dir = os.path.abspath(os.path.join(base_dir, '..', '..', 'static', 'fonts'))
+            thai_font_path = os.path.join(font_dir, 'Sarabun-Regular.ttf')
+            bold_font_path = os.path.join(font_dir, 'Sarabun-Bold.ttf')
+            if os.path.exists(thai_font_path):
                 pdfmetrics.registerFont(TTFont('ThaiFont', thai_font_path))
-                
-                # ลงทะเบียน bold font ตาม platform
-                bold_font_path = None
-                if system == 'windows':
-                    bold_font_path = thai_font_path.replace('.ttf', 'bd.ttf')
-                    if not os.path.exists(bold_font_path):
-                        bold_font_path = thai_font_path.replace('.ttf', 'b.ttf')
-                else:
-                    # Linux bold fonts
-                    bold_alternatives = [
-                        thai_font_path.replace('.ttf', '-Bold.ttf'),
-                        thai_font_path.replace('Regular', 'Bold'),
-                        '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
-                        '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',
-                        '/usr/share/fonts/TTF/DejaVuSans-Bold.ttf'
-                    ]
-                    for bold_path in bold_alternatives:
-                        if os.path.exists(bold_path):
-                            bold_font_path = bold_path
-                            break
-                
-                if bold_font_path and os.path.exists(bold_font_path):
-                    pdfmetrics.registerFont(TTFont('ThaiFontBold', bold_font_path))
-                else:
-                    # ใช้ font เดียวกันสำหรับ bold
-                    pdfmetrics.registerFont(TTFont('ThaiFontBold', thai_font_path))
-                
                 thai_font_name = 'ThaiFont'
-                thai_font_bold = 'ThaiFontBold'
-                print(f"✓ ใช้ Thai font: {thai_font_path}")
             else:
-                # ถ้าไม่เจอ font ไทย ใช้ DejaVu (ซึ่งรองรับ Unicode ได้ดีกว่า Helvetica)
-                print("⚠ ไม่พบ Thai font ใช้ Helvetica แทน")
                 thai_font_name = 'Helvetica'
-                thai_font_bold = 'Helvetica-Bold'
+            if os.path.exists(bold_font_path):
+                pdfmetrics.registerFont(TTFont('ThaiFontBold', bold_font_path))
+                thai_font_bold = 'ThaiFontBold'
+            else:
+                thai_font_bold = thai_font_name if thai_font_name != 'Helvetica' else 'Helvetica-Bold'
         except Exception as e:
-            # Fallback ถ้ามีปัญหา
             print(f"❌ Font loading error: {str(e)}")
             thai_font_name = 'Helvetica'
             thai_font_bold = 'Helvetica-Bold'

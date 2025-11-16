@@ -1,3 +1,6 @@
+{% set safe_daily_data = data.daily_data if data and data.daily_data else {} %}
+{% set safe_category_data = data.category_data if data and data.category_data else {} %}
+
 <!-- Preview PDF Modal -->
 <div class="modal modal-open" id="preview-pdf-modal">
   <div class="modal-box max-w-5xl max-h-[90vh]">
@@ -118,27 +121,135 @@
           <!-- Summary Stats -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="bg-blue-50 p-4 rounded-lg text-center">
-              <div class="text-2xl font-bold text-blue-600">XX,XXX</div>
+              <div class="text-2xl font-bold text-blue-600">{{ data.total_emissions }} tonCO₂e</div>
               <div class="text-sm text-gray-600">Total CO₂ Emissions</div>
-              <div class="text-xs text-gray-500">tCO₂e</div>
             </div>
             <div class="bg-green-50 p-4 rounded-lg text-center">
-              <div class="text-2xl font-bold text-green-600">${selectedScopes.length}</div>
-              <div class="text-sm text-gray-600">Scopes Analyzed</div>
+              <div class="text-2xl font-bold text-green-600">{{ data.daily_average }} tCO₂e</div>
+              <div class="text-sm text-gray-600">Average Emissions<br><span class="text-xs text-gray-500">{{ data.average_label }}</span></div>
             </div>
             <div class="bg-purple-50 p-4 rounded-lg text-center">
-              <div class="text-2xl font-bold text-purple-600">${selectedSubScopes.length}</div>
-              <div class="text-sm text-gray-600">Sub Scopes</div>
+              <div class="text-2xl font-bold text-purple-600">
+                {% if data.year_change_trend == 'increase' %}+{% elif data.year_change_trend == 'decrease' %}{% endif %}{{ data.year_change_percent }}%
+              </div>
+              <div class="text-sm text-gray-600">vs Last Year<br><span class="text-xs text-gray-500">{{ data.year_change_trend|capitalize }}</span></div>
             </div>
           </div>
           
           <!-- Sample Chart -->
-          <div class="bg-gray-50 p-6 rounded-lg text-center">
-            <div class="text-gray-400 mb-4">
-              <i data-feather="bar-chart-2" class="w-12 h-12 mx-auto"></i>
+          <!-- Top Sub Scope Cards -->
+          {% if data.scope_data %}
+            {% set scopes = [1, 2, 3] %}
+            <div class="space-y-8">
+              {% for main_scope in scopes %}
+                {% set subscopes = [] %}
+                {% for scope_key, scope_info in data.scope_data.items() %}
+                  {% if scope_info.ghg_scope == main_scope %}
+                    {% set _ = subscopes.append(scope_info) %}
+                  {% endif %}
+                {% endfor %}
+                {% set sorted_subscopes = subscopes|sort(attribute='emissions', reverse=True) %}
+                {% set top_subscopes = sorted_subscopes[:3] %}
+                <div>
+                  {% set table_bg = 'scope1-bg' if main_scope == 1 else ('scope2-bg' if main_scope == 2 else 'scope3-bg') %}
+                  {% set title_class = 'scope1-title' if main_scope == 1 else ('scope2-title' if main_scope == 2 else 'scope3-title') %}
+                  <div class="mb-2 text-base font-bold {{ title_class }}">Top Subscopes for Scope {{ main_scope }}</div>
+                  <div class="overflow-x-auto">
+                    {% set head_class = 'scope1-table-head' if main_scope == 1 else ('scope2-table-head' if main_scope == 2 else 'scope3-table-head') %}
+                    <table class="table-auto w-full border border-blue-200 rounded-lg bg-white {{ table_bg }} scope-table-grid">
+                      <thead class="{{ head_class }}">
+                        <tr>
+                          <th class="px-4 py-2 text-left text-xs font-bold border border-blue-200">#</th>
+                          <th class="px-4 py-2 text-left text-xs font-bold border border-blue-200">Subscope Name</th>
+                          <th class="px-4 py-2 text-left text-xs font-bold border border-blue-200">Scope/Subscope</th>
+                          <th class="px-4 py-2 text-right text-xs font-bold border border-blue-200">Emissions (tCO₂e)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for subscope in top_subscopes %}
+                        <tr>
+                          <td class="px-4 py-2 text-xs text-gray-700 border border-blue-200">{{ loop.index }}</td>
+                          <td class="px-4 py-2 text-xs text-gray-900 border border-blue-200">{{ subscope.ghg_name }}</td>
+                          <td class="px-4 py-2 text-xs text-gray-500 border border-blue-200">{{ (subscope.ghg_scope ~ '.' ~ subscope.ghg_sup_scope)[:12] ~ ('...' if (subscope.ghg_scope ~ '.' ~ subscope.ghg_sup_scope)|length > 12 else '') }}</td>
+                          <td class="px-4 py-2 text-xs text-right text-blue-700 font-bold border border-blue-200">{{ subscope.emissions|round(2) }}</td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              {% endfor %}
             </div>
-            <p class="text-sm text-gray-600">กราฟและแผนภูมิแสดงสัดส่วนการปล่อย CO₂</p>
-            <p class="text-xs text-gray-500 mt-2">จะแสดงข้อมูลจริงในไฟล์ PDF ที่ดาวน์โหลด</p>
+          {% endif %}
+          <!-- Sample Chart -->
+          <!-- Bar Chart & Category Chart Section -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            <!-- Monthly Comparison Table -->
+            <div class="col-span-3 mb-6">
+              <div class="bg-white rounded-lg p-6 shadow-sm">
+                <h4 class="text-base font-bold text-gray-700 mb-2">ตารางเปรียบเทียบค่า tCO₂e รายเดือน ({{ selected_year|int - 1 }} vs {{ selected_year }})</h4>
+                <div class="overflow-x-auto">
+                  <table class="table-auto w-full border border-blue-200 rounded-lg bg-white">
+                    <thead style="background-color:#F54900;">
+                      <tr>
+                        <th class="px-4 py-2 text-left text-xs font-bold border border-gray-300 text-white">เดือน</th>
+                        <th class="px-4 py-2 text-right text-xs font-bold border border-gray-300 text-white">{{ selected_year|int - 1 }} (tCO₂e)</th>
+                        <th class="px-4 py-2 text-right text-xs font-bold border border-gray-300 text-white">{{ selected_year }} (tCO₂e)</th>
+                      </tr>
+                    </thead>
+                    <tbody style="background-color:#FFF7ED;">
+                      {% set months = [
+                        'มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'
+                      ] %}
+                      {% set month_en = ['January','February','March','April','May','June','July','August','September','October','November','December'] %}
+                      {% for i in range(0, 12) %}
+                      <tr>
+                        <td class="px-4 py-2 text-xs text-gray-700 border border-gray-300">{{ months[i] }}</td>
+                        <td class="px-4 py-2 text-xs text-right text-blue-700 border border-gray-300">{{ last_year_data.daily_data[month_en[i]]|round(2) if last_year_data.daily_data[month_en[i]] else 0 }}</td>
+                        <td class="px-4 py-2 text-xs text-right text-green-700 border border-gray-300">{{ data.daily_data[month_en[i]]|round(2) if data.daily_data[month_en[i]] else 0 }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <!-- Combined Bar Chart: Current vs Previous Year -->
+            <div class="bg-white rounded-lg p-6 shadow-sm flex flex-col items-center col-span-2">
+              <h4 class="text-base font-bold text-gray-700 mb-2">Emissions Comparison ({{ selected_year|int - 1 }} vs {{ selected_year }})</h4>
+              <canvas id="emissionsCompareBarChart" style="max-width:100%;max-height:320px;"></canvas>
+              <div class="flex flex-row gap-6 mt-2 text-xs text-gray-500 justify-center">
+                <span>ปี {{ selected_year|int - 1 }}: <span class="font-bold text-blue-700">{{ last_year_data.total_emissions|round(2) }}</span> tCO₂e</span>
+                <span>ปี {{ selected_year }}: <span class="font-bold text-green-700">{{ data.total_emissions|round(2) }}</span> tCO₂e</span>
+              </div>
+              <p class="text-xs text-gray-400 mt-1">* กราฟนี้เปรียบเทียบการปล่อย CO₂ รายเดือนระหว่างสองปี</p>
+            </div>
+            <!-- Category Chart -->
+            <div class="bg-white rounded-lg p-6 shadow-sm flex flex-col items-center">
+              <h4 class="text-base font-bold text-gray-700 mb-2">Category Breakdown</h4>
+              <img src="data:image/png;base64,{{ category_chart_base64 }}" alt="Category Breakdown" style="max-width:220px;max-height:220px;">
+              <div class="mt-3 w-full max-w-xs">
+                <table class="table-auto w-full text-xs text-gray-700 border rounded-lg">
+                  <thead>
+                    <tr style="background:#F3F4F6;">
+                      <th class="px-2 py-1 text-left font-bold border border-gray-300">Scope</th>
+                      <th class="px-2 py-1 text-right font-bold border border-gray-300">tCO₂e</th>
+                      <th class="px-2 py-1 text-right font-bold border border-gray-300">%</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for row in scope_breakdown_table %}
+                    <tr>
+                      <td class="font-bold px-2 py-1 border border-gray-300" style="color:{{ row.color }}">{{ row.scope }}</td>
+                      <td class="text-right px-2 py-1 border border-gray-300">{{ row.value|round(2) }}</td>
+                      <td class="text-right px-2 py-1 border border-gray-300">{{ row.percent|round(1) }}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              <p class="text-xs text-gray-500 mt-2">* กราฟนี้แสดงสัดส่วนการปล่อย CO₂ ตามหมวดหมู่</p>
+            </div>
           </div>
           
           <!-- Note -->
@@ -159,6 +270,118 @@
     }, 1500);
   }
   
+  // Show loading immediately when modal opens
+  document.getElementById('pdf-preview-loading').classList.remove('hidden');
+  document.getElementById('pdf-preview-content').classList.add('hidden');
   // Start loading preview
   loadPreviewData();
 </script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+  function renderPreviewCharts() {
+    // Get summary data from Jinja context
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const colors = ['#4f46e5','#10b981','#f97316','#3b82f6','#ec4899','#8b5cf6'];
+
+    // Combined Bar Chart: Current vs Previous Year
+    setTimeout(() => {
+      const compareCanvas = document.getElementById('emissionsCompareBarChart');
+      if (compareCanvas) {
+        const ctx = compareCanvas.getContext('2d');
+        // Get data from Jinja context
+        const currentYearData = JSON.parse('{{ data.daily_data|tojson|safe }}');
+        const lastYearData = JSON.parse('{{ last_year_data.daily_data|tojson|safe }}');
+        const labels = months.map(m=>m.substring(0,3));
+        const currentValues = months.map(m=>currentYearData[m]||0);
+        const lastValues = months.map(m=>lastYearData[m]||0);
+        if (window.emissionsCompareBarChartInstance) {
+          window.emissionsCompareBarChartInstance.destroy();
+        }
+        window.emissionsCompareBarChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'ปี {{ selected_year|int - 1 }}',
+                data: lastValues,
+                backgroundColor: '#4f46e5',
+                borderRadius: 6,
+                categoryPercentage: 0.6,
+                barPercentage: 0.7
+              },
+              {
+                label: 'ปี {{ selected_year }}',
+                data: currentValues,
+                backgroundColor: '#10b981',
+                borderRadius: 6,
+                categoryPercentage: 0.6,
+                barPercentage: 0.7
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: true } },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: '#6b7280' },
+                stacked: false,
+                beginAtZero: true,
+              },
+              y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false },
+                ticks: { color: '#6b7280' },
+                stacked: false
+              }
+            },
+            barThickness: 'flex',
+            categoryPercentage: 0.6,
+            barPercentage: 0.7
+          }
+        });
+      }
+    }, 200);
+
+    // Category Chart
+    setTimeout(() => {
+      const catCanvas = document.getElementById('categoryBreakdownChartPreview');
+      if (catCanvas) {
+        const ctx = catCanvas.getContext('2d');
+        if (window.categoryBreakdownChartPreview) {
+          window.categoryBreakdownChartPreview.destroy();
+        }
+        window.categoryBreakdownChartPreview = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: categoryLabels,
+            datasets: [{
+              data: categoryValues,
+              backgroundColor: colors,
+              borderColor: '#fff',
+              borderWidth: 4,
+              hoverOffset: 12
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: { display: false },
+              tooltip: { enabled: true },
+            }
+          }
+        });
+      }
+    }, 300);
+  }
+
+  // Render charts after preview loads
+  setTimeout(renderPreviewCharts, 1800);
+  </script>

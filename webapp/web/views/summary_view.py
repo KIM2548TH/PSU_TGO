@@ -734,14 +734,157 @@ def preview_pdf_modal():
     user = current_user
     user.campus = CampusAndDepartment.get_campus_name(user.campus_id)
     user.department = CampusAndDepartment.get_department_name(user.campus_id, user.department_key)
-    
+
+    # รับค่าฟิลเตอร์จาก request (query string)
     selected_year = request.args.get("selected_year", datetime.now().year)
-    
+    time_period = request.args.get("time_period", "week")
+    selected_scopes = request.args.getlist("selected_scopes")
+    selected_sub_scopes = request.args.getlist("selected_sub_scopes")
+
+    # fallback: ถ้าไม่ได้ส่งมา ให้ใช้ session
+    if not selected_scopes:
+        selected_scopes = session.get('selected_scopes', [])
+    if not selected_sub_scopes:
+        selected_sub_scopes = session.get('selected_sub_scopes', [])
+
+    # ถ้าไม่มี sub_scopes ให้ data เป็น 0
+    if not selected_sub_scopes:
+        data = {"total_emissions": 0, "daily_data": {}, "category_data": {}}
+        last_year_data = {"total_emissions": 0, "daily_data": {}, "category_data": {}}
+        bar_chart_base64 = ""
+        last_year_bar_chart_base64 = ""
+        category_chart_base64 = ""
+        scope_emissions = {"Scope 1": 0, "Scope 2": 0, "Scope 3": 0}
+        scope_breakdown_table = []
+    else:
+        data = calculate_emissions_data(user, selected_sub_scopes, time_period, int(selected_year))
+        last_year_data = calculate_emissions_data(user, selected_sub_scopes, time_period, int(selected_year) - 1)
+        bar_chart_base64 = generate_bar_chart_base64(data.get("daily_data", {}))
+        last_year_bar_chart_base64 = generate_bar_chart_base64(last_year_data.get("daily_data", {}))
+        category_chart_base64 = generate_category_chart_base64(data.get("category_data", {}))
+        scope_emissions = {label: round(data["category_data"].get(label, 0), 2) for label in ["Scope 1", "Scope 2", "Scope 3"]}
+        # เตรียมข้อมูลตาราง breakdown
+        total = sum([data["category_data"].get(label, 0) for label in ["Scope 1", "Scope 2", "Scope 3"]])
+        scope_breakdown_table = []
+        for label, color in zip(["Scope 1", "Scope 2", "Scope 3"], ["#4f46e5", "#10b981", "#f97316"]):
+            value = data["category_data"].get(label, 0)
+            percent = (value / total * 100) if total > 0 else 0
+            scope_breakdown_table.append({
+                "scope": label,
+                "value": round(value, 2),
+                "percent": round(percent, 1),
+                "color": color
+            })
+
     return render_template(
-        "/summary/partials/preview_pdf_modal.html", 
+        "/summary/partials/preview_pdf_modal.html",
         user=user,
-        selected_year=selected_year
+        selected_year=selected_year,
+        data=data,
+        last_year_data=last_year_data,
+        bar_chart_base64=bar_chart_base64,
+        last_year_bar_chart_base64=last_year_bar_chart_base64,
+        category_chart_base64=category_chart_base64,
+        scope_emissions=scope_emissions,
+        scope_breakdown_table=scope_breakdown_table
     )
+def generate_bar_chart_base64(daily_data):
+    """Generate a bar chart as base64 PNG from daily_data dict."""
+    import matplotlib
+    matplotlib.use('Agg')  # Use non-GUI backend
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    sns.set_style('whitegrid', {'axes.facecolor': "#EAEAF2", 'grid.color': 'white', 'axes.edgecolor': '#EAEAF2'})
+    import io
+    import base64
+    if not daily_data:
+        return ""
+    labels = [m[:3] for m in daily_data.keys()]
+    values = list(daily_data.values())
+    fig, ax = plt.subplots(figsize=(6, 3))
+    # Add table-like background (alternating y bands)
+    y_min, y_max = 0, max(values) if values else 1
+    y_ticks = ax.get_yticks()
+    for i in range(len(y_ticks)-1):
+        if i % 2 == 0:
+            ax.axhspan(y_ticks[i], y_ticks[i+1], facecolor="#f3f4f6", alpha=0.7, zorder=0)
+    ax.bar(labels, values, color="#1e40af", zorder=2)
+    ax.set_ylabel("Emissions (tCO₂e)")
+    ax.set_xlabel("Month")
+    ax.set_title("Emissions by Month")
+    ax.grid(True, axis='y', linestyle='--', alpha=0.5, zorder=3)
+    plt.xticks(rotation=30, ha="right")
+    plt.tight_layout()
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png")
+    plt.close(fig)
+    buf.seek(0)
+    img_base64 = base64.b64encode(buf.read()).decode("utf-8")
+    return img_base64
+
+def generate_category_chart_base64(category_data):
+    """Generate a pie chart as base64 PNG from category_data dict."""
+    import matplotlib
+    matplotlib.use('Agg')  # Use non-GUI backend
+    import matplotlib.pyplot as plt
+    import io
+    import base64
+    import numpy as np
+    if not category_data:
+        return ""
+    # สร้าง donut chart รวม Scope 1, 2, 3
+    labels = ["Scope 1", "Scope 2", "Scope 3"]
+    values = [category_data.get(label, 0) for label in labels]
+    colors = ["#4f46e5", "#10b981", "#f97316"]
+    fig, ax = plt.subplots(figsize=(3.8, 3.8))
+    def autopct_func(pct):
+        total = sum(values)
+        val = int(round(pct * total / 100.0))
+        return "%.1f%%" % pct if val > 0 else ""
+
+    wedges, texts, autotexts = ax.pie(
+        values,
+        labels=None,  # ไม่แสดง label ติดกับ wedge
+        autopct=autopct_func,
+        colors=colors,
+        startangle=90,
+        wedgeprops={"edgecolor": "white", "linewidth": 2},
+        textprops={"fontsize": 11, "weight": "bold"}
+    )
+    # ทำให้เป็น donut chart
+    centre_circle = plt.Circle((0,0),0.70,fc='white')
+    fig.gca().add_artist(centre_circle)
+    ax.set_aspect("equal")
+    # เพิ่ม leader line และ label scope แบบ custom ด้านนอก พร้อม % ต่อท้าย label
+    total = sum(values)
+    for i, w in enumerate(wedges):
+        if values[i] > 0:
+            ang = (w.theta2 + w.theta1)/2.
+            percent = (values[i] / total * 100) if total > 0 else 0
+            label_text = f"{labels[i]} ({percent:.1f}%)"
+            # จุดปลายเส้น (label)
+            label_x = 1.25 * np.cos(np.deg2rad(ang))
+            label_y = 1.25 * np.sin(np.deg2rad(ang))
+            # จุดเริ่มต้นเส้น (ขอบ donut)
+            line_x = 0.85 * np.cos(np.deg2rad(ang))
+            line_y = 0.85 * np.sin(np.deg2rad(ang))
+            # วาดเส้นลากจาก donut ไป label
+            ax.annotate(
+                label_text,
+                xy=(line_x, line_y),
+                xytext=(label_x, label_y),
+                ha='center', va='center',
+                fontsize=12, fontweight='bold', color=colors[i],
+                bbox=dict(boxstyle="round,pad=0.3", fc="white", ec=colors[i], lw=1, alpha=0.8),
+                arrowprops=dict(arrowstyle='-', color=colors[i], lw=1.5, alpha=0.7)
+            )
+    plt.tight_layout()
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png", bbox_inches="tight", transparent=True)
+    plt.close(fig)
+    buf.seek(0)
+    img_base64 = base64.b64encode(buf.read()).decode("utf-8")
+    return img_base64
 
 
 @module.route("/download-pdf", methods=["POST"])
@@ -1012,6 +1155,49 @@ def create_htmx_response(template_path, template_vars=None, success_message=None
         session['selected_sub_scopes'] = remaining_sub_scopes
     
     return ""
+
+
+
+
+    user = current_user
+    user.campus = CampusAndDepartment.get_campus_name(user.campus_id)
+    user.department = CampusAndDepartment.get_department_name(user.campus_id, user.department_key)
+
+    # Mock: ดึง scopes/subscopes/ปี/ช่วงเวลา จาก session หรือ default
+    selected_scopes = session.get('selected_scopes', [])
+    selected_sub_scopes = session.get('selected_sub_scopes', [])
+    selected_year = session.get('selected_year', datetime.now().year)
+    time_period = session.get('selected_time_period', 'month')
+
+    # ถ้าไม่มี subscopes ให้ส่งข้อมูลว่าง
+    if not selected_sub_scopes:
+        data = {
+            'daily_data': {},
+            'category_data': {},
+            'total_emissions': 0,
+            'daily_average': 0,
+            'average_label': '',
+            'year_change_percent': 0,
+            'year_change_trend': 'stable',
+            'last_year_total': 0,
+            'materials_count': 0,
+            'scope_data': {},
+        }
+    else:
+        # เรียกฟังก์ชันคำนวณข้อมูล summary
+        data = calculate_emissions_data(
+            user,
+            selected_sub_scopes,
+            time_period,
+            selected_year
+        )
+
+    return render_template(
+        'summary/partials/preview_pdf_modal.html',
+        user=user,
+        selected_year=selected_year,
+        data=data
+    )
 
 
 
