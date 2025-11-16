@@ -206,6 +206,9 @@ translations = {
         "including_scope": "Scope รวม",
         "Manage_campuses_departments": "จัดการวิทยาเขตและหน่วยงาน",
         "subtitle_campus_department": "สร้างและจัดการวิทยาเขตและหน่วยงาน",
+        "direct_emission_desc": "การปล่อยก๊าซเรือนกระจกทางตรงจากกิจกรรมที่องค์กรควบคุมได้",
+        "indirect_emission_desc": "การปล่อยก๊าซเรือนกระจกทางอ้อมจากการใช้พลังงานไฟฟ้า",
+        "indirect_emission_other_desc": "การปล่อยก๊าซเรือนกระจกทางอ้อมอื่นๆ",
     },
     "en": {
         "system_info": "System Information",
@@ -411,5 +414,8 @@ translations = {
         "including_scope": "Including Overall Scope",
         "Manage_campuses_departments": "Manage Organization",
         "subtitle_campus_department": "Create and manage campuses and departments",
+        "direct_emission_desc": "Direct greenhouse gas emissions from activities controlled by the organization",
+        "indirect_emission_desc": "Indirect greenhouse gas emissions from purchased electricity",
+        "indirect_emission_other_desc": "Other indirect greenhouse gas emissions",
     },
 }
