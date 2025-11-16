@@ -3,7 +3,7 @@
 
 <div class="p-6">
 
-      <!-- Scope Selection Cards (3 การ์ด) -->
+  <!-- Scope Selection Cards (3 การ์ด) -->
   <div class="mb-6">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
       <!-- Scope 1 Card -->
@@ -124,11 +124,7 @@
   </div>
   
   <!-- HTMX Triggers for Scope Refresh -->
-  <div hx-get="/form-management/refresh-forms"
-       hx-trigger="refreshForms from:body"
-       hx-target="#scope-content-area"
-       hx-swap="innerHTML"
-       style="display: none;"></div>
+
   <div hx-get="/form-management/scope1"
        hx-trigger="refreshScope1 from:body"
        hx-target="#scope-content-area"
@@ -144,6 +140,11 @@
        hx-target="#scope-content-area"
        hx-swap="innerHTML"
        style="display: none;"></div>
+
+
+  <div hx-trigger="updateActiveScopeCard from:body"
+       style="display: none;"></div>
+
 </div>
 
 <script>
@@ -175,6 +176,12 @@ function updateActiveScope(activeScope) {
 // Initialize with scope1 active
 document.addEventListener('DOMContentLoaded', function() {
   updateActiveScope('scope1');
+});
+
+// Listen for updateActiveScopeCard events
+document.addEventListener('updateActiveScopeCard', function(event) {
+  const scope = event.detail.scope;
+  updateActiveScope('scope' + scope);
 });
 </script>
 

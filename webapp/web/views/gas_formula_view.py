@@ -63,7 +63,14 @@ def save_conversion_formulas(form_id):
         # อัปเดต Material ทั้งหมดที่ใช้ฟอร์มนี้
         _update_materials_with_new_formulas(form_obj)
         
-        return success_response("บันทึกสูตรแปลงหน่วยสำเร็จ!", closeModal=True, refreshScope=form_obj.ghg_scope)
+        return success_response(
+            "บันทึกสูตรแปลงหน่วยสำเร็จ!",
+            closeModal=True,
+            refreshAllScopes={"scope": str(form_obj.ghg_scope)},
+            refreshScopeContent={"scope": str(form_obj.ghg_scope)},
+            updateActiveScopeCard={"scope": str(form_obj.ghg_scope)},
+            **{f"refreshScope{form_obj.ghg_scope}": True}
+        )
         
     except Exception as e:
         import traceback
@@ -124,7 +131,14 @@ def save_gas_formulas(form_id):
         # อัปเดต Material ทั้งหมดที่ใช้ฟอร์มนี้
         _update_materials_with_gas_formulas(form_obj)
         
-        return success_response("บันทึกสูตรก๊าซสำเร็จ!", closeModal=True, refreshScope=form_obj.ghg_scope)
+        return success_response(
+            "บันทึกสูตรก๊าซสำเร็จ!",
+            closeModal=True,
+            refreshAllScopes={"scope": str(form_obj.ghg_scope)},
+            refreshScopeContent={"scope": str(form_obj.ghg_scope)},
+            updateActiveScopeCard={"scope": str(form_obj.ghg_scope)},
+            **{f"refreshScope{form_obj.ghg_scope}": True}
+        )
         
     except Exception as e:
         import traceback
@@ -728,7 +742,11 @@ def refresh_gas_calculations(form_id):
         
         return success_response(
             f"รีเฟรชคำนวณก๊าซสำเร็จ! อัปเดต {updated_count} รายการ",
-            form_obj.ghg_scope
+            closeModal=True,
+            refreshAllScopes={"scope": str(form_obj.ghg_scope)},
+            refreshScopeContent={"scope": str(form_obj.ghg_scope)},
+            updateActiveScopeCard={"scope": str(form_obj.ghg_scope)},
+            **{f"refreshScope{form_obj.ghg_scope}": True}
         )
         
     except Exception as e:

@@ -47,17 +47,10 @@ def refresh_forms():
         filter_sub_scope = request.args.get('filter_sub_scope')
         show_all = request.args.get('show_all', 'false').lower() == 'true'
         
-        # ถ้าไม่มี scope parameter ให้ตรวจสอบจาก active scope ในหน้าปัจจุบัน
-        if not scope_id or scope_id == '1':
-            # พยายามตรวจสอบจาก referer หรือใช้ค่า default
-            referer = request.headers.get('Referer', '')
-            if 'scope2' in referer:
-                scope_id = '2'
-            elif 'scope3' in referer:
-                scope_id = '3'
-            else:
-                scope_id = '1'
-        
+        # ไม่ต้อง fallback จาก referer หรือ event.detail.scope
+        # scope_id จะถูกส่งมาจาก hx-vals โดยตรง
+        print(f"refresh_forms: scope_id={scope_id}")
+
         forms = FormAndFormula.objects().order_by(
             "ghg_scope", "ghg_sup_scope", "material_name"
         )
@@ -77,7 +70,7 @@ def refresh_forms():
             '3': "form-management/partials/scope3-content.html"
         }
         
-        template_name = template_map.get(scope_id, template_map['1'])
+        template_name = template_map.get(str(scope_id), template_map['1'])
         
         return render_template(
             template_name,
@@ -806,10 +799,11 @@ def _setup_normal_form_fields(form_obj):
 def _success_response(message, refresh_scope=None):
     """สร้าง success response พร้อม toast notification"""
     trigger_data = {"closeModal": True}
-    
     if refresh_scope:
-        # รีเฟรชเฉพาะส่วนของฟอร์มและแสดง toast
-        # ส่ง scope ที่ถูกต้องกลับไปให้ HTMX
+        # ส่ง scope เป็นเลขจริง ไม่ต้อง nested ใน detail
+        trigger_data["refreshAllScopes"] = {"scope": str(refresh_scope)}
+        trigger_data["refreshScopeContent"] = {"scope": str(refresh_scope)}
+        trigger_data["updateActiveScopeCard"] = {"scope": str(refresh_scope)}
         trigger_data[f"refreshScope{refresh_scope}"] = True
         return success_response(message, **trigger_data)
     else:
@@ -1016,6 +1010,62 @@ def show_toast():
 def hide_toast():
     """ซ่อน toast notification"""
     return "", 200
+
+
+# === GAS FORMULAS ROUTE ===
+@module.route("/gas-formulas/<form_id>", methods=["GET"])
+@login_required
+def get_gas_formulas(form_id):
+    """ดึงข้อมูลสูตรคำนวณก๊าซสำหรับฟอร์มที่เลือก"""
+    try:
+        try:
+            object_id = ObjectId(form_id)
+        except InvalidId:
+            return '<div class="text-center py-2 text-gray-500"><i data-feather="info" class="w-3 h-3 inline mr-1"></i>Invalid form ID</div>'
+        
+        form = FormAndFormula.objects(id=object_id).first()
+        if not form:
+            return '<div class="text-center py-2 text-gray-500"><i data-feather="info" class="w-3 h-3 inline mr-1"></i>Form not found</div>'
+
+        # สร้างข้อมูล gas formulas
+        gas_formulas = [
+            {'name': 'สูตรคำนวณ CO₂', 'formula': form.formula_co2},
+            {'name': 'สูตรคำนวณ CH₄', 'formula': form.formula_ch4},
+            {'name': 'สูตรคำนวณ N₂O', 'formula': form.formula_n2o},
+            {'name': 'สูตรคำนวณ HFCs', 'formula': form.formula_hfcs},
+            {'name': 'สูตรคำนวณ PFCs', 'formula': form.formula_pfcs},
+            {'name': 'สูตรคำนวณ SF₆', 'formula': form.formula_sf6},
+            {'name': 'สูตรคำนวณ NF₃', 'formula': form.formula_nf3}
+        ]
+        
+        # ตรวจสอบว่ามีสูตรหรือไม่
+        has_formulas = any(gas['formula'] for gas in gas_formulas)
+        
+        if not has_formulas:
+            # ถ้าไม่มีสูตร ให้แสดงข้อความแจ้งเตือน
+            return '<div class="text-center py-2 text-gray-500"><i data-feather="info" class="w-3 h-3 inline mr-1"></i>ยังไม่มีข้อมูลสูตรคำนวณก๊าซ</div>'
+        
+        # สร้าง HTML สำหรับ gas formulas - ใช้สีธีมเดิมและไม่แสดง GWP
+        html_content = '<div class="absolute z-50 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-2 max-h-32 overflow-y-auto">'
+        
+        for gas in gas_formulas:
+            if gas['formula']:
+                html_content += f'''
+                <div class="py-1 px-2 hover:bg-gray-50 rounded border-b border-gray-100 last:border-b-0">
+                    <div class="flex items-center gap-2">
+                        <h4 class="text-xs font-medium text-gray-700">{gas['name']}</h4>
+                    </div>
+                    <div class="text-xs text-gray-600 mt-1">
+                        <p class="font-mono break-all">{gas['formula']}</p>
+                    </div>
+                </div>
+                '''
+        
+        html_content += '</div>'
+        return html_content
+        
+    except Exception as e:
+        return f'<div class="text-center py-2 text-red-500"><i data-feather="alert-circle" class="w-3 h-3 inline mr-1"></i>Error: {str(e)}</div>'
 
 
 # === UTILITY ROUTES ===
