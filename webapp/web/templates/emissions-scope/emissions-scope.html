@@ -97,25 +97,25 @@
       <div class="bg-purple-200 p-2 rounded-full">
         <i data-feather="layers" class="w-5 h-5 text-purple-600"></i>
       </div>
-      <span class="font-bold text-purple-800">{{ scope_name }} - {{ t.direct_emission }}</span>
+      <span class="font-bold text-purple-800">{{ scope_name }} <span>
     </div>
-    <div class="pl-12 text-sm text-gray-500" style="text-align:left;">{{ t.direct_emission_desc }}</div>
+    <div class="pl-12 text-sm text-gray-500" style="text-align:left;">- {{ t.direct_emission }}</div>
     {% elif scope_name.endswith('2') %}
     <div class="flex items-center gap-3">
       <div class="bg-green-200 p-2 rounded-full">
         <i data-feather="zap" class="w-5 h-5 text-green-600"></i>
       </div>
-      <span class="font-bold text-green-800">{{ scope_name }} - {{ t.indirect_emission }}</span>
+      <span class="font-bold text-green-800">{{ scope_name }}  </span>
     </div>
-    <div class="pl-12 text-sm text-gray-500" style="text-align:left;">{{ t.indirect_emission_desc }}</div>
+    <div class="pl-12 text-sm text-gray-500" style="text-align:left;">- {{ t.indirect_emission }}</div>
     {% elif scope_name.endswith('3') %}
     <div class="flex items-center gap-3">
       <div class="bg-blue-200 p-2 rounded-full">
         <i data-feather="globe" class="w-5 h-5 text-blue-600"></i>
       </div>
-      <span class="font-bold text-blue-800">{{ scope_name }} - {{ t.indirect_emission_other }}</span>
+      <span class="font-bold text-blue-800">{{ scope_name }} </span>
     </div>
-    <div class="pl-12 text-sm text-gray-500" style="text-align:left;">{{ t.indirect_emission_other_desc }}</div>
+    <div class="pl-12 text-sm text-gray-500" style="text-align:left;">- {{ t.indirect_emission_other }}</div>
     {% endif %}
   </div>
   {% endfor %}
@@ -130,7 +130,7 @@
       <div class="bg-purple-100 p-3 rounded-full">
         <i data-feather="layers" class="w-6 h-6 text-purple-600"></i>
       </div>
-      <h3 class="text-2xl font-bold text-purple-800">{{ scope_name }} - {{ t.direct_emission }}</h3>
+      <h3 class="text-2xl font-bold text-purple-800">{{ scope_name }} - {{ t.direct_emission_desc }}</h3>
       <span class="badge bg-purple-100 text-purple-800 text-sm">{{ scope_items|length }}</span>
     </div>
     {% elif scope_name.endswith('2') %}
@@ -138,7 +138,7 @@
       <div class="bg-green-100 p-3 rounded-full">
         <i data-feather="zap" class="w-6 h-6 text-green-600"></i>
       </div>
-      <h3 class="text-2xl font-bold text-green-800">{{ scope_name }} - {{ t.indirect_emission }}</h3>
+      <h3 class="text-2xl font-bold text-green-800">{{ scope_name }} - {{ t.indirect_emission_desc }}</h3>
       <span class="badge bg-green-100 text-green-800 text-sm">{{ scope_items|length }}</span>
     </div>
     {% elif scope_name.endswith('3') %}
@@ -146,7 +146,7 @@
       <div class="bg-blue-100 p-3 rounded-full">
         <i data-feather="globe" class="w-6 h-6 text-blue-600"></i>
       </div>
-      <h3 class="text-2xl font-bold text-blue-800">{{ scope_name }} - {{ t.indirect_emission_other }}</h3>
+      <h3 class="text-2xl font-bold text-blue-800">{{ scope_name }} - {{ t.indirect_emission_other_desc }}</h3>
       <span class="badge bg-blue-100 text-blue-800 text-sm">{{ scope_items|length }}</span>
     </div>
     {% else %}
