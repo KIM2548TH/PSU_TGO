@@ -574,9 +574,11 @@ def download_pdf():
         try:
             import os
             base_dir = os.path.dirname(os.path.abspath(__file__))
-            font_dir = os.path.abspath(os.path.join(base_dir, '..', '..', 'static', 'fonts'))
+            font_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'static', 'fonts')
+            font_dir = os.path.abspath(font_dir)
             thai_font_path = os.path.join(font_dir, 'Sarabun-Regular.ttf')
             bold_font_path = os.path.join(font_dir, 'Sarabun-Bold.ttf')
+
             if os.path.exists(thai_font_path):
                 pdfmetrics.registerFont(TTFont('ThaiFont', thai_font_path))
                 thai_font_name = 'ThaiFont'

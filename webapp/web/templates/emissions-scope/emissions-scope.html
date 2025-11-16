@@ -122,7 +122,7 @@
 </div>
 
 {% for scope_name, scope_items in mockup_data.scopes.items() %}
-<div id="{{ scope_name }}" class="mt-12 w-full">
+<div id="{{ scope_name }}" class="mt-12 w-full hidden">
   <!-- Header Section - แยกออกมาเป็นส่วนต่างหาก -->
   <div class="mb-6">
     {% if scope_name.endswith('1') %}
@@ -273,28 +273,37 @@
 {% endfor %}
 <script>
   function toggleScope(scopeId) {
+    // ตรวจสอบว่า scopeId ถูกต้อง
+    if (!scopeId) return;
+    
     const scopes = ["Scope 1", "Scope 2", "Scope 3"];
 
     scopes.forEach(id => {
       const div = document.getElementById(id);
       const card = document.getElementById("scope-card-" + id.replace(' ', '-'));
       
+      // ตรวจสอบว่ามี element อยู่จริง
+      if (!div || !card) return;
+      
       if (id === scopeId) {
-        div.classList.remove("hidden"); // แสดง
+        // แสดง scope ที่เลือก
+        div.classList.remove("hidden");
         
         // เพิ่มสีที่แสดงว่าเลือกอยู่
+        // ลบคลาสสีทั้งหมดก่อนเพื่อป้องกันการซ้ำซ้อน
+        card.classList.remove("bg-purple-100", "border-purple-400", "bg-green-100", "border-green-400", "bg-blue-100", "border-blue-400");
+        card.classList.remove("border-gray-300");
+        
         if (id.endsWith('1')) {
           card.classList.add("bg-purple-100", "border-purple-400");
-          card.classList.remove("border-gray-300");
         } else if (id.endsWith('2')) {
           card.classList.add("bg-green-100", "border-green-400");
-          card.classList.remove("border-gray-300");
         } else if (id.endsWith('3')) {
           card.classList.add("bg-blue-100", "border-blue-400");
-          card.classList.remove("border-gray-300");
         }
       } else {
-        div.classList.add("hidden");    // ซ่อน
+        // ซ่อน scope อื่นๆ
+        div.classList.add("hidden");
         
         // รีเซ็ตสีกลับเป็นปกติ
         card.classList.remove("bg-purple-100", "border-purple-400", "bg-green-100", "border-green-400", "bg-blue-100", "border-blue-400");
@@ -302,9 +311,34 @@
       }
     });
   }
-    // ✅ ตั้งค่า default = Scope1
+  
+  // ตั้งค่า default = scope แรกที่มีข้อมูลเมื่อโหลดหน้าเสร็จ
   document.addEventListener("DOMContentLoaded", function () {
-    toggleScope("Scope 1");
+    // รอให้ feather icons โหลดเสร็จก่อน
+    setTimeout(() => {
+      // หา scope แรกที่มีข้อมูล (เรียงตามลำดับ 1, 2, 3)
+      const scopes = ["Scope 1", "Scope 2", "Scope 3"];
+      let defaultScope = null;
+      
+      for (const scope of scopes) {
+        const scopeElement = document.getElementById(scope);
+        if (scopeElement && scopeElement.children.length > 0) {
+          // ตรวจสอบว่ามีข้อมูลจริงๆ โดยดูว่ามี grid container และมี card อยู่
+          const gridContainer = scopeElement.querySelector('.grid');
+          if (gridContainer && gridContainer.children.length > 0) {
+            defaultScope = scope;
+            break;
+          }
+        }
+      }
+      
+      // ถ้าไม่พบ scope ที่มีข้อมูลเลย ให้ใช้ Scope 1 เป็นค่าเริ่มต้น
+      if (!defaultScope) {
+        defaultScope = "Scope 1";
+      }
+      
+      toggleScope(defaultScope);
+    }, 100);
   });
 </script>
 
