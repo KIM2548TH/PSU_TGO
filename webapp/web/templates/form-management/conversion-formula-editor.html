@@ -67,9 +67,9 @@
       <!-- สูตรแปลงหน่วยหลัก -->
       <div class="mb-6">
         <label class="block text-sm font-medium text-gray-700 mb-2">สูตรแปลงหน่วยหลัก</label>
-        <div class="flex items-start gap-3">
+        <div class="flex items-start gap-4">
           <!-- ช่องแสดงสูตร -->
-          <div class="flex-1 pr-2">
+          <div class="flex-1 ">
             {% set formula_field = 'formula' %}
             {% set conversion_type = 'conversion' %}
             {% set formula_value = form.formula or '' %}
@@ -78,7 +78,7 @@
           
           <!-- Calculator Button -->
           <button type="button" 
-                  class="btn btn-outline px-4 h-12 flex-shrink-0"
+                  class="btn btn-warning flex-shrink-0"
                   hx-post="/gas-formula/calculator/show-conversion"
                   hx-target="#conversion-calculator"
                   hx-swap="innerHTML"
@@ -95,9 +95,9 @@
       <!-- สูตรแปลงหน่วยที่ 2 (tonCO₂e) -->
       <div class="mb-6">
         <label class="block text-sm font-medium text-gray-700 mb-2">สูตรคำนวณ tonCO₂e</label>
-        <div class="flex items-start gap-3">
+        <div class="flex items-start gap-4">
           <!-- ช่องแสดงสูตร -->
-          <div class="flex-1 pr-2">
+          <div class="flex-1 ">
             {% set formula_field = 'formula2' %}
             {% set conversion_type = 'conversion2' %}
             {% set formula_value = form.formula2 or '' %}
@@ -106,7 +106,7 @@
           
           <!-- ปุ่มเครื่องคิดเลข -->
           <button type="button" 
-                  class="btn btn-outline px-4 h-12 flex-shrink-0"
+                  class="btn btn-warning flex-shrink-0"
                   hx-post="/gas-formula/calculator/show-conversion2"
                   hx-target="#conversion2-calculator"
                   hx-swap="innerHTML"
