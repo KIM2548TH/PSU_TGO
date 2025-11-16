@@ -32,22 +32,22 @@ def get_user_scopes():
     """
     try:
         user_scopes = []
-        
+
         # Get user's scope permissions from user model
         user = current_user
-        
+
         # Combine all scopes from all three scope categories
         all_scope_numbers = []
-        if hasattr(user, 'ghg_scope_1') and user.ghg_scope_1:
+        if hasattr(user, "ghg_scope_1") and user.ghg_scope_1:
             all_scope_numbers.extend([(1, sub_scope) for sub_scope in user.ghg_scope_1])
-        if hasattr(user, 'ghg_scope_2') and user.ghg_scope_2:
+        if hasattr(user, "ghg_scope_2") and user.ghg_scope_2:
             all_scope_numbers.extend([(2, sub_scope) for sub_scope in user.ghg_scope_2])
-        if hasattr(user, 'ghg_scope_3') and user.ghg_scope_3:
+        if hasattr(user, "ghg_scope_3") and user.ghg_scope_3:
             all_scope_numbers.extend([(3, sub_scope) for sub_scope in user.ghg_scope_3])
-        
+
         # Sort by scope number then sub scope number
         all_scope_numbers.sort(key=lambda x: (x[0], x[1]))
-        
+
         # Get scope details for each available scope
         for scope_num, sub_scope_num in all_scope_numbers:
             scope = Scope.objects(
@@ -56,17 +56,19 @@ def get_user_scopes():
                 campus=user.campus_id,
                 department=user.department_key,
             ).first()
-            
+
             if scope:
-                user_scopes.append({
-                    'scope_id': scope_num,
-                    'sub_scope_id': sub_scope_num,
-                    'ghg_name': scope.ghg_name,
-                    'display_name': f"Scope {scope_num}.{sub_scope_num}"
-                })
-        
+                user_scopes.append(
+                    {
+                        "scope_id": scope_num,
+                        "sub_scope_id": sub_scope_num,
+                        "ghg_name": scope.ghg_name,
+                        "display_name": f"Scope {scope_num}.{sub_scope_num}",
+                    }
+                )
+
         return user_scopes
-        
+
     except Exception as e:
         print(f"Error getting user scopes: {e}")
         return []
@@ -78,7 +80,7 @@ def get_current_scope_index(user_scopes, scope_id, sub_scope_id):
     """
     try:
         for i, scope in enumerate(user_scopes):
-            if scope['scope_id'] == scope_id and scope['sub_scope_id'] == sub_scope_id:
+            if scope["scope_id"] == scope_id and scope["sub_scope_id"] == sub_scope_id:
                 return i
         return -1
     except Exception as e:
@@ -155,17 +157,19 @@ def view_emissions():
         ghg_name = scope.ghg_name
     else:
         ghg_name = "Unknown Scope"
-    
+
     # Get all available scopes for user
     user_scopes = get_user_scopes()
-    
+
     # Find current scope index for navigation
     current_scope_index = -1
     for i, user_scope in enumerate(user_scopes):
-        if user_scope['scope_id'] == int(scope_id) and user_scope['sub_scope_id'] == int(sub_scope_id):
+        if user_scope["scope_id"] == int(scope_id) and user_scope[
+            "sub_scope_id"
+        ] == int(sub_scope_id):
             current_scope_index = i
             break
-    
+
     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", selected_year)
     return render_template(
         "emissions-scope/view-emissions.html",
@@ -227,11 +231,13 @@ def load_emissions_table():
 
     # Get all available scopes for user
     user_scopes = get_user_scopes()
-    
+
     # Find current scope index for navigation
     current_scope_index = -1
     for i, user_scope in enumerate(user_scopes):
-        if user_scope['scope_id'] == int(scope_id) and user_scope['sub_scope_id'] == int(sub_scope_id):
+        if user_scope["scope_id"] == int(scope_id) and user_scope[
+            "sub_scope_id"
+        ] == int(sub_scope_id):
             current_scope_index = i
             break
 
@@ -435,17 +441,18 @@ def calculate_result(material):
         # คำนวณผลลัพธ์ก๊าซทั้ง 7 ชนิดโดยใช้ gas_calculation
         try:
             from ..views.gas_calculation import calculate_gas_results
+
             gas_results = calculate_gas_results(material, form_and_formula)
-            
+
             # บันทึกผลลัพธ์ก๊าซลงใน material
-            material.result_co2 = gas_results.get('result_co2')
-            material.result_ch4 = gas_results.get('result_ch4')
-            material.result_n2o = gas_results.get('result_n2o')
-            material.result_hfcs = gas_results.get('result_hfcs')
-            material.result_pfcs = gas_results.get('result_pfcs')
-            material.result_sf6 = gas_results.get('result_sf6')
-            material.result_nf3 = gas_results.get('result_nf3')
-            
+            material.result_co2 = gas_results.get("result_co2")
+            material.result_ch4 = gas_results.get("result_ch4")
+            material.result_n2o = gas_results.get("result_n2o")
+            material.result_hfcs = gas_results.get("result_hfcs")
+            material.result_pfcs = gas_results.get("result_pfcs")
+            material.result_sf6 = gas_results.get("result_sf6")
+            material.result_nf3 = gas_results.get("result_nf3")
+
         except Exception as e:
             print(f"เกิดข้อผิดพลาดในการคำนวณผลลัพธ์ก๊าซ: {e}")
             # ตั้งค่า gas results เป็น None หากคำนวณไม่สำเร็จ
@@ -491,13 +498,13 @@ def save_material(scope_id, sub_scope_id, month_id, year, material_data):
     # ค้นหา FormAndFormula ที่ตรงกับ head
     form_and_formula = FormAndFormula.objects(material_name=head).first()
     if not form_and_formula:
-        
+
         return False
 
     # ค้นหา InputType ที่ตรงกับ field
     input_type = form_and_formula.input_types.filter(field=field).first()
     if not input_type:
-        
+
         return False
 
     # อัปเดตหรือสร้าง Material
@@ -585,7 +592,7 @@ def save_material(scope_id, sub_scope_id, month_id, year, material_data):
             linked_material.edit_by_id = str(current_user.id)
             linked_material.update_date = datetime.datetime.now()
             linked_material.save()
-            
+
             # คำนวณ result ใหม่ตามสูตรของ linked material
             calculate_result(linked_material)
         else:
@@ -606,7 +613,7 @@ def save_material(scope_id, sub_scope_id, month_id, year, material_data):
                 is_linked=True,
             )
             linked_material.save()
-            
+
             # คำนวณ result ตามสูตรของ linked material
             calculate_result(linked_material)
 
@@ -627,7 +634,6 @@ def save_materials():
 
     # Debugging: Print received form data
 
-
     # ตรวจสอบว่า scope และ sub_scope มีอยู่ในฐานข้อมูล
     scope = Scope.objects(
         ghg_scope=int(scope_id),
@@ -640,18 +646,14 @@ def save_materials():
 
         # ใช้ toast notification สำหรับ error
 
-        
-        response = make_response('')
+        response = make_response("")
         encoded_message = urllib.parse.quote("ไม่พบข้อมูล Scope ที่ระบุ")
-        
-        trigger_data = {
-            "showError": encoded_message
-        }
-        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+
+        trigger_data = {"showError": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
         return response
 
     head_table = scope.head_table
-
 
     # Extract materials from form
     materials = []
@@ -664,26 +666,22 @@ def save_materials():
         if not form_and_formula:
 
             # ใช้ toast notification สำหรับ error
-            response = make_response('')
+            response = make_response("")
             encoded_message = urllib.parse.quote("ไม่พบฟอร์มสำหรับวัสดุที่ระบุ")
-            
-            trigger_data = {
-                "showError": encoded_message
-            }
-            response.headers['HX-Trigger'] = json.dumps(trigger_data)
+
+            trigger_data = {"showError": encoded_message}
+            response.headers["HX-Trigger"] = json.dumps(trigger_data)
             return response
 
         field = input_field
         if not field:
 
             # ใช้ toast notification สำหรับ error
-            response = make_response('')
+            response = make_response("")
             encoded_message = urllib.parse.quote("ไม่พบฟิลด์ข้อมูลสำหรับวัสดุที่ระบุ")
-            
-            trigger_data = {
-                "showError": encoded_message
-            }
-            response.headers['HX-Trigger'] = json.dumps(trigger_data)
+
+            trigger_data = {"showError": encoded_message}
+            response.headers["HX-Trigger"] = json.dumps(trigger_data)
             return response
 
         materials.append({"head": head, "field": field, "amount": amount})
@@ -705,28 +703,23 @@ def save_materials():
 
     # Debugging: Print materials data
 
-
     if not scope_id or not sub_scope_id or not month_id or not year:
 
         # ใช้ toast notification สำหรับ error
-        response = make_response('')
+        response = make_response("")
         encoded_message = urllib.parse.quote("ข้อมูลไม่ครบถ้วน กรุณาตรวจสอบอีกครั้ง")
-        
-        trigger_data = {
-            "showError": encoded_message
-        }
-        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+
+        trigger_data = {"showError": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
         return response
 
     if not materials:
         # ใช้ toast notification สำหรับ warning
-        response = make_response('')
+        response = make_response("")
         encoded_message = urllib.parse.quote("กรุณากรอกข้อมูลอย่างน้อย 1 ฟิลด์")
-        
-        trigger_data = {
-            "showWarning": encoded_message
-        }
-        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+
+        trigger_data = {"showWarning": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
         return response
 
     # Save each material
@@ -749,7 +742,6 @@ def save_materials():
 
     # Update emissions table
     head_table = scope.head_table  # Re-fetch head_table after saving materials
-
 
     current_headers, materials_form, total_pages, items_per_page = (
         calculate_grouped_input_types(head_table, page)
@@ -785,13 +777,14 @@ def save_materials():
 
     # Get all available scopes for user
     user_scopes = get_user_scopes()
-    
+
     # Find current scope index for navigation
-    current_scope_index = get_current_scope_index(user_scopes, int(scope_id), int(sub_scope_id))
+    current_scope_index = get_current_scope_index(
+        user_scopes, int(scope_id), int(sub_scope_id)
+    )
 
     if request.headers.get("HX-Request"):
 
-        
         # สร้าง response พร้อม toast notification
         table_html = render_template(
             "emissions-scope/partials/emissions-table.html",
@@ -810,17 +803,15 @@ def save_materials():
             user_scopes=user_scopes,
             current_scope_index=current_scope_index,
         )
-        
+
         response = make_response(table_html)
-        
+
         # เพิ่ม toast notification สำหรับความสำเร็จ
         encoded_message = urllib.parse.quote(f"บันทึกข้อมูลสำเร็จ! ({saved_count} รายการ)")
-        
-        trigger_data = {
-            "showSuccess": encoded_message
-        }
-        response.headers['HX-Trigger'] = json.dumps(trigger_data)
-        
+
+        trigger_data = {"showSuccess": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
+
         return response
     else:
         return redirect(
@@ -831,6 +822,93 @@ def save_materials():
                 year=year,
             )
         )
+
+
+def delete_material_and_linked(
+    scope_id, sub_scope_id, month_id, year, head, input_field
+):
+    """
+    Delete a single material field and update linked materials
+    """
+    # ลบข้อมูลหลัก
+    material = Material.objects(
+        month=int(month_id),
+        name=head,
+        scope=int(scope_id),
+        sub_scope=int(sub_scope_id),
+        year=int(year),
+        department=current_user.department_key,
+        campus=current_user.campus_id,
+    ).first()
+
+    if material:
+        # ลบฟิลด์ที่ระบุ
+        material.quantity_type = [
+            qt for qt in material.quantity_type if qt.field != input_field
+        ]
+        material.edit_by_id = str(current_user.id)
+        material.update_date = datetime.datetime.now()
+        material.save()
+
+        # คำนวณ result ใหม่
+        calculate_result(material)
+
+        # จัดการ Material ที่ลิงก์ - ต้องอัปเดตข้อมูลใหม่
+        linked_formulas = FormAndFormula.objects(
+            linked_material_name=head, is_linked=True
+        )
+        for linked_formula in linked_formulas:
+            linked_material = Material.objects(
+                month=int(month_id),
+                name=linked_formula.material_name,
+                scope=int(linked_formula.ghg_scope),
+                sub_scope=int(linked_formula.ghg_sup_scope),
+                year=int(year),
+                department=current_user.department_key,
+                campus=current_user.campus_id,
+            ).first()
+
+            if linked_material:
+                # ตรวจสอบว่า material ต้นฉบับยังมีข้อมูลอยู่หรือไม่
+                if material.quantity_type and material.result is not None:
+                    # ถ้ายังมีข้อมูล ให้อัปเดต linked material ด้วยค่าใหม่
+                    linked_quantity_types = []
+                    if linked_formula.input_types:
+                        first_input = linked_formula.input_types[0]
+                        linked_quantity_types = [
+                            QuantityType(
+                                field=first_input.field,
+                                label=first_input.label,
+                                amount=float(material.result),
+                                unit=first_input.unit,
+                            )
+                        ]
+
+                    linked_material.quantity_type = linked_quantity_types
+                    linked_material.is_linked = True
+                    linked_material.edit_by_id = str(current_user.id)
+                    linked_material.update_date = datetime.datetime.now()
+                    linked_material.save()
+
+                    # คำนวณ result ใหม่
+                    calculate_result(linked_material)
+                else:
+                    # ถ้าไม่มีข้อมูลแล้ว ให้ลบ linked material ออกเลย หรือทำให้เป็นค่าว่าง
+                    linked_material.quantity_type = []
+                    linked_material.result = None
+                    linked_material.result2 = None
+                    linked_material.result_co2 = None
+                    linked_material.result_ch4 = None
+                    linked_material.result_n2o = None
+                    linked_material.result_hfcs = None
+                    linked_material.result_pfcs = None
+                    linked_material.result_sf6 = None
+                    linked_material.result_nf3 = None
+                    linked_material.edit_by_id = str(current_user.id)
+                    linked_material.update_date = datetime.datetime.now()
+                    linked_material.save()
+
+    return True
 
 
 @module.route("/delete-material", methods=["POST"])
@@ -845,26 +923,10 @@ def delete_material():
     input_field = request.form.get("input_field")
     page = int(request.form.get("page", 1))
 
-    material = Material.objects(
-        month=int(month_id),
-        name=head,
-        scope=int(scope_id),
-        sub_scope=int(sub_scope_id),
-        year=int(year),
-        department=current_user.department_key,
-        campus=current_user.campus_id,
-    ).first()
-
-    if material:
-        material.quantity_type = [
-            qt for qt in material.quantity_type if qt.field != input_field
-        ]
-        material.edit_by_id = str(current_user.id)  # อัปเดต edit_by_id
-        material.update_date = datetime.datetime.now()  # อัปเดต update_date
-        material.save()
-
-        # Calculate and update result
-        calculate_result(material)
+    # ใช้ฟังก์ชันใหม่ที่จัดการ linked materials
+    delete_material_and_linked(
+        scope_id, sub_scope_id, month_id, year, head, input_field
+    )
 
     # Refresh table after deletion
     scope = Scope.objects(
@@ -893,9 +955,11 @@ def delete_material():
 
     # Get all available scopes for user
     user_scopes = get_user_scopes()
-    
+
     # Find current scope index for navigation
-    current_scope_index = get_current_scope_index(user_scopes, int(scope_id), int(sub_scope_id))
+    current_scope_index = get_current_scope_index(
+        user_scopes, int(scope_id), int(sub_scope_id)
+    )
 
     materials = Material.objects(
         scope=int(scope_id),
@@ -914,7 +978,7 @@ def delete_material():
             sub_scope_id=sub_scope_id,
             materials=materials,
             head_table=current_headers,
-            head_table_info=head_table_info,  # เพิ่มบรรทัดนี้
+            head_table_info=head_table_info,
             total_pages=total_pages,
             page=page,
             user=current_user,
@@ -924,17 +988,15 @@ def delete_material():
             user_scopes=user_scopes,
             current_scope_index=current_scope_index,
         )
-        
+
         response = make_response(table_html)
-        
+
         # เพิ่ม toast notification สีเหลืองสำหรับการลบ
         encoded_message = urllib.parse.quote("ลบข้อมูลเรียบร้อยแล้ว")
-        
-        trigger_data = {
-            "showWarning": encoded_message
-        }
-        response.headers['HX-Trigger'] = json.dumps(trigger_data)
-        
+
+        trigger_data = {"showWarning": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
+
         return response
 
 
@@ -960,22 +1022,68 @@ def delete_all_materials():
 
         deleted_count = 0
         if materials:
-            # นับจำนวนรายการจริงที่จะลบ
+            # รวบรวมรายชื่อ materials ที่ต้องอัปเดต linked materials
+            materials_to_update_linked = []
+
             for material in materials:
                 if material.is_linked:
                     continue  # ข้าม material ที่ถูกลิงก์
-                
+
                 # นับจำนวน quantity_type ที่มีอยู่ก่อนลบ
-                quantity_count_before_delete = len(material.quantity_type) if material.quantity_type else 0
+                quantity_count_before_delete = (
+                    len(material.quantity_type) if material.quantity_type else 0
+                )
                 deleted_count += quantity_count_before_delete
-                
+
+                # เก็บชื่อ material สำหรับอัปเดต linked materials ภายหลัง
+                if material.name and quantity_count_before_delete > 0:
+                    materials_to_update_linked.append(material.name)
+
                 material.quantity_type = []  # Clear quantity_type
-                material.edit_by_id = str(current_user.id)  # Update edit_by_id
-                material.update_date = datetime.datetime.now()  # Update update_date
+                material.result = None
+                material.result2 = None
+                material.result_co2 = None
+                material.result_ch4 = None
+                material.result_n2o = None
+                material.result_hfcs = None
+                material.result_pfcs = None
+                material.result_sf6 = None
+                material.result_nf3 = None
+                material.edit_by_id = str(current_user.id)
+                material.update_date = datetime.datetime.now()
                 material.save()
 
-                # Calculate and update result
-                calculate_result(material)
+            # อัปเดต linked materials สำหรับทุก material ที่ถูกลบ
+            for material_name in materials_to_update_linked:
+                linked_formulas = FormAndFormula.objects(
+                    linked_material_name=material_name, is_linked=True
+                )
+                for linked_formula in linked_formulas:
+                    linked_material = Material.objects(
+                        month=int(month_id),
+                        name=linked_formula.material_name,
+                        scope=int(linked_formula.ghg_scope),
+                        sub_scope=int(linked_formula.ghg_sup_scope),
+                        year=int(year),
+                        department=current_user.department_key,
+                        campus=current_user.campus_id,
+                    ).first()
+
+                    if linked_material:
+                        # เนื่องจากลบข้อมูลทั้งหมดแล้ว ให้ทำให้ linked material เป็นค่าว่างทุกอย่าง
+                        linked_material.quantity_type = []
+                        linked_material.result = None
+                        linked_material.result2 = None
+                        linked_material.result_co2 = None
+                        linked_material.result_ch4 = None
+                        linked_material.result_n2o = None
+                        linked_material.result_hfcs = None
+                        linked_material.result_pfcs = None
+                        linked_material.result_sf6 = None
+                        linked_material.result_nf3 = None
+                        linked_material.edit_by_id = str(current_user.id)
+                        linked_material.update_date = datetime.datetime.now()
+                        linked_material.save()
 
         # Refresh table after deletion
         scope = Scope.objects(
@@ -1012,9 +1120,11 @@ def delete_all_materials():
 
         # Get all available scopes for user
         user_scopes = get_user_scopes()
-        
+
         # Find current scope index for navigation
-        current_scope_index = get_current_scope_index(user_scopes, int(scope_id), int(sub_scope_id))
+        current_scope_index = get_current_scope_index(
+            user_scopes, int(scope_id), int(sub_scope_id)
+        )
 
         if request.headers.get("HX-Request"):
             # สร้าง response พร้อม toast notification
@@ -1025,7 +1135,7 @@ def delete_all_materials():
                 sub_scope_id=sub_scope_id,
                 materials=materials,
                 head_table=current_headers,
-                head_table_info=head_table_info,  # เพิ่มบรรทัดนี้
+                head_table_info=head_table_info,
                 total_pages=total_pages,
                 page=page,
                 user=current_user,
@@ -1035,36 +1145,32 @@ def delete_all_materials():
                 user_scopes=user_scopes,
                 current_scope_index=current_scope_index,
             )
-            
+
             response = make_response(table_html)
-            
+
             # เปลี่ยนเป็น toast notification สีเหลืองสำหรับการลบ
             if deleted_count > 0:
                 # แสดง warning toast สีเหลืองแทนสีเขียว
-                encoded_message = urllib.parse.quote(f"ลบข้อมูลทั้งหมดเรียบร้อยแล้ว ({deleted_count} รายการ)")
-                trigger_data = {
-                    "showWarning": encoded_message
-                }
+                encoded_message = urllib.parse.quote(
+                    f"ลบข้อมูลทั้งหมดเรียบร้อยแล้ว ({deleted_count} รายการ)"
+                )
+                trigger_data = {"showWarning": encoded_message}
             else:
                 # แสดง info toast ถ้าไม่มีการลบ
                 encoded_message = urllib.parse.quote("ไม่มีข้อมูลที่สามารถลบได้")
-                trigger_data = {
-                    "showInfo": encoded_message
-                }
-            
-            response.headers['HX-Trigger'] = json.dumps(trigger_data)
-            
+                trigger_data = {"showInfo": encoded_message}
+
+            response.headers["HX-Trigger"] = json.dumps(trigger_data)
+
             return response
-            
+
     except Exception as e:
         # ใช้ toast notification สำหรับ error
-        response = make_response('')
+        response = make_response("")
         encoded_message = urllib.parse.quote(f"เกิดข้อผิดพลาดในการลบข้อมูล: {str(e)}")
-        
-        trigger_data = {
-            "showError": encoded_message
-        }
-        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+
+        trigger_data = {"showError": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
         return response
 
 
@@ -1081,7 +1187,6 @@ def load_upload_modal(
     month = month or request.args.get("month")
 
     # ตรวจสอบค่าที่ได้รับ
-
 
     # ตรวจสอบว่าค่าพารามิเตอร์ไม่เป็น None
     if not all([month_id, year, scope_id, sub_scope_id]):
@@ -1127,14 +1232,11 @@ def upload_file():
     if not file:
         # ใช้ toast notification สำหรับ error
 
-        
-        response = make_response('')
+        response = make_response("")
         encoded_message = urllib.parse.quote("กรุณาเลือกไฟล์ที่ต้องการอัปโหลด")
-        
-        trigger_data = {
-            "showError": encoded_message
-        }
-        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+
+        trigger_data = {"showError": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
         return response
 
     scope_id = request.form.get("scope_id")
@@ -1146,13 +1248,11 @@ def upload_file():
     # ตรวจสอบว่าค่าพารามิเตอร์ไม่เป็น None
     if not all([scope_id, sub_scope_id, year, month_id]):
         # ใช้ toast notification สำหรับ error
-        response = make_response('')
+        response = make_response("")
         encoded_message = urllib.parse.quote("ข้อมูลไม่ครบถ้วน กรุณาลองใหม่อีกครั้ง")
-        
-        trigger_data = {
-            "showError": encoded_message
-        }
-        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+
+        trigger_data = {"showError": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
         return response
 
     try:
@@ -1195,26 +1295,22 @@ def upload_file():
             sub_scope_id=sub_scope_id,
             month=month,
         )
-        
+
         response = make_response(modal_html)
         encoded_message = urllib.parse.quote(f"อัปโหลดไฟล์ '{file.filename}' สำเร็จ!")
-        
-        trigger_data = {
-            "showSuccess": encoded_message
-        }
-        response.headers['HX-Trigger'] = json.dumps(trigger_data)
-        
+
+        trigger_data = {"showSuccess": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
+
         return response
 
     except Exception as e:
         # ใช้ toast notification สำหรับ error
-        response = make_response('')
+        response = make_response("")
         encoded_message = urllib.parse.quote(f"เกิดข้อผิดพลาดในการอัปโหลด: {str(e)}")
-        
-        trigger_data = {
-            "showError": encoded_message
-        }
-        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+
+        trigger_data = {"showError": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
         return response
 
 
@@ -1257,14 +1353,11 @@ def delete_file(file_id):
 
         # ใช้ toast notification สำหรับ error
 
-        
-        response = make_response('')
+        response = make_response("")
         encoded_message = urllib.parse.quote("ไม่พบรหัสไฟล์ที่ต้องการลบ")
-        
-        trigger_data = {
-            "showError": encoded_message
-        }
-        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+
+        trigger_data = {"showError": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
         return response
 
     try:
@@ -1272,13 +1365,11 @@ def delete_file(file_id):
         if not document:
 
             # ใช้ toast notification สำหรับ error
-            response = make_response('')
+            response = make_response("")
             encoded_message = urllib.parse.quote("ไม่พบไฟล์ที่ต้องการลบ")
-            
-            trigger_data = {
-                "showError": encoded_message
-            }
-            response.headers['HX-Trigger'] = json.dumps(trigger_data)
+
+            trigger_data = {"showError": encoded_message}
+            response.headers["HX-Trigger"] = json.dumps(trigger_data)
             return response
 
         # หาชื่อไฟล์ก่อนลบเพื่อแสดงใน toast
@@ -1298,26 +1389,22 @@ def delete_file(file_id):
             sub_scope_id=sub_scope_id,
             month=month,
         )
-        
+
         response = make_response(modal_html)
         encoded_message = urllib.parse.quote(f"ลบไฟล์ '{filename}' เรียบร้อยแล้ว")
-        
-        trigger_data = {
-            "showWarning": encoded_message
-        }
-        response.headers['HX-Trigger'] = json.dumps(trigger_data)
-        
+
+        trigger_data = {"showWarning": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
+
         return response
 
     except Exception as e:
         # ใช้ toast notification สำหรับ error
-        response = make_response('')
+        response = make_response("")
         encoded_message = urllib.parse.quote(f"เกิดข้อผิดพลาดในการลบไฟล์: {str(e)}")
-        
-        trigger_data = {
-            "showError": encoded_message
-        }
-        response.headers['HX-Trigger'] = json.dumps(trigger_data)
+
+        trigger_data = {"showError": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
         return response
 
 
