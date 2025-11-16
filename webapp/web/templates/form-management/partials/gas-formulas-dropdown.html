@@ -1,6 +1,6 @@
 <!-- Gas Formulas Section - Inside Formula Card -->
 <div class="border-t border-gray-200 border-dashed">
-  <div class="flex items-center justify-between py-2">
+  <div class="flex items-center justify-between ">
     <button type="button" 
             class="flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
             onclick="toggleGasFormulas('{{ form.id }}')">
@@ -9,7 +9,7 @@
       <i data-feather="chevron-down" class="w-4 h-4 transition-transform" id="chevron-{{ form.id }}"></i>
     </button>
     
-    <div class="flex items-center gap-2">
+    <div class="flex items-center ">
       {% if has_permission("แก้ไขฟอร์ม") %}
       <button type="button" class="text-blue-500 hover:text-blue-700 p-1 rounded-md hover:bg-blue-50 transition-colors" 
               title="แก้ไขสูตรคำนวณก๊าซ"
