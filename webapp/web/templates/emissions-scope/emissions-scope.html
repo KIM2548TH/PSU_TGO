@@ -99,6 +99,7 @@
       </div>
       <span class="font-bold text-purple-800">{{ scope_name }} - {{ t.direct_emission }}</span>
     </div>
+    <div class="pl-12 text-sm text-gray-500" style="text-align:left;">{{ t.direct_emission_desc }}</div>
     {% elif scope_name.endswith('2') %}
     <div class="flex items-center gap-3">
       <div class="bg-green-200 p-2 rounded-full">
@@ -106,6 +107,7 @@
       </div>
       <span class="font-bold text-green-800">{{ scope_name }} - {{ t.indirect_emission }}</span>
     </div>
+    <div class="pl-12 text-sm text-gray-500" style="text-align:left;">{{ t.indirect_emission_desc }}</div>
     {% elif scope_name.endswith('3') %}
     <div class="flex items-center gap-3">
       <div class="bg-blue-200 p-2 rounded-full">
@@ -113,6 +115,7 @@
       </div>
       <span class="font-bold text-blue-800">{{ scope_name }} - {{ t.indirect_emission_other }}</span>
     </div>
+    <div class="pl-12 text-sm text-gray-500" style="text-align:left;">{{ t.indirect_emission_other_desc }}</div>
     {% endif %}
   </div>
   {% endfor %}
