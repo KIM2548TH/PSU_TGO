@@ -1,0 +1,328 @@
+<div class="max-w-5xl mx-auto px-6 py-8">
+  <!-- ปุ่มปิดป็อปอัพ -->
+  <div class="flex justify-end mb-4">
+    <button type="button" 
+            class="btn btn-sm btn-ghost text-gray-700 hover:text-gray-900 hover:bg-gray-100" 
+            onclick="document.getElementById('modal').classList.remove('modal-open')"
+            title="ปิดป็อปอัพ">
+      <i data-feather="x" class="h-5 w-5 mr-1"></i>
+      ปิด
+    </button>
+  </div>
+
+  <!-- Header -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-md p-6 mb-6">
+    <div class="flex items-center gap-4 mb-4">
+      <div class="bg-green-100 p-3 rounded-full">
+        <i data-feather="wind" class="w-6 h-6 text-green-600"></i>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-gray-800">แก้ไขสูตรคำนวณก๊าซ</h2>
+        <p class="text-sm text-gray-600">วัสดุ: <span class="font-medium text-green-600">{{ form.material_name }}</span></p>
+      </div>
+    </div>
+    
+    <!-- ข้อมูลตัวแปร -->
+    <div class="bg-gray-50 rounded-lg p-4">
+      <h3 class="text-sm font-semibold text-gray-700 mb-3">ตัวแปรที่ใช้ได้</h3>
+      <div class="flex flex-wrap gap-2">
+        {% if form.input_types %}
+          {% for input_type in form.input_types %}
+          <div class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+            {{ input_type.field }}
+          </div>
+          {% endfor %}
+        {% elif form.variables %}
+          {% for var in form.variables %}
+          <div class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+            {{ var }}
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-gray-500 text-sm">ไม่มีตัวแปรที่กำหนด</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Form แก้ไขสูตรก๊าซ -->
+  <form method="POST" 
+        hx-post="{{ url_for('gas_formula.save_gas_formulas', form_id=form.id) }}"
+        hx-target="#modal-content"
+        hx-swap="innerHTML"
+        hx-on::after-request="if(event.detail.success) { document.getElementById('modal').classList.remove('modal-open'); }">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}"/>
+    
+    <div class="bg-white rounded-xl border border-gray-200 shadow-md p-6">
+      <!-- CO2 Formula -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <span class="inline-flex items-center gap-2">
+            <span class="w-3 h-3 bg-gray-600 rounded-full"></span>
+            CO₂ Formula
+          </span>
+        </label>
+        <div class="flex items-start gap-3">
+          <!-- ช่องแสดงสูตร -->
+          <div class="flex-1 pr-2">
+            {% set formula_field = 'formula_co2' %}
+            {% set gas_type = 'co2' %}
+            {% set formula_value = form.formula_co2 or '' %}
+            {% include 'form-management/partials/gas-formula-input.html' %}
+          </div>
+          
+          <!-- ปุ่มเครื่องคิดเลข -->
+          <button type="button" 
+                  class="btn btn-outline px-4 h-12 flex-shrink-0"
+                  hx-post="/gas-formula/calculator/show-gas"
+                  hx-target="#co2-calculator"
+                  hx-swap="innerHTML"
+                  hx-include="closest form"
+                  hx-vals='{"gas_type": "co2", "form_id": "{{ form.id }}"}'
+                  title="เปิดเครื่องคิดเลข">
+            <i data-feather="grid" class="w-4 h-4"></i>
+          </button>
+        </div>
+        
+        <!-- Calculator Container -->
+        <div id="co2-calculator" class="mt-3"></div>
+        
+      </div>
+
+      <!-- CH4 Formula -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <span class="inline-flex items-center gap-2">
+            <span class="w-3 h-3 bg-yellow-600 rounded-full"></span>
+            CH₄ Formula
+          </span>
+        </label>
+        <div class="flex items-start gap-3">
+          <!-- ช่องแสดงสูตร -->
+          <div class="flex-1 pr-2">
+            {% set formula_field = 'formula_ch4' %}
+            {% set gas_type = 'ch4' %}
+            {% set formula_value = form.formula_ch4 or '' %}
+            {% include 'form-management/partials/gas-formula-input.html' %}
+          </div>
+          
+          <!-- ปุ่มเครื่องคิดเลข -->
+          <button type="button" 
+                  class="btn btn-outline px-4 h-12 flex-shrink-0"
+                  hx-post="/gas-formula/calculator/show-gas"
+                  hx-target="#ch4-calculator"
+                  hx-swap="innerHTML"
+                  hx-include="closest form"
+                  hx-vals='{"gas_type": "ch4", "form_id": "{{ form.id }}"}'
+                  title="เปิดเครื่องคิดเลข">
+            <i data-feather="grid" class="w-4 h-4"></i>
+          </button>
+        </div>
+        
+        <!-- Calculator Container -->
+        <div id="ch4-calculator" class="mt-3"></div>
+        
+      </div>
+
+      <!-- N2O Formula -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <span class="inline-flex items-center gap-2">
+            <span class="w-3 h-3 bg-orange-600 rounded-full"></span>
+            N₂O Formula
+          </span>
+        </label>
+        <div class="flex items-start gap-3">
+          <!-- ช่องแสดงสูตร -->
+          <div class="flex-1 pr-2">
+            {% set formula_field = 'formula_n2o' %}
+            {% set gas_type = 'n2o' %}
+            {% set formula_value = form.formula_n2o or '' %}
+            {% include 'form-management/partials/gas-formula-input.html' %}
+          </div>
+          
+          <!-- ปุ่มเครื่องคิดเลข -->
+          <button type="button" 
+                  class="btn btn-outline px-4 h-12 flex-shrink-0"
+                  hx-post="/gas-formula/calculator/show-gas"
+                  hx-target="#n2o-calculator"
+                  hx-swap="innerHTML"
+                  hx-include="closest form"
+                  hx-vals='{"gas_type": "n2o", "form_id": "{{ form.id }}"}'
+                  title="เปิดเครื่องคิดเลข">
+            <i data-feather="grid" class="w-4 h-4"></i>
+          </button>
+        </div>
+        
+        <!-- Calculator Container -->
+        <div id="n2o-calculator" class="mt-3"></div>
+        
+      </div>
+
+      <!-- HFCs Formula -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <span class="inline-flex items-center gap-2">
+            <span class="w-3 h-3 bg-purple-600 rounded-full"></span>
+            HFCs Formula
+          </span>
+        </label>
+        <div class="flex items-start gap-3">
+          <!-- ช่องแสดงสูตร -->
+          <div class="flex-1 pr-2">
+            {% set formula_field = 'formula_hfcs' %}
+            {% set gas_type = 'hfcs' %}
+            {% set formula_value = form.formula_hfcs or '' %}
+            {% include 'form-management/partials/gas-formula-input.html' %}
+          </div>
+          
+          <!-- ปุ่มเครื่องคิดเลข -->
+          <button type="button" 
+                  class="btn btn-outline px-4 h-12 flex-shrink-0"
+                  hx-post="/gas-formula/calculator/show-gas"
+                  hx-target="#hfcs-calculator"
+                  hx-swap="innerHTML"
+                  hx-include="closest form"
+                  hx-vals='{"gas_type": "hfcs", "form_id": "{{ form.id }}"}'
+                  title="เปิดเครื่องคิดเลข">
+            <i data-feather="grid" class="w-4 h-4"></i>
+          </button>
+        </div>
+        
+        <!-- Calculator Container -->
+        <div id="hfcs-calculator" class="mt-3"></div>
+      </div>
+
+      <!-- PFCs Formula -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <span class="inline-flex items-center gap-2">
+            <span class="w-3 h-3 bg-pink-600 rounded-full"></span>
+            PFCs Formula
+          </span>
+        </label>
+        <div class="flex items-start gap-3">
+          <!-- ช่องแสดงสูตร -->
+          <div class="flex-1 pr-2">
+            {% set formula_field = 'formula_pfcs' %}
+            {% set gas_type = 'pfcs' %}
+            {% set formula_value = form.formula_pfcs or '' %}
+            {% include 'form-management/partials/gas-formula-input.html' %}
+          </div>
+          
+          <!-- ปุ่มเครื่องคิดเลข -->
+          <button type="button" 
+                  class="btn btn-outline px-4 h-12 flex-shrink-0"
+                  hx-post="/gas-formula/calculator/show-gas"
+                  hx-target="#pfcs-calculator"
+                  hx-swap="innerHTML"
+                  hx-include="closest form"
+                  hx-vals='{"gas_type": "pfcs", "form_id": "{{ form.id }}"}'
+                  title="เปิดเครื่องคิดเลข">
+            <i data-feather="grid" class="w-4 h-4"></i>
+          </button>
+        </div>
+        
+        <!-- Calculator Container -->
+        <div id="pfcs-calculator" class="mt-3"></div>
+      </div>
+
+      <!-- SF6 Formula -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <span class="inline-flex items-center gap-2">
+            <span class="w-3 h-3 bg-red-600 rounded-full"></span>
+            SF₆ Formula
+          </span>
+        </label>
+        <div class="flex items-start gap-3">
+          <!-- ช่องแสดงสูตร -->
+          <div class="flex-1 pr-2">
+            {% set formula_field = 'formula_sf6' %}
+            {% set gas_type = 'sf6' %}
+            {% set formula_value = form.formula_sf6 or '' %}
+            {% include 'form-management/partials/gas-formula-input.html' %}
+          </div>
+          
+          <!-- ปุ่มเครื่องคิดเลข -->
+          <button type="button" 
+                  class="btn btn-outline px-4 h-12 flex-shrink-0"
+                  hx-post="/gas-formula/calculator/show-gas"
+                  hx-target="#sf6-calculator"
+                  hx-swap="innerHTML"
+                  hx-include="closest form"
+                  hx-vals='{"gas_type": "sf6", "form_id": "{{ form.id }}"}'
+                  title="เปิดเครื่องคิดเลข">
+            <i data-feather="grid" class="w-4 h-4"></i>
+          </button>
+        </div>
+        
+        <!-- Calculator Container -->
+        <div id="sf6-calculator" class="mt-3"></div>
+      </div>
+
+      <!-- NF3 Formula -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <span class="inline-flex items-center gap-2">
+            <span class="w-3 h-3 bg-indigo-600 rounded-full"></span>
+            NF₃ Formula
+          </span>
+        </label>
+        <div class="flex items-start gap-3">
+          <!-- ช่องแสดงสูตร -->
+          <div class="flex-1 pr-2">
+            {% set formula_field = 'formula_nf3' %}
+            {% set gas_type = 'nf3' %}
+            {% set formula_value = form.formula_nf3 or '' %}
+            {% include 'form-management/partials/gas-formula-input.html' %}
+          </div>
+          
+          <!-- ปุ่มเครื่องคิดเลข -->
+          <button type="button" 
+                  class="btn btn-outline px-4 h-12 flex-shrink-0"
+                  hx-post="/gas-formula/calculator/show-gas"
+                  hx-target="#nf3-calculator"
+                  hx-swap="innerHTML"
+                  hx-include="closest form"
+                  hx-vals='{"gas_type": "nf3", "form_id": "{{ form.id }}"}'
+                  title="เปิดเครื่องคิดเลข">
+            <i data-feather="grid" class="w-4 h-4"></i>
+          </button>
+        </div>
+        
+        <!-- Calculator Container -->
+        <div id="nf3-calculator" class="mt-3"></div>
+      </div>
+
+      <!-- ปุ่มบันทึก -->
+      <div class="flex justify-end gap-3">
+        <button type="button" 
+                class="btn btn-outline" 
+                onclick="document.getElementById('modal').classList.remove('modal-open')">ยกเลิก</button>
+        <button type="submit" class="btn btn-primary">
+          <i data-feather="save" class="w-4 h-4 mr-2"></i>
+          บันทึกสูตรก๊าซทั้งหมด
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+// Initialize feather icons immediately and also after HTMX content loads
+function initializeFeatherIcons() {
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', initializeFeatherIcons);
+
+// Also initialize after HTMX swaps content
+document.addEventListener('htmx:afterSwap', initializeFeatherIcons);
+
+// Initialize after a short delay to ensure all content is loaded
+setTimeout(initializeFeatherIcons, 100);
+</script>

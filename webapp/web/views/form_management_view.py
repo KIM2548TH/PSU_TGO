@@ -13,7 +13,6 @@ from bson import ObjectId
 from bson.errors import InvalidId
 
 
-
 module = Blueprint("form_management", __name__, url_prefix="/form-management")
 
 
@@ -38,20 +37,94 @@ def form_management():
     )
 
 
+@module.route("/refresh-forms", methods=["GET"])
+@login_required
+def refresh_forms():
+    """รีเฟรชข้อมูลฟอร์ม (สำหรับ partial update)"""
+    try:
+        # รับค่า scope ที่ต้องการรีเฟรช
+        scope_id = request.args.get('scope', '1')  # default เป็น scope 1
+        filter_sub_scope = request.args.get('filter_sub_scope')
+        show_all = request.args.get('show_all', 'false').lower() == 'true'
+        
+        # ไม่ต้อง fallback จาก referer หรือ event.detail.scope
+        # scope_id จะถูกส่งมาจาก hx-vals โดยตรง
+        print(f"refresh_forms: scope_id={scope_id}")
+
+        forms = FormAndFormula.objects().order_by(
+            "ghg_scope", "ghg_sup_scope", "material_name"
+        )
+
+        # ดึงข้อมูล scope names จาก Scope model
+        scopes = Scope.objects().order_by("ghg_scope", "ghg_sup_scope")
+        scope_names = {}
+
+        for scope in scopes:
+            key = f"{scope.ghg_scope}.{scope.ghg_sup_scope}"
+            scope_names[key] = scope.ghg_name
+
+        # เลือก template ตาม scope
+        template_map = {
+            '1': "form-management/partials/scope1-content.html",
+            '2': "form-management/partials/scope2-content.html",  
+            '3': "form-management/partials/scope3-content.html"
+        }
+        
+        template_name = template_map.get(str(scope_id), template_map['1'])
+        
+        return render_template(
+            template_name,
+            forms=forms,
+            scope_names=scope_names,
+            active_scope=scope_id,
+            filter_sub_scope=int(filter_sub_scope) if filter_sub_scope else None,
+            show_all=show_all
+        )
+    except Exception as e:
+        return f'<div class="alert alert-error">Error refreshing forms: {str(e)}</div>'
+
+
 # === FORM LOADING ROUTES ===
 @module.route("/load-add-form", methods=["GET"])
 @login_required
 def load_add_form_and_formula():
     """โหลดหน้าเพิ่มฟอร์มใหม่ พร้อม default values"""
-    # รับค่า default จาก query parameters
-    default_scope = request.args.get("default_scope")
-    default_sub_scope = request.args.get("default_sub_scope")
-    
-    return render_template(
-        "/form-management/add-form-and-formula.html",
-        default_scope=default_scope,
-        default_sub_scope=default_sub_scope,
-    )
+    try:
+        # รับค่า default จาก query parameters
+        default_scope = request.args.get("default_scope")
+        default_sub_scope = request.args.get("default_sub_scope")
+        
+        # แปลงเป็น int ถ้ามีค่า
+        if default_scope:
+            try:
+                default_scope = int(default_scope)
+            except ValueError:
+                default_scope = None
+                
+        if default_sub_scope:
+            try:
+                default_sub_scope = int(default_sub_scope)
+            except ValueError:
+                default_sub_scope = None
+        
+        return render_template(
+            "/form-management/add-form-and-formula.html",
+            default_scope=default_scope,
+            default_sub_scope=default_sub_scope,
+        )
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error in load_add_form_and_formula: {str(e)}")
+        print(f"Full traceback: {error_details}")
+        
+        # ส่งกลับหน้า error แทน
+        return render_template(
+            "/form-management/add-form-and-formula.html",
+            default_scope=None,
+            default_sub_scope=None,
+            error_msg=f"Error loading form: {str(e)}"
+        )
 
 
 @module.route("/load-edit-form", methods=["GET"])
@@ -116,45 +189,29 @@ def load_edit_form_and_formula():
 
 
 # === SCOPE MANAGEMENT ROUTES ===
+@module.route("/scope1", methods=["GET"])
+@login_required
+def get_scope1_content():
+    """โหลด content สำหรับ scope 1"""
+    return _get_scope_content(1)
+
+@module.route("/scope2", methods=["GET"])
+@login_required
+def get_scope2_content():
+    """โหลด content สำหรับ scope 2"""
+    return _get_scope_content(2)
+
+@module.route("/scope3", methods=["GET"])
+@login_required
+def get_scope3_content():
+    """โหลด content สำหรับ scope 3"""
+    return _get_scope_content(3)
+
 @module.route("/scope/<int:scope_id>", methods=["GET"])
 @login_required
 def get_scope_content(scope_id):
-    """โหลด content ตาม scope ที่เลือก"""
-    try:
-        # โหลดข้อมูลใหม่
-        forms = FormAndFormula.objects().order_by(
-            "ghg_scope", "ghg_sup_scope", "material_name"
-        )
-        
-        scopes = Scope.objects().order_by("ghg_scope", "ghg_sup_scope")
-        scope_names = {}
-        for scope in scopes:
-            key = f"{scope.ghg_scope}.{scope.ghg_sup_scope}"
-            scope_names[key] = scope.ghg_name
-        
-        # รับพารามิเตอร์การกรอง
-        filter_sub_scope = request.args.get('filter_sub_scope')
-        show_all = request.args.get('show_all', 'false').lower() == 'true'
-        
-        # เลือก template ตาม scope
-        template_map = {
-            1: "form-management/partials/scope1-content.html",
-            2: "form-management/partials/scope2-content.html",  
-            3: "form-management/partials/scope3-content.html"
-        }
-        
-        template_name = template_map.get(scope_id, template_map[1])
-        
-        return render_template(
-            template_name,
-            forms=forms,
-            scope_names=scope_names,
-            active_scope=str(scope_id),
-            filter_sub_scope=int(filter_sub_scope) if filter_sub_scope else None,
-            show_all=show_all
-        )
-    except Exception as e:
-        return f'<div class="text-error">Error loading scope content: {str(e)}</div>'
+    """โหลด content ตาม scope ที่เลือก (เก็บไว้เพื่อความเข้ากันได้แบบย้อนหลัง)"""
+    return _get_scope_content(scope_id)
 
 
 # === CALCULATOR ROUTES ===
@@ -402,7 +459,7 @@ def add_form_and_formula():
         desc_formula2 = request.form.get("desc_formula2", "")
         material_name = request.form.get("material_name")
         formula = request.form.get("formula")
-        formula2 = ""
+        formula2 = request.form.get("formula2", "")
         ghg_scope = request.form.get("scope")
         ghg_sup_scope = request.form.get("sup_scope")
 
@@ -411,8 +468,8 @@ def add_form_and_formula():
         is_linked = form_type == "linked"
         linked_material_name = request.form.get("linked_material_name", "")
 
-        # ตรวจสอบข้อมูลที่จำเป็น
-        if not material_name or not formula or not ghg_scope or not ghg_sup_scope:
+        # ตรวจสอบข้อมูลที่จำเป็น (formula ไม่จำเป็นต้องกรอก)
+        if not material_name or not ghg_scope or not ghg_sup_scope:
             return _error_response("กรุณากรอกข้อมูลให้ครบถ้วน")
 
         # ตรวจสอบชื่อวัสดุซ้ำ
@@ -714,6 +771,8 @@ def _setup_linked_form_fields(form_obj, linked_material_name):
 
 def _setup_normal_form_fields(form_obj):
     """ตั้งค่า input fields สำหรับ normal form"""
+
+    
     input_fields = []
     variables = []
     fields = request.form.getlist("field")
@@ -739,29 +798,21 @@ def _setup_normal_form_fields(form_obj):
 
 def _success_response(message, refresh_scope=None):
     """สร้าง success response พร้อม toast notification"""
-    response = make_response('')
-    import json
-    import urllib.parse
-    
-    encoded_message = urllib.parse.quote(message)
-    
-    trigger_data = {
-        "closeModal": True,
-        "showSuccess": encoded_message
-    }
-    response.headers['HX-Trigger'] = json.dumps(trigger_data)
-    
+    trigger_data = {"closeModal": True}
     if refresh_scope:
-        response.headers['HX-Trigger-After-Swap'] = f'refreshScope{refresh_scope}'
-    
-    return response
+        # ส่ง scope เป็นเลขจริง ไม่ต้อง nested ใน detail
+        trigger_data["refreshAllScopes"] = {"scope": str(refresh_scope)}
+        trigger_data["refreshScopeContent"] = {"scope": str(refresh_scope)}
+        trigger_data["updateActiveScopeCard"] = {"scope": str(refresh_scope)}
+        trigger_data[f"refreshScope{refresh_scope}"] = True
+        return success_response(message, **trigger_data)
+    else:
+        return success_response(message, **trigger_data)
 
 
 def _error_response(message):
-    """สร้าง error response"""
-    response = make_response(f'<div class="alert alert-error"><span>{message}</span></div>')
-    response.headers['HX-Retarget'] = '#modal-content'
-    return response, 400
+    """สร้าง error response พร้อม toast notification"""
+    return error_response(message, content=f'<div class="alert alert-error"><span>{message}</span></div>', HX_Retarget='#modal-content')
 
 
 # === SUB SCOPE ROUTES ===
@@ -770,6 +821,10 @@ def _error_response(message):
 def get_sub_scopes(main_scope):
     """ดึง sub scopes ตาม main scope ที่เลือก และ render template"""
     try:
+        # รับค่า main_scope จาก URL parameter
+        if not main_scope:
+            return '<select name="sup_scope" class="select select-bordered w-full mt-1" required><option value="">กรุณาเลือก Main Scope ก่อน</option></select>'
+            
         print(f"get_sub_scopes called with main_scope: {main_scope}")
         print(f"Request args: {request.args}")
 
@@ -957,6 +1012,62 @@ def hide_toast():
     return "", 200
 
 
+# === GAS FORMULAS ROUTE ===
+@module.route("/gas-formulas/<form_id>", methods=["GET"])
+@login_required
+def get_gas_formulas(form_id):
+    """ดึงข้อมูลสูตรคำนวณก๊าซสำหรับฟอร์มที่เลือก"""
+    try:
+        try:
+            object_id = ObjectId(form_id)
+        except InvalidId:
+            return '<div class="text-center py-2 text-gray-500"><i data-feather="info" class="w-3 h-3 inline mr-1"></i>Invalid form ID</div>'
+        
+        form = FormAndFormula.objects(id=object_id).first()
+        if not form:
+            return '<div class="text-center py-2 text-gray-500"><i data-feather="info" class="w-3 h-3 inline mr-1"></i>Form not found</div>'
+
+        # สร้างข้อมูล gas formulas
+        gas_formulas = [
+            {'name': 'สูตรคำนวณ CO₂', 'formula': form.formula_co2},
+            {'name': 'สูตรคำนวณ CH₄', 'formula': form.formula_ch4},
+            {'name': 'สูตรคำนวณ N₂O', 'formula': form.formula_n2o},
+            {'name': 'สูตรคำนวณ HFCs', 'formula': form.formula_hfcs},
+            {'name': 'สูตรคำนวณ PFCs', 'formula': form.formula_pfcs},
+            {'name': 'สูตรคำนวณ SF₆', 'formula': form.formula_sf6},
+            {'name': 'สูตรคำนวณ NF₃', 'formula': form.formula_nf3}
+        ]
+        
+        # ตรวจสอบว่ามีสูตรหรือไม่
+        has_formulas = any(gas['formula'] for gas in gas_formulas)
+        
+        if not has_formulas:
+            # ถ้าไม่มีสูตร ให้แสดงข้อความแจ้งเตือน
+            return '<div class="text-center py-2 text-gray-500"><i data-feather="info" class="w-3 h-3 inline mr-1"></i>ยังไม่มีข้อมูลสูตรคำนวณก๊าซ</div>'
+        
+        # สร้าง HTML สำหรับ gas formulas - ใช้สีธีมเดิมและไม่แสดง GWP
+        html_content = '<div class="absolute z-50 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-2 max-h-32 overflow-y-auto">'
+        
+        for gas in gas_formulas:
+            if gas['formula']:
+                html_content += f'''
+                <div class="py-1 px-2 hover:bg-gray-50 rounded border-b border-gray-100 last:border-b-0">
+                    <div class="flex items-center gap-2">
+                        <h4 class="text-xs font-medium text-gray-700">{gas['name']}</h4>
+                    </div>
+                    <div class="text-xs text-gray-600 mt-1">
+                        <p class="font-mono break-all">{gas['formula']}</p>
+                    </div>
+                </div>
+                '''
+        
+        html_content += '</div>'
+        return html_content
+        
+    except Exception as e:
+        return f'<div class="text-center py-2 text-red-500"><i data-feather="alert-circle" class="w-3 h-3 inline mr-1"></i>Error: {str(e)}</div>'
+
+
 # === UTILITY ROUTES ===
 @module.route("/get-form-data/<form_id>", methods=["GET"])
 @login_required
@@ -980,6 +1091,45 @@ def get_form_data(form_id):
         
     except Exception as e:
         return jsonify({"success": False, "message": f"Error loading form: {str(e)}"})
+
+
+def _get_scope_content(scope_id):
+    """Helper function สำหรับโหลด content ตาม scope"""
+    try:
+        # โหลดข้อมูลใหม่
+        forms = FormAndFormula.objects().order_by(
+            "ghg_scope", "ghg_sup_scope", "material_name"
+        )
+        
+        scopes = Scope.objects().order_by("ghg_scope", "ghg_sup_scope")
+        scope_names = {}
+        for scope in scopes:
+            key = f"{scope.ghg_scope}.{scope.ghg_sup_scope}"
+            scope_names[key] = scope.ghg_name
+        
+        # รับพารามิเตอร์การกรอง
+        filter_sub_scope = request.args.get('filter_sub_scope')
+        show_all = request.args.get('show_all', 'false').lower() == 'true'
+        
+        # เลือก template ตาม scope
+        template_map = {
+            1: "form-management/partials/scope1-content.html",
+            2: "form-management/partials/scope2-content.html",  
+            3: "form-management/partials/scope3-content.html"
+        }
+        
+        template_name = template_map.get(scope_id, template_map[1])
+        
+        return render_template(
+            template_name,
+            forms=forms,
+            scope_names=scope_names,
+            active_scope=str(scope_id),
+            filter_sub_scope=int(filter_sub_scope) if filter_sub_scope else None,
+            show_all=show_all
+        )
+    except Exception as e:
+        return f'<div class="text-error">Error loading scope content: {str(e)}</div>'
 
 
 def _convert_form_to_dict(form_obj):

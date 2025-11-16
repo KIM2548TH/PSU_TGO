@@ -22,7 +22,7 @@ class FormAndFormula(me.Document):
     ghg_scope = me.IntField(required=True, choices=[1, 2, 3])
     ghg_sup_scope = me.IntField(required=True)
     desc_form = me.StringField(required=True)
-    desc_formula = me.StringField(required=True)
+    desc_formula = me.StringField(required=False, default="")
     desc_formula2 = me.StringField(required=False, default="")
     material_name = me.StringField(required=True)
     
@@ -31,9 +31,18 @@ class FormAndFormula(me.Document):
     linked_material_name = me.StringField(required=False)  # ชื่อ material ที่ต้องการลิงก์
     
     input_types = me.EmbeddedDocumentListField(InputType)
-    variables = me.ListField(me.StringField(), required=True)
-    formula = me.StringField(required=True)
+    variables = me.ListField(me.StringField(), required=False, default=[])
+    formula = me.StringField(required=False, default="")
     formula2 = me.StringField(required=False, default="")
+    
+    # Gas calculation formulas (7 types)
+    formula_co2 = me.StringField(required=False, default="")
+    formula_ch4 = me.StringField(required=False, default="")
+    formula_n2o = me.StringField(required=False, default="")
+    formula_hfcs = me.StringField(required=False, default="")
+    formula_pfcs = me.StringField(required=False, default="")
+    formula_sf6 = me.StringField(required=False, default="")
+    formula_nf3 = me.StringField(required=False, default="")
     
     create_date = me.DateTimeField(default=datetime.datetime.now)
     update_date = me.DateTimeField(default=datetime.datetime.now)

@@ -6,6 +6,9 @@ from flask import session
 from ..utils import template_filters
 from ..utils.translations import translations  # ✅ แก้ path ให้ถูก
 
+# Import gas_formula_view to ensure it's loaded
+from . import gas_formula_view
+
 logger = logging.getLogger(__name__)
 htmx = HTMX()
 

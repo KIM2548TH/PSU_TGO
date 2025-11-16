@@ -27,7 +27,7 @@ module = Blueprint("emissions", __name__, url_prefix="/emissions")
 
 def get_user_scopes():
     """
-    Get all available scopes for the current user
+    Get all available scopes for current user
     Returns a list of dictionaries with scope information
     """
     try:
@@ -74,7 +74,7 @@ def get_user_scopes():
 
 def get_current_scope_index(user_scopes, scope_id, sub_scope_id):
     """
-    Find the index of the current scope in the user_scopes list
+    Find the index of current scope in user_scopes list
     """
     try:
         for i, scope in enumerate(user_scopes):
@@ -91,7 +91,7 @@ def calculate_grouped_input_types(head_table, page):
     Calculate and group input types by headers for pagination.
 
     Args:
-        head_table (list): List of headers from the scope.
+        head_table (list): List of headers from scope.
         items_per_page (int): Number of items per page.
         page (int): Current page number.
 
@@ -110,7 +110,7 @@ def calculate_grouped_input_types(head_table, page):
     total_subcategories = len(all_input_types)
     total_pages = (total_subcategories + items_per_page - 1) // items_per_page
 
-    # Determine which subcategories to display on the current page
+    # Determine which subcategories to display on current page
     start_index = (page - 1) * items_per_page
     end_index = min(start_index + items_per_page, total_subcategories)
 
@@ -156,7 +156,7 @@ def view_emissions():
     else:
         ghg_name = "Unknown Scope"
     
-    # Get all available scopes for the user
+    # Get all available scopes for user
     user_scopes = get_user_scopes()
     
     # Find current scope index for navigation
@@ -200,7 +200,7 @@ def load_emissions_table():
 
     head_table = scope.head_table
 
-    # Use the new function to calculate grouped input types
+    # Use new function to calculate grouped input types
     current_headers, materials_form, total_pages, items_per_page = (
         calculate_grouped_input_types(head_table, page)
     )
@@ -225,7 +225,7 @@ def load_emissions_table():
         campus=current_user.campus_id,
     )
 
-    # Get all available scopes for the user
+    # Get all available scopes for user
     user_scopes = get_user_scopes()
     
     # Find current scope index for navigation
@@ -363,6 +363,7 @@ def load_materials_form():
 def calculate_result(material):
     """
     คำนวณผลลัพธ์จากสูตรและบันทึก result และ result2 ลงใน material
+    พร้อมทั้งคำนวณผลลัพธ์ก๊าซทั้ง 7 ชนิด
     """
     # ดึงข้อมูลสูตรจากฐานข้อมูล
     form_and_formula = FormAndFormula.objects(material_name=material.name).first()
@@ -395,15 +396,11 @@ def calculate_result(material):
         )
 
     try:
-        
-
         # คำนวณผลลัพธ์แรก (result)
         eval_result = eval(sanitized_formula, {}, sanitized_variables)
 
         # บันทึกผลลัพธ์ลงใน material.result
         material.result = eval_result
-
-
 
         # คำนวณ result2 ถ้ามี formula2
         if hasattr(form_and_formula, "formula2") and form_and_formula.formula2:
@@ -424,12 +421,9 @@ def calculate_result(material):
                         sanitized_formula2,
                     )
 
-
-
                 # คำนวณ result2
                 eval_result2 = eval(sanitized_formula2, {}, formula2_variables)
                 material.result2 = eval_result2
-
 
             except Exception as e:
                 print(f"เกิดข้อผิดพลาดในการคำนวณ result2 สำหรับ : {e}")
@@ -437,6 +431,31 @@ def calculate_result(material):
         else:
             # ถ้าไม่มี formula2 ให้ตั้งค่า result2 เป็น None
             material.result2 = None
+
+        # คำนวณผลลัพธ์ก๊าซทั้ง 7 ชนิดโดยใช้ gas_calculation
+        try:
+            from ..views.gas_calculation import calculate_gas_results
+            gas_results = calculate_gas_results(material, form_and_formula)
+            
+            # บันทึกผลลัพธ์ก๊าซลงใน material
+            material.result_co2 = gas_results.get('result_co2')
+            material.result_ch4 = gas_results.get('result_ch4')
+            material.result_n2o = gas_results.get('result_n2o')
+            material.result_hfcs = gas_results.get('result_hfcs')
+            material.result_pfcs = gas_results.get('result_pfcs')
+            material.result_sf6 = gas_results.get('result_sf6')
+            material.result_nf3 = gas_results.get('result_nf3')
+            
+        except Exception as e:
+            print(f"เกิดข้อผิดพลาดในการคำนวณผลลัพธ์ก๊าซ: {e}")
+            # ตั้งค่า gas results เป็น None หากคำนวณไม่สำเร็จ
+            material.result_co2 = None
+            material.result_ch4 = None
+            material.result_n2o = None
+            material.result_hfcs = None
+            material.result_pfcs = None
+            material.result_sf6 = None
+            material.result_nf3 = None
 
         material.update_date = datetime.datetime.now()
         material.save()
@@ -764,7 +783,7 @@ def save_materials():
         campus=current_user.campus_id,
     )
 
-    # Get all available scopes for the user
+    # Get all available scopes for user
     user_scopes = get_user_scopes()
     
     # Find current scope index for navigation
@@ -844,10 +863,10 @@ def delete_material():
         material.update_date = datetime.datetime.now()  # อัปเดต update_date
         material.save()
 
-        # Calculate and update the result
+        # Calculate and update result
         calculate_result(material)
 
-    # Refresh the table after deletion
+    # Refresh table after deletion
     scope = Scope.objects(
         ghg_scope=int(scope_id),
         ghg_sup_scope=int(sub_scope_id),
@@ -872,7 +891,7 @@ def delete_material():
                 "formula": form.formula,
             }
 
-    # Get all available scopes for the user
+    # Get all available scopes for user
     user_scopes = get_user_scopes()
     
     # Find current scope index for navigation
@@ -955,10 +974,10 @@ def delete_all_materials():
                 material.update_date = datetime.datetime.now()  # Update update_date
                 material.save()
 
-                # Calculate and update the result
+                # Calculate and update result
                 calculate_result(material)
 
-        # Refresh the table after deletion
+        # Refresh table after deletion
         scope = Scope.objects(
             ghg_scope=int(scope_id),
             ghg_sup_scope=int(sub_scope_id),

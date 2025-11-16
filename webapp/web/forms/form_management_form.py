@@ -58,10 +58,10 @@ class FormAndFormulaForm(FlaskForm):
                                      choices=[],
                                      validators=[Optional()])
     
-    # Formula
+    # Formula (optional - can be added later)
     formula = StringField("Formula", validators=[
-        DataRequired(message="กรุณากรอกสูตรคำนวณ"),
-        Length(min=1, max=200, message="สูตรต้องมีความยาว 1-200 ตัวอักษร")
+        Optional(),
+        Length(max=200, message="สูตรต้องมีความยาวไม่เกิน 200 ตัวอักษร")
     ])
     
     formula2 = StringField("Formula 2", validators=[
@@ -77,6 +77,42 @@ class FormAndFormulaForm(FlaskForm):
     desc_formula2 = TextAreaField("Formula 2 Description", validators=[
         Optional(),
         Length(max=500, message="คำอธิบายสูตรที่ 2 ต้องมีความยาวไม่เกิน 500 ตัวอักษร")
+    ])
+    
+    # Gas calculation formulas (7 types - all optional)
+    formula_co2 = StringField("CO2 Formula", validators=[
+        Optional(),
+        Length(max=200, message="สูตร CO2 ต้องมีความยาวไม่เกิน 200 ตัวอักษร")
+    ])
+    
+    formula_ch4 = StringField("CH4 Formula", validators=[
+        Optional(),
+        Length(max=200, message="สูตร CH4 ต้องมีความยาวไม่เกิน 200 ตัวอักษร")
+    ])
+    
+    formula_n2o = StringField("N2O Formula", validators=[
+        Optional(),
+        Length(max=200, message="สูตร N2O ต้องมีความยาวไม่เกิน 200 ตัวอักษร")
+    ])
+    
+    formula_hfcs = StringField("HFCs Formula", validators=[
+        Optional(),
+        Length(max=200, message="สูตร HFCs ต้องมีความยาวไม่เกิน 200 ตัวอักษร")
+    ])
+    
+    formula_pfcs = StringField("PFCs Formula", validators=[
+        Optional(),
+        Length(max=200, message="สูตร PFCs ต้องมีความยาวไม่เกิน 200 ตัวอักษร")
+    ])
+    
+    formula_sf6 = StringField("SF6 Formula", validators=[
+        Optional(),
+        Length(max=200, message="สูตร SF6 ต้องมีความยาวไม่เกิน 200 ตัวอักษร")
+    ])
+    
+    formula_nf3 = StringField("NF3 Formula", validators=[
+        Optional(),
+        Length(max=200, message="สูตร NF3 ต้องมีความยาวไม่เกิน 200 ตัวอักษร")
     ])
     
     # Hidden Fields
