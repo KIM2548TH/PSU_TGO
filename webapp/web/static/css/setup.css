@@ -46,7 +46,7 @@
 
 
 @plugin "daisyui/theme" {
-    /* กำหนดชื่อธีม */
+  /* กำหนดชื่อธีม */
     name: "light"; /* ชื่อธีมคือ "light" */
     default: true; /* ไม่ตั้งค่าให้ธีมนี้เป็นค่าเริ่มต้น */
     prefersdark: false; /* ไม่รองรับโหมดมืด */
@@ -65,7 +65,7 @@
     /* สีรอง */
     --color-secondary: oklch(39% 0.07 227.392); /* สีรอง */
     --color-secondary-content: oklch(97% 0.014 308.299); /* สีข้อความของสีรอง */
-  
+    
     /* สีเน้น */
     --color-accent: oklch(29% 0.066 243.157); /* สีเน้น */
     --color-accent-content: oklch(100% 0 0); /* สีข้อความของสีเน้น */
@@ -85,11 +85,11 @@
     /* สีเตือน */
     --color-warning: oklch(79% 0.184 86.047); /* สีเตือน */
     --color-warning-content: oklch(98% 0.026 102.212); /* สีข้อความของสีเตือน */
-  
+    
     /* สีข้อผิดพลาด */
     --color-error: oklch(63% 0.237 25.331); /* สีข้อผิดพลาด */
     --color-error-content: oklch(97% 0.013 17.38); /* สีข้อความของสีข้อผิดพลาด */
-  
+    
     /* การตั้งค่ารูปทรงและขนาด */
     --radius-selector: 1rem; /* รัศมีของตัวเลือก */
     --radius-field: 0.5rem; /* รัศมีของฟิลด์ */
@@ -100,6 +100,7 @@
     --depth: 1; /* ระดับความลึก */
     --noise: 1; /* ระดับของ noise */
   }
+  
   
   html {
   font-size: 18px; /* เพิ่มจาก 16px เป็น 18px */
@@ -279,4 +280,48 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+/* Custom background for top subscope tables */
+  .scope1-bg {
+    background-color: #eff6ff; /* ฟ้าอ่อน (เหมือน bg-blue-50) */
+  }
+  .scope2-bg {
+    background-color: #d1fae5; /* เขียวอ่อน (เหมือน bg-green-50) */
+  }
+  .scope3-bg {
+    background-color: #f3e8ff; /* ม่วงอ่อน (เหมือน bg-purple-50) */
+  }
+/* Custom head background for top subscope tables */
+.scope-table-head {
+  background-color: #2563eb; /* ฟ้าเข้ม (เหมือน bg-blue-600) */
+  color: #fff;
+}
+
+/* Custom head background for top subscope tables by scope */
+.scope1-table-head {
+  background-color: #2563eb; /* ฟ้าเข้ม */
+  color: #fff;
+}
+.scope2-table-head {
+  background-color: #059669; /* เขียวเข้ม */
+  color: #fff;
+}
+.scope3-table-head {
+  background-color: #7c3aed; /* ม่วงเข้ม */
+  color: #fff;
+}
+/* Custom text color for Top Subscopes title by scope */
+.scope1-title {
+  color: #2563eb; /* ฟ้าเข้ม */
+}
+.scope2-title {
+  color: #059669; /* เขียวเข้ม */
+}
+.scope3-title {
+  color: #7c3aed; /* ม่วงเข้ม */
+}
+/* Custom grid color for top subscope tables */
+.scope-table-grid th,
+.scope-table-grid td {
+  border-color: #d1d5db !important; /* สีเทา (gray-300) */
 }
