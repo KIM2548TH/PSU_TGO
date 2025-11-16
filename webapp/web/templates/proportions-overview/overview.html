@@ -56,7 +56,7 @@
         <div class="bg-purple-100 p-2 rounded-full">
           <i data-feather="layers" class="w-6 h-6 text-purple-600"></i>
         </div>
-        <h3 class="text-lg font-bold text-purple-800">Scope 1 - การปล่อยตรง (Direct)</h3>
+        <h3 class="text-lg font-bold text-purple-800">Scope 1 - {{ t.direct_emission }}</h3>
       </div>
       <div class="text-2xl font-bold text-purple-800">{{ (overall_stats.totalScope1)|round(1) }}</div>
       <div class="text-gray-500">tonCO₂e รวม</div>
@@ -67,7 +67,7 @@
         <div class="bg-green-100 p-2 rounded-full">
           <i data-feather="zap" class="w-6 h-6 text-green-600"></i>
         </div>
-        <h3 class="text-lg font-bold text-green-800">Scope 2 - การปล่อยทางอ้อม (Indirect)</h3>
+        <h3 class="text-lg font-bold text-green-800">Scope 2 - {{ t.indirect_emission }}</h3>
       </div>
       <div class="text-2xl font-bold text-green-800">{{ (overall_stats.totalScope2)|round(1) }}</div>
       <div class="text-gray-500">tonCO₂e รวม</div>
@@ -78,7 +78,7 @@
         <div class="bg-blue-100 p-2 rounded-full">
           <i data-feather="globe" class="w-6 h-6 text-blue-600"></i>
         </div>
-        <h3 class="text-lg font-bold text-blue-800">Scope 3 - การปล่อยทางอ้อมอื่นๆ</h3>
+        <h3 class="text-lg font-bold text-blue-800">Scope 3 - {{ t.indirect_emission_other }}</h3>
       </div>
       <div class="text-2xl font-bold text-blue-800">{{ (overall_stats.totalScope3)|round(1) }}</div>
       <div class="text-gray-500">tonCO₂e รวม</div>
