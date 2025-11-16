@@ -97,9 +97,9 @@
         </div>
       </a>
       {% set scopes = [
-        (1, 'การปล่อยและดูดกลับก๊าซเรือนกระจกทางตรงขององค์กร', 'layers', 'bg-purple-100', 'text-purple-600'),
-        (2, 'การปล่อยก๊าซเรือนกระจกทางอ้อมจากการใช้พลังงาน', 'zap', 'bg-green-100', 'text-green-600'),
-        (3, 'การปล่อยก๊าซเรือนกระจกทางอ้อมอื่น ๆ', 'globe', 'bg-blue-100', 'text-blue-600')
+        (1, 'การปล่อยตรง', 'layers', 'bg-purple-100', 'text-purple-600'),
+        (2, 'การปล่อยก๊าซ(พลังงาน)', 'zap', 'bg-green-100', 'text-green-600'),
+        (3, 'การปล่อยก๊าซ(อื่นๆ)', 'globe', 'bg-blue-100', 'text-blue-600')
       ] %}
       {% for scope_num, scope_name, icon, bg_color, text_color in scopes %}
         <a href="{{ url_for('scope_process.progress_dashboard', year=selected_year, campus_id=selected_campus_id, ghg_scope=scope_num) }}"

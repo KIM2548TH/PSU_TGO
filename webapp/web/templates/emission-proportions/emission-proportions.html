@@ -98,9 +98,9 @@
         </div>
         <h2 class="text-2xl font-bold text-{{color}}-800">
           Scope {{scope.scope}} -
-          {% if scope.scope == 1 %}การปล่อยมลพิษทางตรง
-          {% elif scope.scope == 2 %}การปล่อยมลพิษทางอ้อม
-          {% else %}การปล่อยมลพิษ (อื่นๆ){% endif %}
+          {% if scope.scope == 1 %}{{ t.direct_emission }}
+          {% elif scope.scope == 2 %}{{ t.indirect_emission }}
+          {% else %}{{ t.indirect_emission_other }}{% endif %}
         </h2>
         <span class="badge bg-{{color}}-100 text-{{color}}-800 text-sm">
           {{scope.material_count}} รายการ
