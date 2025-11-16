@@ -1,75 +1,86 @@
-<!-- Zoom Slider Component - Fixed at bottom right -->
-<div id="zoom-slider-container" class="fixed bottom-4 right-4 z-50 lg:block" style="display: none; transform: scale(1); transform-origin: bottom right; font-size: 12px;">
-  <div class="bg-white rounded-lg shadow-xl p-3 border border-gray-300" style="background: white; box-shadow: 0 10px 25px rgba(0,0,0,0.2); min-width: 150px; width: 150px; height: auto;">
-    <div class="flex flex-col items-center gap-2">
-      <!-- Quick Action Buttons -->
-      <div class="flex gap-1">
+<!-- Zoom Slider Component - Fixed Position, No Dragging -->
+<div id="zoom-slider-container" class="fixed z-50 hidden" style="bottom: 20px; right: 20px;">
+  <div id="zoom-slider-content" class="bg-white rounded-lg shadow-xl border border-gray-300 transition-all duration-300">
+    
+    <!-- Full State -->
+    <div id="full-content" class="p-3">
+      <!-- Header -->
+      <div class="flex justify-between items-center mb-2">
+        <div class="text-sm font-medium text-gray-700">Zoom</div>
         <button 
-          onclick="decreaseZoom()" 
-          class="btn btn-xs btn-ghost btn-square" 
-          title="ลด 5%"
+          id="minimize-btn" 
+          onclick="toggleMinimize()"
+          class="p-1 hover:bg-gray-100 rounded transition-colors"
+          title="ย่อ"
         >
+          <i data-feather="minus" class="w-4 h-4 text-gray-600"></i>
+        </button>
+      </div>
+      
+      <!-- Quick Buttons -->
+      <div class="flex gap-1 mb-2">
+        <button onclick="decreaseZoom()" class="bg-gray-100 hover:bg-gray-200 rounded px-2 py-1 text-sm" title="ลด 5%">
           <i data-feather="minus" class="w-3 h-3"></i>
         </button>
-        <button 
-          onclick="resetZoom()" 
-          class="btn btn-xs btn-ghost btn-square" 
-          title="100%"
-        >
+        <button onclick="resetZoom()" class="bg-gray-100 hover:bg-gray-200 rounded px-2 py-1 text-sm" title="100%">
           <i data-feather="maximize-2" class="w-3 h-3"></i>
         </button>
-        <button 
-          onclick="increaseZoom()" 
-          class="btn btn-xs btn-ghost btn-square" 
-          title="เพิ่ม 5%"
-        >
+        <button onclick="increaseZoom()" class="bg-gray-100 hover:bg-gray-200 rounded px-2 py-1 text-sm" title="เพิ่ม 5%">
           <i data-feather="plus" class="w-3 h-3"></i>
         </button>
       </div>
       
-      <!-- Slider Container -->
-      <div class="relative w-32">
-        <!-- Zoom Slider -->
-        <input 
-          type="range" 
-          id="zoom-slider" 
-          min="0.5" 
-          max="2.0" 
-          step="0.05" 
-          value="1.0"
-          class="w-full h-2 bg-base-300 rounded-lg appearance-none cursor-pointer slider"
-          style="background: linear-gradient(to right, #003366 0%, #003366 33.33%, #e5e7eb 33.33%, #e5e7eb 100%);"
+      <!-- Slider -->
+      <input 
+        type="range" 
+        id="zoom-slider" 
+        min="0.5" 
+        max="2.0" 
+        step="0.05" 
+        value="1.0"
+        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+        style="background: linear-gradient(to right, #003366 0%, #003366 33.33%, #e5e7eb 33.33%, #e5e7eb 100%);"
+      >
+    </div>
+    
+    <!-- Minimized State -->
+    <div id="minimized-content" class="hidden p-2">
+      <!-- Expand Button -->
+      <div class="flex justify-between items-center">
+        <div class="text-xs font-medium text-gray-600">Zoom</div>
+        <button 
+          onclick="toggleMinimize()" 
+          class="p-1 hover:bg-gray-100 rounded transition-colors"
+          title="ขยาย"
         >
-        
-        <!-- Center Marker -->
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1 h-4 bg-primary rounded-full pointer-events-none"></div>
+          <i data-feather="maximize-2" class="w-3 h-3 text-gray-600"></i>
+        </button>
       </div>
-      
     </div>
   </div>
 </div>
 
 <style>
-/* Custom slider styling */
+/* Slider styling */
 #zoom-slider::-webkit-slider-thumb {
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   background: #003366;
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 #zoom-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   background: #003366;
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 #zoom-slider::-webkit-slider-thumb:hover {
@@ -82,85 +93,137 @@
 </style>
 
 <script>
-// Set zoom function for quick action buttons
-function setZoom(zoomLevel) {
-  const slider = document.getElementById('zoom-slider');
-  if (slider) {
-    slider.value = zoomLevel;
-    updateZoom(zoomLevel);
+// State management - Simple and fixed
+let isMinimized = false;
+let currentZoom = 1.0;
+
+// Toggle minimize
+function toggleMinimize() {
+  const fullContent = document.getElementById('full-content');
+  const minimizedContent = document.getElementById('minimized-content');
+  const minimizeBtn = document.getElementById('minimize-btn');
+  const content = document.getElementById('zoom-slider-content');
+  
+  isMinimized = !isMinimized;
+  
+  if (isMinimized) {
+    fullContent.classList.add('hidden');
+    minimizedContent.classList.remove('hidden');
+    content.style.width = '80px';
+  } else {
+    fullContent.classList.remove('hidden');
+    minimizedContent.classList.add('hidden');
+    content.style.width = '200px';
   }
+  
+  // Save state
+  localStorage.setItem('zoomSliderMinimized', isMinimized.toString());
+  updateFeatherIcons();
 }
 
-// Increase zoom by 5%
+// Zoom controls
+function setZoom(zoomLevel) {
+  const slider = document.getElementById('zoom-slider');
+  if (slider) slider.value = zoomLevel;
+  updateZoom(zoomLevel);
+}
+
 function increaseZoom() {
   const slider = document.getElementById('zoom-slider');
   if (slider) {
-    const currentZoom = parseFloat(slider.value);
-    const newZoom = Math.min(2.0, currentZoom + 0.05);
-    console.log('Increase zoom:', currentZoom, '->', newZoom);
+    const newZoom = Math.min(2.0, parseFloat(slider.value) + 0.05);
     slider.value = newZoom;
     updateZoom(newZoom);
   }
 }
 
-// Decrease zoom by 5%
 function decreaseZoom() {
   const slider = document.getElementById('zoom-slider');
   if (slider) {
-    const currentZoom = parseFloat(slider.value);
-    const newZoom = Math.max(0.5, currentZoom - 0.05);
-    console.log('Decrease zoom:', currentZoom, '->', newZoom);
+    const newZoom = Math.max(0.5, parseFloat(slider.value) - 0.05);
     slider.value = newZoom;
     updateZoom(newZoom);
   }
 }
 
-// Reset zoom to 100%
 function resetZoom() {
-  const slider = document.getElementById('zoom-slider');
-  if (slider) {
-    slider.value = 1.0;
-    updateZoom(1.0);
-  }
+  setZoom(1.0);
 }
 
-// Update zoom function
+// Update zoom
 function updateZoom(zoomLevel) {
-  // Update slider background
-  const slider = document.getElementById('zoom-slider');
-  if (slider) {
-    const percentage = ((zoomLevel - 0.5) / 1.5) * 100;
-    slider.style.background = `linear-gradient(to right, #003366 0%, #003366 ${percentage}%, #e5e7eb ${percentage}%, #e5e7eb 100%)`;
-  }
+  currentZoom = zoomLevel;
   
-  // Apply zoom using existing function
+  // Update slider background
+  const percentage = ((zoomLevel - 0.5) / 1.5) * 100;
+  const gradient = `linear-gradient(to right, #003366 0%, #003366 ${percentage}%, #e5e7eb ${percentage}%, #e5e7eb 100%)`;
+  
+  const slider = document.getElementById('zoom-slider');
+  if (slider) slider.style.background = gradient;
+  
+  // Apply zoom
   if (typeof applyZoom === 'function') {
     applyZoom(zoomLevel);
   }
-  
-  // Keep zoom slider component at constant size
+
+  // === เพิ่มส่วนนี้ ===
+  // ปรับขนาดคอมโพเนนต์แบบกลับค่า zoom
   const container = document.getElementById('zoom-slider-container');
   if (container) {
-    const inverseScale = 1 / zoomLevel;
-    container.style.transform = `scale(${inverseScale})`;
+    container.style.transform = `scale(${1 / zoomLevel})`;
     container.style.transformOrigin = 'bottom right';
+  }
+  // ===================
+
+  // Save zoom level
+  localStorage.setItem('pageZoom', zoomLevel.toString());
+}
+
+// Update feather icons
+function updateFeatherIcons() {
+  if (typeof feather !== 'undefined') {
+    setTimeout(() => feather.replace(), 50);
   }
 }
 
-// Initialize zoom slider
+// Initialize
 document.addEventListener('DOMContentLoaded', function() {
-  // Show zoom slider container
   const container = document.getElementById('zoom-slider-container');
-  if (container) {
-    // Check if screen is large enough
-    if (window.innerWidth >= 1024) {
-      container.style.display = 'block';
+  if (!container) return;
+  
+  // Show on large screens
+  if (window.innerWidth >= 1024) {
+    container.classList.remove('hidden');
+    
+    // Load saved state
+    try {
+      const savedMinimized = localStorage.getItem('zoomSliderMinimized');
+      if (savedMinimized !== null) {
+        isMinimized = savedMinimized === 'true';
+        const fullContent = document.getElementById('full-content');
+        const minimizedContent = document.getElementById('minimized-content');
+        const minimizeBtn = document.getElementById('minimize-btn');
+        const content = document.getElementById('zoom-slider-content');
+        
+        if (isMinimized) {
+          fullContent.classList.add('hidden');
+          minimizedContent.classList.remove('hidden');
+          content.style.width = '80px';
+        } else {
+          fullContent.classList.remove('hidden');
+          minimizedContent.classList.add('hidden');
+          content.style.width = '200px';
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load saved state:', e);
     }
   }
   
+  // Setup slider
   const slider = document.getElementById('zoom-slider');
+  
   if (slider) {
-    // Load saved zoom
     const savedZoom = localStorage.getItem('pageZoom');
     if (savedZoom) {
       slider.value = parseFloat(savedZoom);
@@ -169,55 +232,40 @@ document.addEventListener('DOMContentLoaded', function() {
       updateZoom(1.0);
     }
     
-    // Add event listener for slider changes
-    slider.addEventListener('input', function(e) {
-      updateZoom(parseFloat(e.target.value));
-    });
-    
-    // Add keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-      // Ctrl/Cmd + Plus to zoom in
-      if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=')) {
-        e.preventDefault();
-        increaseZoom();
-      }
-      // Ctrl/Cmd + Minus to zoom out
-      else if ((e.ctrlKey || e.metaKey) && e.key === '-') {
-        e.preventDefault();
-        decreaseZoom();
-      }
-      // Ctrl/Cmd + 0 to reset zoom
-      else if ((e.ctrlKey || e.metaKey) && e.key === '0') {
-        e.preventDefault();
-        resetZoom();
-      }
-    });
+    slider.addEventListener('input', (e) => updateZoom(parseFloat(e.target.value)));
   }
   
-  // Initialize feather icons for zoom slider
-  setTimeout(function() {
-    if (typeof feather !== 'undefined') {
-      feather.replace();
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=')) {
+      e.preventDefault();
+      increaseZoom();
+    } else if ((e.ctrlKey || e.metaKey) && e.key === '-') {
+      e.preventDefault();
+      decreaseZoom();
+    } else if ((e.ctrlKey || e.metaKey) && e.key === '0') {
+      e.preventDefault();
+      resetZoom();
     }
-  }, 100);
+  });
+  
+  updateFeatherIcons();
 });
 
-// Handle window resize
-window.addEventListener('resize', function() {
+// Window resize
+window.addEventListener('resize', () => {
   const container = document.getElementById('zoom-slider-container');
   if (container) {
     if (window.innerWidth >= 1024) {
-      container.style.display = 'block';
+      container.classList.remove('hidden');
     } else {
-      container.style.display = 'none';
+      container.classList.add('hidden');
     }
   }
 });
 
-// Also initialize feather icons when HTMX content is loaded
-document.addEventListener('htmx:afterSwap', function() {
-  if (typeof feather !== 'undefined') {
-    feather.replace();
-  }
+// HTMX support
+document.addEventListener('htmx:afterSwap', () => {
+  updateFeatherIcons();
 });
 </script>
