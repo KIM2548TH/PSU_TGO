@@ -37,7 +37,7 @@
         min="0.5" 
         max="2.0" 
         step="0.05" 
-        value="1.0"
+        value="{{ page_zoom|default(1.0) }}"
         class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
         style="background: linear-gradient(to right, #003366 0%, #003366 33.33%, #e5e7eb 33.33%, #e5e7eb 100%);"
       >
@@ -94,8 +94,36 @@
 
 <script>
 // State management - Simple and fixed
-let isMinimized = false;
-let currentZoom = 1.0;
+var isMinimized = false;
+var currentZoom = 1.0;
+
+// เพิ่ม keyframes spin animation เฉพาะครั้งแรกเท่านั้น
+if (!document.getElementById('zoom-spin-keyframes')) {
+  var zoomKeyframesStyle = document.createElement('style');
+  zoomKeyframesStyle.id = 'zoom-spin-keyframes';
+  zoomKeyframesStyle.textContent = `
+      @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+      }
+  `;
+  document.head.appendChild(zoomKeyframesStyle);
+}
+
+// ฟังก์ชัน sync slider กับ localStorage
+function syncZoomSlider() {
+  var slider = document.getElementById('zoom-slider');
+  var savedZoom = localStorage.getItem('pageZoom');
+  if (slider) {
+    if (savedZoom) {
+      slider.value = parseFloat(savedZoom);
+      updateZoom(parseFloat(savedZoom));
+    } else {
+      slider.value = 1.0;
+      updateZoom(1.0);
+    }
+  }
+}
 
 // Toggle minimize
 function toggleMinimize() {
@@ -118,6 +146,7 @@ function toggleMinimize() {
   
   // Save state
   localStorage.setItem('zoomSliderMinimized', isMinimized.toString());
+  restoreMinimizeState();
   updateFeatherIcons();
 }
 
@@ -186,6 +215,26 @@ function updateFeatherIcons() {
   }
 }
 
+// ฟังก์ชัน restore สถานะย่อ/ขยายจาก localStorage
+function restoreMinimizeState() {
+  const fullContent = document.getElementById('full-content');
+  const minimizedContent = document.getElementById('minimized-content');
+  const content = document.getElementById('zoom-slider-content');
+  const savedMinimized = localStorage.getItem('zoomSliderMinimized');
+  const zoomLevel = currentZoom || 1.0;
+  if (savedMinimized === 'true') {
+    isMinimized = true;
+    fullContent.classList.add('hidden');
+    minimizedContent.classList.remove('hidden');
+    content.style.width = (80 / zoomLevel) + 'px';
+  } else {
+    isMinimized = false;
+    fullContent.classList.remove('hidden');
+    minimizedContent.classList.add('hidden');
+    content.style.width = (200 / zoomLevel) + 'px';
+  }
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
   const container = document.getElementById('zoom-slider-container');
@@ -221,8 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // Setup slider
-  const slider = document.getElementById('zoom-slider');
-  
+  var slider = document.getElementById('zoom-slider');
   if (slider) {
     const savedZoom = localStorage.getItem('pageZoom');
     if (savedZoom) {
@@ -231,10 +279,20 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       updateZoom(1.0);
     }
-    
     slider.addEventListener('input', (e) => updateZoom(parseFloat(e.target.value)));
   }
-  
+
+  // เพิ่มส่วนนี้เพื่อ sync ค่า slider กับ localStorage ทุกครั้งที่โหลดหน้า
+  if (slider) {
+    const savedZoom = localStorage.getItem('pageZoom');
+    if (savedZoom) {
+      slider.value = parseFloat(savedZoom);
+    }
+  }
+
+  syncZoomSlider();
+  restoreMinimizeState();
+
   // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=')) {
@@ -267,5 +325,7 @@ window.addEventListener('resize', () => {
 // HTMX support
 document.addEventListener('htmx:afterSwap', () => {
   updateFeatherIcons();
+  syncZoomSlider();
+  restoreMinimizeState();
 });
 </script>

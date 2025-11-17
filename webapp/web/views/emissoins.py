@@ -142,7 +142,6 @@ def view_emissions():
     quick_edit = request.form.get("quick_edit", "false").lower() == "true"
 
     # print(f"view_emissions received quick_edit: {quick_edit}")
-
     # ดึงปีจาก Material
     years = sorted(Material.objects().distinct("year"))
     # ถ้ามีปีใน database ใช้ปีแรก, ถ้าไม่มีให้ใช้ปีปัจจุบัน
@@ -150,7 +149,7 @@ def view_emissions():
     # ปีปัจจุบัน
     current_year = datetime.datetime.now().year
     years = list(range(start_year, current_year + 1))
-    # year_list = list(range(start_year, current_year + 1))
+    
     scope = Scope.objects(
         ghg_scope=int(scope_id),
         ghg_sup_scope=int(sub_scope_id),
@@ -183,7 +182,7 @@ def view_emissions():
         years=years,
         ghg_name=ghg_name,
         current_year=current_year,  # ส่งปีปัจจุบันไปยังเทมเพลต
-        selected_year=int(selected_year),  # ใช้ปีที่เลือกหรือปีปัจจุบัน
+        selected_year=selected_year,  # ใช้ปีที่เลือกหรือปีปัจจุบัน
         user_scopes=user_scopes,
         current_scope_index=current_scope_index,
         quick_edit=quick_edit,  # ส่ง quick_edit state ไปยัง template
