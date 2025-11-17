@@ -83,69 +83,74 @@
 </nav>
 
 <script>
-function applyZoom(zoomLevel) {
-  // ตั้งค่า zoom สำหรับ body
-  document.body.style.zoom = zoomLevel;
-  
-  // คำนวณความกว้างของ sidebar ตาม zoom
-  const baseSidebarWidth = 256; // 16rem * 16px = 256px (w-64)
-  const newSidebarWidth = baseSidebarWidth * zoomLevel;
-  
-  // ปรับความกว้างของ sidebar
-  const sidebar = document.getElementById('sidebar');
-  if (sidebar) {
-    sidebar.style.width = newSidebarWidth + 'px';
-  }
-  
-  // ปรับ margin-left ของ main content ขึ้นกับสถานะ sidebar-toggle
-  const mainContent = document.getElementById('main-content');
-  if (mainContent) {
-    const sidebarToggle = document.getElementById('sidebar-toggle');
-    // ถ้าไม่มี checkbox ให้ถือว่า sidebar เปิดอยู่
-    const sidebarOpen = sidebarToggle ? !sidebarToggle.checked : true;
-    mainContent.style.marginLeft = sidebarOpen ? (newSidebarWidth + 'px') : '0px';
-  }
-  
-  // ปรับขนาดตัวอักษรให้ขยายมากขึ้นตาม zoom
-  const baseFontSize = 16; // 16px (1rem)
-  const newFontSize = baseFontSize * zoomLevel;
-  document.documentElement.style.fontSize = newFontSize + 'px';
-  
-  // บันทึกค่า zoom ใน localStorage
-  localStorage.setItem('pageZoom', zoomLevel);
-}
-
-// โหลดค่า zoom ที่บันทึกไว้เมื่อโหลดหน้า
-function loadSavedZoom() {
-  const savedZoom = localStorage.getItem('pageZoom');
-  if (savedZoom) {
-    applyZoom(parseFloat(savedZoom));
-  }
-}
-
-// ฟังก์ชันสำหรับปรับ margin ของ main content เมื่อ sidebar toggle เปลี่ยนสถานะ
-function adjustMainContentMargin() {
-  const mainContent = document.getElementById('main-content');
-  const sidebarToggle = document.getElementById('sidebar-toggle');
-  
-  if (mainContent && sidebarToggle) {
-    const sidebarOpen = !sidebarToggle.checked;
-    const currentZoom = parseFloat(document.body.style.zoom || 1);
-    const baseSidebarWidth = 256; // 16rem * 16px = 256px (w-64)
-    const newSidebarWidth = baseSidebarWidth * currentZoom;
+// Use global functions from scope-navigation.js if available, otherwise define fallbacks
+if (typeof window.applyZoom === 'undefined') {
+  window.applyZoom = function(zoomLevel) {
+    // ตั้งค่า zoom สำหรับ body
+    document.body.style.zoom = zoomLevel;
     
-    mainContent.style.marginLeft = sidebarOpen ? (newSidebarWidth + 'px') : '0px';
-  }
+    // คำนวณความกว้างของ sidebar ตาม zoom
+    const baseSidebarWidth = 256; // 16rem * 16px = 256px (w-64)
+    const newSidebarWidth = baseSidebarWidth * zoomLevel;
+    
+    // ปรับความกว้างของ sidebar
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+      sidebar.style.width = newSidebarWidth + 'px';
+    }
+    
+    // ปรับ margin-left ของ main content ขึ้นกับสถานะ sidebar-toggle
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) {
+      const sidebarToggle = document.getElementById('sidebar-toggle');
+      // ถ้าไม่มี checkbox ให้ถือว่า sidebar เปิดอยู่
+      const sidebarOpen = sidebarToggle ? !sidebarToggle.checked : true;
+      mainContent.style.marginLeft = sidebarOpen ? (newSidebarWidth + 'px') : '0px';
+    }
+    
+    // ปรับขนาดตัวอักษรให้ขยายมากขึ้นตาม zoom
+    const baseFontSize = 16; // 16px (1rem)
+    const newFontSize = baseFontSize * zoomLevel;
+    document.documentElement.style.fontSize = newFontSize + 'px';
+    
+    // บันทึกค่า zoom ใน localStorage
+    localStorage.setItem('pageZoom', zoomLevel);
+  };
+}
+
+if (typeof window.loadSavedZoom === 'undefined') {
+  window.loadSavedZoom = function() {
+    const savedZoom = localStorage.getItem('pageZoom');
+    if (savedZoom) {
+      window.applyZoom(parseFloat(savedZoom));
+    }
+  };
+}
+
+if (typeof window.adjustMainContentMargin === 'undefined') {
+  window.adjustMainContentMargin = function() {
+    const mainContent = document.getElementById('main-content');
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    
+    if (mainContent && sidebarToggle) {
+      const sidebarOpen = !sidebarToggle.checked;
+      const currentZoom = parseFloat(document.body.style.zoom || 1);
+      const baseSidebarWidth = 256; // 16rem * 16px = 256px (w-64)
+      const newSidebarWidth = baseSidebarWidth * currentZoom;
+      
+      mainContent.style.marginLeft = sidebarOpen ? (newSidebarWidth + 'px') : '0px';
+    }
+  };
 }
 
 // เรียกฟังก์ชันโหลดค่า zoom เมื่อโหลดหน้าเสร็จ
 document.addEventListener('DOMContentLoaded', function() {
-  loadSavedZoom();
+  window.loadSavedZoom();
   
   // เพิ่ม event listener สำหรับ sidebar toggle
   const sidebarToggle = document.getElementById('sidebar-toggle');
   if (sidebarToggle) {
-    sidebarToggle.addEventListener('change', adjustMainContentMargin);
+    sidebarToggle.addEventListener('change', window.adjustMainContentMargin);
   }
 });
 </script>
