@@ -173,9 +173,150 @@ function updateActiveScope(activeScope) {
   }
 }
 
+// Search functionality
+function initializeSearch() {
+  const searchInput = document.getElementById('form-search');
+  const clearButton = document.getElementById('clear-search');
+  const searchResultsCount = document.getElementById('search-results-count');
+  const helpButton = searchInput.parentElement.querySelector('[title="เคล็ดลับการค้นหา"]');
+  const searchTips = document.getElementById('search-tips');
+  
+  if (!searchInput) return;
+  
+  // Show/hide search tips
+  helpButton.addEventListener('click', function() {
+    searchTips.classList.toggle('hidden');
+  });
+  
+  // Clear search functionality
+  clearButton.addEventListener('click', function() {
+    searchInput.value = '';
+    clearButton.classList.add('hidden');
+    filterForms('');
+  });
+  
+  // Search input handler
+  searchInput.addEventListener('input', function() {
+    const searchTerm = this.value.trim();
+    
+    // Show/hide clear button
+    if (searchTerm) {
+      clearButton.classList.remove('hidden');
+    } else {
+      clearButton.classList.add('hidden');
+    }
+    
+    filterForms(searchTerm);
+  });
+  
+  // Filter forms function
+  function filterForms(searchTerm) {
+    const scopeContentArea = document.getElementById('scope-content-area');
+    if (!scopeContentArea) return;
+    
+    // Find all form cards
+    const formCards = scopeContentArea.querySelectorAll('.grid > div[class*="border"]');
+    let visibleCount = 0;
+    
+    formCards.forEach(card => {
+      // Skip the "add new form" card
+      if (card.querySelector('[data-feather="plus"]') && !card.querySelector('[data-feather="file-text"]')) {
+        visibleCount++;
+        return;
+      }
+      
+      const searchableText = getSearchableText(card);
+      const matches = searchTerm === '' || isMatch(searchableText, searchTerm);
+      
+      if (matches) {
+        card.style.display = '';
+        visibleCount++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+    
+    // Update search results count
+    if (searchTerm) {
+      searchResultsCount.textContent = `พบ ${visibleCount} รายการ`;
+    } else {
+      searchResultsCount.textContent = '';
+    }
+    
+    // Hide/show sub scope sections if all forms are hidden
+    const subScopeSections = scopeContentArea.querySelectorAll('.mb-8');
+    subScopeSections.forEach(section => {
+      const formCardsInSection = section.querySelectorAll('.grid > div[class*="border"]');
+      let hasVisibleCards = false;
+      
+      formCardsInSection.forEach(card => {
+        if (card.style.display !== 'none') {
+          hasVisibleCards = true;
+        }
+      });
+      
+      // Show/hide the entire sub scope section
+      const subScopeHeader = section.querySelector('.border-l-4');
+      if (subScopeHeader) {
+        if (hasVisibleCards) {
+          subScopeHeader.parentElement.style.display = '';
+        } else {
+          subScopeHeader.parentElement.style.display = 'none';
+        }
+      }
+    });
+  }
+  
+  // Get searchable text from a form card
+  function getSearchableText(card) {
+    const textElements = [];
+    
+    // Material name
+    const materialName = card.querySelector('h4');
+    if (materialName) textElements.push(materialName.textContent);
+    
+    // Description
+    const description = card.querySelector('p.text-sm.text-gray-500');
+    if (description) textElements.push(description.textContent);
+    
+    // Variables
+    const variables = card.querySelectorAll('.bg-yellow-100');
+    variables.forEach(varElement => {
+      textElements.push(varElement.textContent);
+    });
+    
+    // Formula
+    const formula = card.querySelector('.text-gray-800.font-mono');
+    if (formula) textElements.push(formula.textContent);
+    
+    // Linked material name
+    const linkedMaterial = card.querySelector('.text-orange-700');
+    if (linkedMaterial) textElements.push(linkedMaterial.textContent);
+    
+    return textElements.join(' ').toLowerCase();
+  }
+  
+  // Check if text matches search term
+  function isMatch(text, searchTerm) {
+    const searchLower = searchTerm.toLowerCase();
+    const textLower = text.toLowerCase();
+    
+    // Simple contains search (case-insensitive)
+    return textLower.includes(searchLower);
+  }
+}
+
 // Initialize with scope1 active
 document.addEventListener('DOMContentLoaded', function() {
   updateActiveScope('scope1');
+  initializeSearch();
+});
+
+// Re-initialize search when content is loaded via HTMX
+document.addEventListener('htmx:afterSwap', function(event) {
+  if (event.target.id === 'scope-content-area') {
+    initializeSearch();
+  }
 });
 
 // Listen for updateActiveScopeCard events
