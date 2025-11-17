@@ -1,0 +1,552 @@
+{% set months = [
+    {'id': 1, 'name': 'มกราคม', 'short': 'ม.ค.'},
+    {'id': 2, 'name': 'กุมภาพันธ์', 'short': 'ก.พ.'},
+    {'id': 3, 'name': 'มีนาคม', 'short': 'มี.ค.'},
+    {'id': 4, 'name': 'เมษายน', 'short': 'เม.ย.'},
+    {'id': 5, 'name': 'พฤษภาคม', 'short': 'พ.ค.'},
+    {'id': 6, 'name': 'มิถุนายน', 'short': 'มิ.ย.'},
+    {'id': 7, 'name': 'กรกฎาคม', 'short': 'ก.ค.'},
+    {'id': 8, 'name': 'สิงหาคม', 'short': 'ส.ค.'},
+    {'id': 9, 'name': 'กันยายน', 'short': 'ก.ย.'},
+    {'id': 10, 'name': 'ตุลาคม', 'short': 'ต.ค.'},
+    {'id': 11, 'name': 'พฤศจิกายน', 'short': 'พ.ย.'},
+    {'id': 12, 'name': 'ธันวาคม', 'short': 'ธ.ค.'}
+] %}
+
+{% set scope_color = {
+    "1": {"main": "purple", "bg": "bg-purple-50", "border": "border-purple-200", "head": "bg-purple-200", "text": "text-purple-800", "icon": "layers"},
+    "2": {"main": "green", "bg": "bg-green-50", "border": "border-green-200", "head": "bg-green-200", "text": "text-green-800", "icon": "zap"},
+    "3": {"main": "blue", "bg": "bg-blue-50", "border": "border-blue-200", "head": "bg-blue-200", "text": "text-blue-800", "icon": "globe"},
+} %}
+{% set color = scope_color.get(scope_id|string, scope_color["3"]) %}
+
+{% set scope_head_bg = {
+    "1": "bg-violet-600",
+    "2": "bg-emerald-600",
+    "3": "bg-cyan-600"
+} %}
+{% set scope_subhead_bg = {
+    "1": "bg-violet-700",
+    "2": "bg-emerald-700",
+    "3": "bg-cyan-700"
+} %}
+{% set head_bg = scope_head_bg.get(scope_id|string, "bg-blue-600") %}
+{% set subhead_bg = scope_subhead_bg.get(scope_id|string, "bg-blue-500") %}
+
+<!-- Quick Edit Mode Notice -->
+<div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 rounded">
+    <div class="flex items-center">
+        <i data-feather="zap" class="w-5 h-5 text-yellow-600 mr-2"></i>
+        <div>
+            <h4 class="font-medium text-yellow-800">โหมดกรอกข้อมูลเร็ว (Quick Edit)</h4>
+            <p class="text-sm text-yellow-700 mt-1">กรอกข้อมูลได้โดยตรงในตาราง ใช้ Tab/Enter เพื่อเปลี่ยนช่อง กดบันทึกเมื่อเสร็จสิ้น</p>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+<div class="w-full flex justify-center items-center mt-6 gap-4 py-4">
+    <button class="btn btn-circle {{ color.bg }} hover:{{ color.head }} {{ color.text }} shadow-md transition duration-200 {% if page <= 1 %}btn-disabled opacity-50{% endif %}"
+            {% if page > 1 %}hx-get="{{ url_for('emissions.load_emissions_table', scope_id=scope_id, sub_scope_id=sub_scope_id, page=page - 1, year=year, quick_edit=true) }}" hx-target="#emissions-table-container" hx-swap="innerHTML"{% endif %}>
+        <i data-feather="arrow-left" class="w-5 h-5"></i>
+    </button>
+    <span class="text-sm {{ color.text }}">
+        table กรอกที่ <span class="font-semibold">{{ page }}</span> จาก <span class="font-semibold">{{ total_pages }}</span>
+    </span>
+    <button class="btn btn-circle {{ color.bg }} hover:{{ color.head }} {{ color.text }} shadow-md transition duration-200 {% if page >= total_pages %}btn-disabled opacity-50{% endif %}"
+            {% if page < total_pages %}hx-get="{{ url_for('emissions.load_emissions_table', scope_id=scope_id, sub_scope_id=sub_scope_id, page=page + 1, year=year, quick_edit=true) }}" hx-target="#emissions-table-container" hx-swap="innerHTML"{% endif %}>
+        <i data-feather="arrow-right" class="w-5 h-5"></i>
+    </button>
+</div>
+
+<!-- Quick Edit Form -->
+<form id="quick-edit-form"
+      hx-post="{{ url_for('emissions.save_materials') }}"
+      hx-target="#emissions-table-container"
+      hx-swap="innerHTML"
+      hx-include="#quick-edit-form"
+      class="w-full">
+      
+    <!-- Hidden inputs -->
+    <input type="hidden" name="scope_id" value="{{ scope_id }}">
+    <input type="hidden" name="sub_scope_id" value="{{ sub_scope_id }}">
+    <input type="hidden" name="year" value="{{ year }}">
+    <input type="hidden" name="page" value="{{ page }}">
+    <input type="hidden" name="quick_edit_mode" value="true">
+
+    <div class="{{ color.border }} rounded-lg shadow-lg bg-white/80 overflow-hidden">
+        <table class="table w-full table-striped" style="border-collapse: separate; border-spacing: 0;">
+            <thead style="position: sticky; top: 0; z-index: 10;">
+                <tr class="{{ head_bg }}">
+                    <th rowspan="2" class="px-4 py-3 text-xs font-bold text-white uppercase tracking-wider align-middle border-b-2 border-r {{ color.border }}" style="width: 120px; background-color: inherit;">
+                        เดือน
+                    </th>
+                    {% for head in head_table %}
+                    {% set form_info = head_table_info[head] %}
+                    {% set sub_column_count = materials_form[loop.index0] | length %}
+                    <th colspan="{{ sub_column_count }}"
+                        class="px-2 py-3 text-xs font-bold material-head border-b border-r {{ color.border }} relative group text-white {{ head_bg }}"
+                        style="width: auto; min-width: fit-content; max-width: none; word-wrap: break-word; white-space: normal; overflow-wrap: break-word;"
+                        title="{{ head }}">
+                        <div class="flex items-center justify-center gap-1 leading-tight">
+                            <span class="text-center" style="line-height: 1.2;">
+                                {% if head|length <= 15 %}
+                                    {{ head }}
+                                {% elif head|length <= 30 %}
+                                    {% set mid = (head|length // 2) %}
+                                    {{ head[:mid] }}<br>{{ head[mid:] }}
+                                {% else %}
+                                    {{ head[:15] }}<br>{{ head[15:25] }}...
+                                {% endif %}
+                            </span>
+                            {% if form_info and form_info.is_linked %}
+                                <br>
+                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-white text-{{ color.main }}-700 cursor-pointer mt-1"
+                                      title="ฟอร์มลิงก์ - ไม่สามารถแก้ไขได้">
+                                    <i data-feather="link" class="w-3 h-3 mr-1"></i>
+                                    Link
+                                </span>
+                            {% endif %}
+                        </div>
+                    </th>
+                    {% endfor %}
+                </tr>
+                <tr class="{{ subhead_bg }}">
+                    {% for head in head_table %}
+                        {% for input in materials_form[loop.index0] %}
+                        <th class="px-1 py-3 text-xs font-medium text-white tracking-wider border-b-2 border-r {{ color.border }} text-center align-top"
+                            style="min-width: 100px; word-wrap: break-word; white-space: normal; overflow-wrap: break-word; background-color: inherit;"
+                            title="{{ input.label }} ({{ input.unit }})">
+                            <div class="leading-tight">
+                                {{ input.label }}
+                                <br><span class="text-xs text-gray-200">({{ input.unit }})</span>
+                            </div>
+                        </th>
+                        {% endfor %}
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for month in months %}
+                {% set month_index = loop.index %}
+                <tr class="{% if month_index is even %}{{ color.bg }}{% else %}bg-white{% endif %} hover:{{ color.head }} transition-colors duration-150">
+                    <td class="px-4 py-4 whitespace-nowrap border-b border-r {{ color.border }} {{ color.bg }}">
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="flex items-center gap-2">
+                                <button class="text-green-500 hover:text-green-700 transition-colors"
+                                        hx-get="{{ url_for('emissions.load_upload_modal', month_id=month.id, year=year, scope_id=scope_id, sub_scope_id=sub_scope_id, month=month.name) }}"
+                                        hx-target="#modal-content"
+                                        hx-swap="innerHTML"
+                                        hx-on="htmx:afterRequest: document.getElementById('modal').classList.add('modal-open')"
+                                        title="อัปโหลด">
+                                    <i data-feather="file-text" class="w-4 h-4"></i>
+                                </button>
+                                <!-- Month display inline with buttons -->
+                                <div class="text-xs {{ color.text }} font-medium ml-1">
+                                    {{ month.short }}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    {% for head in head_table %}
+                        {% for input in materials_form[loop.index0] %}
+                        {% set field_name = "amount_" + month.id|string + "_" + head + "_" + input.field %}
+                        <td class="px-2 py-2 text-center border-b border-r {{ color.border }} {% if month_index is even %}{{ color.bg }}{% else %}bg-white{% endif %}">
+                            {% set matched_material = materials | selectattr('month', 'equalto', month.id)
+                                                                | selectattr('name', 'equalto', head)
+                                                                | list %}
+                            {% set is_head_linked = head_table_info.get(head) and head_table_info[head].is_linked %}
+                            {% set matched_quantity = matched_material[0].quantity_type | selectattr('field', 'equalto', input.field) | list if matched_material else [] %}
+                            
+                            {% if is_head_linked %}
+                            <!-- Linked field - read only -->
+                            <div class="relative">
+                                <input type="text" 
+                                       class="input input-sm w-full text-center bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed" 
+                                       value="{% if matched_quantity %}{{ matched_quantity[0].amount }}{% else %}Auto{% endif %}" 
+                                       readonly 
+                                       disabled
+                                       title="ข้อมูลจาก {{ form_info.linked_material_name if form_info else 'ฟอร์มลิงก์' }}">
+                                <div class="absolute top-0 right-1 text-xs text-blue-500">
+                                    <i data-feather="link" class="w-3 h-3"></i>
+                                </div>
+                            </div>
+                            {% else %}
+                            <!-- Normal field - editable -->
+                            <input type="number" 
+                                   step="any" 
+                                   name="{{ field_name }}"
+                                   class="input input-sm w-full text-center border-gray-300 focus:border-{{ color.main }}-500 focus:ring-{{ color.main }}-500 quick-edit-input" 
+                                   placeholder="{{ input.unit }}"
+                                   value="{% if matched_quantity %}{{ matched_quantity[0].amount }}{% endif %}"
+                                   data-original-value="{% if matched_quantity %}{{ matched_quantity[0].amount }}{% endif %}"
+                                   data-month="{{ month.id }}"
+                                   data-head="{{ head }}"
+                                   data-field="{{ input.field }}"
+                                   data-label="{{ input.label }}"
+                                   data-unit="{{ input.unit }}"
+                                   onkeydown="handleQuickEditNavigation(event, this)"
+                                   onblur="markRowAsModified(this)">
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-between items-center mt-6 px-4">
+        <div class="flex items-center gap-4">
+            <div class="text-sm text-gray-600">
+                <i data-feather="info" class="w-4 h-4 inline mr-1"></i>
+                ใช้ <kbd class="kbd kbd-sm">Tab</kbd> หรือ <kbd class="kbd kbd-sm">Enter</kbd> เพื่อเปลี่ยนช่องกรอก
+            </div>
+        </div>
+        
+        <div class="flex gap-3">
+            <button type="button" 
+                    class="btn btn-outline {{ color.text }} border-{{ color.main }}-300"
+                    onclick="clearAllQuickEditInputs()">
+                <i data-feather="refresh-ccw" class="w-4 h-4 mr-2"></i>
+                ล้างข้อมูลใหม่
+            </button>
+            
+            <button type="submit" 
+                    class="btn btn-primary bg-{{ color.main }}-600 border-{{ color.main }}-600 hover:bg-{{ color.main }}-700"
+                    id="quick-save-btn">
+                <i data-feather="save" class="w-4 h-4 mr-2"></i>
+                บันทึกข้อมูล
+                <span class="badge badge-sm bg-white text-{{ color.main }}-600 ml-2" id="modified-count">0</span>
+            </button>
+        </div>
+    </div>
+</form>
+
+<!-- Scope Navigation (Same as original) -->
+{% if user_scopes and user_scopes|length > 1 %}
+<div class="w-full flex justify-center items-center mt-6 mb-4 px-4">
+    <div class="flex items-center gap-2 bg-white rounded-full shadow-lg px-6 py-3 border border-gray-200">
+        <!-- Previous Button -->
+        <button id="prev-scope-btn" 
+                class="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200 {% if current_scope_index <= 0 %}opacity-50 cursor-not-allowed{% endif %}"
+                {% if current_scope_index > 0 %}
+                hx-post="{{ url_for('emissions.view_emissions') }}"
+                hx-vals='{"scope_id": "{{ user_scopes[current_scope_index-1].scope_id }}", "sub_scope_id": "{{ user_scopes[current_scope_index-1].sub_scope_id }}", "year_form_scope": "{{ year }}", "quick_edit": "true"}'
+                hx-target="body"
+                hx-swap="innerHTML"
+                {% endif %}>
+            <i data-feather="chevron-left" class="w-5 h-5 text-gray-600"></i>
+        </button>
+        
+        <!-- Scope Indicators -->
+        <div class="flex items-center gap-1">
+            {% for scope in user_scopes %}
+            {% set scope_color_map = {
+                "1": "bg-purple-500 hover:bg-purple-600",
+                "2": "bg-green-500 hover:bg-green-600", 
+                "3": "bg-blue-500 hover:bg-blue-600"
+            } %}
+            {% set indicator_color = scope_color_map.get(scope.scope_id|string, "bg-gray-500 hover:bg-gray-600") %}
+            {% set is_current = loop.index0 == current_scope_index %}
+            
+            <button class="scope-indicator w-8 h-8 rounded-full transition-all duration-200 flex items-center justify-center text-white text-xs font-medium
+                     {% if is_current %}{{ indicator_color }} scale-125 shadow-lg ring-2 ring-offset-2 {% if scope.scope_id == '1' %}ring-purple-500{% elif scope.scope_id == '2' %}ring-green-500{% else %}ring-blue-500{% endif %}{% else %}{{ indicator_color }} opacity-70 hover:opacity-100{% endif %}"
+                    {% if not is_current %}
+                    hx-post="{{ url_for('emissions.view_emissions') }}"
+                    hx-vals='{"scope_id": "{{ scope.scope_id }}", "sub_scope_id": "{{ scope.sub_scope_id }}", "year_form_scope": "{{ year }}", "quick_edit": "true"}'
+                    hx-target="body"
+                    hx-swap="innerHTML"
+                    {% endif %}
+                    title="{{ scope.display_name }} - {{ scope.ghg_name }}">
+                {% if is_current %}
+                    <span class="font-bold">{{ scope.scope_id }}.{{ scope.sub_scope_id }}</span>
+                {% else %}
+                    <span>{{ scope.scope_id }}.{{ scope.sub_scope_id }}</span>
+                {% endif %}
+            </button>
+            {% endfor %}
+        </div>
+        
+        <!-- Next Button -->
+        <button id="next-scope-btn"
+                class="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200 {% if current_scope_index >= user_scopes|length - 1 %}opacity-50 cursor-not-allowed{% endif %}"
+                {% if current_scope_index < user_scopes|length - 1 %}
+                hx-post="{{ url_for('emissions.view_emissions') }}"
+                hx-vals='{"scope_id": "{{ user_scopes[current_scope_index+1].scope_id }}", "sub_scope_id": "{{ user_scopes[current_scope_index+1].sub_scope_id }}", "year_form_scope": "{{ year }}", "quick_edit": "true"}'
+                hx-target="body"
+                hx-swap="innerHTML"
+                {% endif %}>
+            <i data-feather="chevron-right" class="w-5 h-5 text-gray-600"></i>
+        </button>
+    </div>
+</div>
+{% endif %}
+
+<script>
+feather.replace();
+
+// Reset modified fields on page load/reload
+let modifiedFields = new Set();
+
+// Listen for successful save events to reset the modified fields
+document.addEventListener('htmx:afterSwap', function(event) {
+    if (event.detail.xhr.status === 200 && 
+        event.target.querySelector('.quick-edit-input')) {
+        // This is a quick edit table reload after save
+        modifiedFields.clear();
+        updateModifiedCount();
+        
+        // Update all input original values to current values
+        document.querySelectorAll('.quick-edit-input').forEach(input => {
+            const currentValue = input.value || '';
+            input.setAttribute('data-original-value', currentValue);
+        });
+        
+        // Remove all visual indicators
+        document.querySelectorAll('tr').forEach(row => {
+            row.style.borderLeft = '';
+            row.classList.remove('bg-green-50');
+        });
+    }
+});
+
+// Handle keyboard navigation (Tab/Enter/Arrow keys)
+function handleQuickEditNavigation(event, currentInput) {
+    const inputs = Array.from(document.querySelectorAll('.quick-edit-input:not([readonly]):not([disabled])'));
+    const currentIndex = inputs.indexOf(currentInput);
+    
+    // Get current cell position in table
+    const currentCell = currentInput.closest('td');
+    const currentRow = currentInput.closest('tr');
+    const table = currentInput.closest('table');
+    
+    if (event.key === 'Tab' || event.key === 'Enter') {
+        event.preventDefault();
+        
+        let nextIndex;
+        if (event.shiftKey && event.key === 'Tab') {
+            // Shift+Tab: go backwards
+            nextIndex = currentIndex > 0 ? currentIndex - 1 : inputs.length - 1;
+        } else {
+            // Tab/Enter: go forwards
+            nextIndex = currentIndex < inputs.length - 1 ? currentIndex + 1 : 0;
+        }
+        
+        inputs[nextIndex].focus();
+        inputs[nextIndex].select();
+    }
+    
+    // Arrow key navigation (Excel-like)
+    else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+        event.preventDefault();
+        
+        let targetInput = null;
+        
+        if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+            // Vertical navigation
+            const cellIndex = Array.from(currentRow.children).indexOf(currentCell);
+            const rows = Array.from(table.querySelectorAll('tr'));
+            const currentRowIndex = rows.indexOf(currentRow);
+            
+            let targetRowIndex;
+            if (event.key === 'ArrowUp') {
+                targetRowIndex = currentRowIndex > 0 ? currentRowIndex - 1 : rows.length - 1;
+            } else {
+                targetRowIndex = currentRowIndex < rows.length - 1 ? currentRowIndex + 1 : 0;
+            }
+            
+            const targetRow = rows[targetRowIndex];
+            const targetCell = targetRow.children[cellIndex];
+            if (targetCell) {
+                targetInput = targetCell.querySelector('.quick-edit-input:not([readonly]):not([disabled])');
+            }
+        }
+        
+        else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+            // Horizontal navigation
+            if (event.key === 'ArrowLeft') {
+                targetInput = currentIndex > 0 ? inputs[currentIndex - 1] : inputs[inputs.length - 1];
+            } else {
+                targetInput = currentIndex < inputs.length - 1 ? inputs[currentIndex + 1] : inputs[0];
+            }
+        }
+        
+        if (targetInput) {
+            targetInput.focus();
+            targetInput.select();
+        }
+    }
+}
+
+// Mark field as modified when value changes
+function markRowAsModified(input) {
+    const fieldKey = `${input.dataset.month}_${input.dataset.head}_${input.dataset.field}`;
+    const originalValue = input.dataset.originalValue || '';
+    const currentValue = input.value || '';
+    
+    if (currentValue !== originalValue) {
+        modifiedFields.add(fieldKey);
+    } else {
+        modifiedFields.delete(fieldKey);
+    }
+    
+    // Update visual indicators
+    updateRowVisuals(input);
+    updateModifiedCount();
+}
+
+// Update row visual indicators
+function updateRowVisuals(input) {
+    const row = input.closest('tr');
+    const rowInputs = row.querySelectorAll('.quick-edit-input');
+    let hasModifications = false;
+    
+    rowInputs.forEach(inp => {
+        const fKey = `${inp.dataset.month}_${inp.dataset.head}_${inp.dataset.field}`;
+        if (modifiedFields.has(fKey)) {
+            hasModifications = true;
+        }
+    });
+    
+    if (hasModifications) {
+        row.style.borderLeft = '4px solid #10b981';
+        row.classList.add('bg-green-50');
+    } else {
+        row.style.borderLeft = '';
+        row.classList.remove('bg-green-50');
+    }
+}
+
+// Update modified count badge
+function updateModifiedCount() {
+    const countElement = document.getElementById('modified-count');
+    countElement.textContent = modifiedFields.size;
+    
+    const saveBtn = document.getElementById('quick-save-btn');
+    if (modifiedFields.size > 0) {
+        saveBtn.classList.add('btn-success');
+        saveBtn.classList.remove('btn-primary');
+    } else {
+        saveBtn.classList.remove('btn-success');
+        saveBtn.classList.add('btn-primary');
+    }
+}
+
+// Clear only new inputs, not existing data
+function clearAllQuickEditInputs() {
+    if (confirm('คุณต้องการล้างข้อมูลที่กรอกใหม่ทั้งหมดหรือไม่?')) {
+        const inputs = document.querySelectorAll('.quick-edit-input:not([readonly]):not([disabled])');
+        let clearedFields = 0;
+        
+        inputs.forEach(input => {
+            const originalValue = input.dataset.originalValue || '';
+            const currentValue = input.value || '';
+            const fieldKey = `${input.dataset.month}_${input.dataset.head}_${input.dataset.field}`;
+            
+            // Only clear if this is a new input (no original value) and has current value
+            if (originalValue === '' && currentValue !== '') {
+                input.value = '';
+                modifiedFields.delete(fieldKey);
+                clearedFields++;
+            } else if (originalValue !== '' && currentValue !== originalValue) {
+                // Reset to original value for existing data
+                input.value = originalValue;
+                modifiedFields.delete(fieldKey);
+            }
+        });
+        
+        // Remove visual indicators from rows that no longer have modifications
+        inputs.forEach(input => {
+            updateRowVisuals(input);
+        });
+        
+        updateModifiedCount();
+        
+        if (clearedFields > 0) {
+            showToast(`ล้างข้อมูลแล้ว ${clearedFields} ฟิลด์`, 'info');
+        } else {
+            showToast('ไม่มีข้อมูลใหม่ให้ล้าง', 'info');
+        }
+    }
+}
+
+// Auto-save functionality (optional)
+let autoSaveTimeout;
+function scheduleAutoSave() {
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(() => {
+        if (modifiedFields.size > 0) {
+            console.log('Auto-saving...');
+            // Optionally trigger auto-save here
+        }
+    }, 30000); // Auto-save after 30 seconds of inactivity
+}
+
+// Add event listeners for auto-save
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('.quick-edit-input');
+    inputs.forEach(input => {
+        input.addEventListener('input', scheduleAutoSave);
+    });
+});
+
+// Include scope navigation JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Load scope navigation script if not already loaded
+    if (!window.scopeNavigationLoaded) {
+        const script = document.createElement('script');
+        script.src = "{{ url_for('static', filename='js/scope-navigation.js') }}";
+        document.head.appendChild(script);
+        window.scopeNavigationLoaded = true;
+    }
+});
+</script>
+
+<style>
+/* Custom styles for quick edit mode */
+.quick-edit-input {
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+    padding: 0.375rem 0.5rem;
+}
+
+.quick-edit-input:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+    background-color: #fefefe;
+}
+
+.quick-edit-input:hover {
+    border-color: #9ca3af;
+}
+
+/* Keyboard navigation indicator */
+.kbd {
+    background-color: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 0.25rem;
+    padding: 0.125rem 0.375rem;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+/* Modified row indicator */
+tr.modified {
+    border-left: 4px solid #10b981 !important;
+    background-color: #f0f9f4 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .quick-edit-input {
+        font-size: 0.75rem;
+        padding: 0.25rem;
+    }
+    
+    .table th, .table td {
+        padding: 0.5rem;
+    }
+}
+</style>
