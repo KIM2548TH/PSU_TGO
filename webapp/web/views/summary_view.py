@@ -525,7 +525,7 @@ def get_years():
     user.department = CampusAndDepartment.get_department_name(user.campus_id, user.department_key)
 
     materials = Material.objects(campus=user.campus_id, department=user.department_key)
-    years = sorted(list(set([m.year for m in materials if m.year])), reverse=True)
+    years = sorted(list(set([m.year for m in materials if m.year])))
 
     if not years:
         years = [datetime.now().year]
@@ -1198,6 +1198,3 @@ def create_htmx_response(template_path, template_vars=None, success_message=None
         selected_year=selected_year,
         data=data
     )
-
-
-
