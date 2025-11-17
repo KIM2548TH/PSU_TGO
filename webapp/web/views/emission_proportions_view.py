@@ -400,14 +400,12 @@ def download_pdf():
         if user_department and user_department.strip():
             base_year_filter["department"] = user_department
 
+        # Prepare materials and group data (copy from GET logic)
         materials = Material.objects(**base_year_filter).order_by("scope", "sub_scope", "name")
-
-        # Group by scope/sub_scope (เหมือนกับหน้าหลัก)
         scopes = {}
         grand_total = 0
         scope_totals = {}
         scope_material_counts = {}
-        
         for m in materials:
             scope = m.scope
             sub_scope = m.sub_scope
@@ -423,30 +421,19 @@ def download_pdf():
             scope_material_counts[scope] += 1
             grand_total += result2
 
-        # Prepare data for template (เหมือนกับหน้าหลัก)
         scope_data = []
         for scope in sorted(scopes.keys()):
             sub_scopes = []
             for sub_scope in sorted(scopes[scope].keys()):
-                # รวม material ที่ชื่อเดียวกัน
                 material_dict = {}
                 for mat in scopes[scope][sub_scope]:
                     result2 = float(mat.result2) if mat.result2 else 0.0
-
-                    # ดึงชื่อ department
-                    department_name = CampusAndDepartment.get_department_name(
-                        mat.campus, mat.department
-                    )
-
-                    # ดึงชื่อฟอร์มและสูตร
+                    department_name = CampusAndDepartment.get_department_name(mat.campus, mat.department)
                     form_name = ""
                     if mat.form_and_formula:
                         form_obj = FormAndFormula.objects(id=mat.form_and_formula).first()
-                        form_name = (
-                            form_obj.desc_form if form_obj else str(mat.form_and_formula)
-                        )
-
-                    key = mat.name  # รวมตามชื่อ material
+                        form_name = form_obj.desc_form if form_obj else str(mat.form_and_formula)
+                    key = mat.name
                     if key not in material_dict:
                         material_dict[key] = {
                             "name": mat.name,
@@ -457,7 +444,6 @@ def download_pdf():
                         }
                     material_dict[key]["result2"] += result2
 
-                # สร้าง materials_list จาก dict
                 materials_list = []
                 for item in material_dict.values():
                     percent_scope1 = (
@@ -485,13 +471,10 @@ def download_pdf():
                         }
                     )
                     materials_list.append(item)
-                    
                 sub_scope_total = sum(
                     float(mat.result2) if mat.result2 else 0.0
                     for mat in scopes[scope][sub_scope]
                 )
-                
-                # ดึงชื่อ ghg_name จาก Scope model
                 scope_obj = Scope.objects(
                     ghg_scope=scope,
                     ghg_sup_scope=sub_scope,
@@ -499,7 +482,6 @@ def download_pdf():
                     department=user_department,
                 ).first()
                 ghg_name = scope_obj.ghg_name if scope_obj else f"{scope}.{sub_scope}"
-
                 sub_scope_percent_scope1 = (
                     (sub_scope_total / scope_totals.get(1, 1) * 100)
                     if scope_totals.get(1, 0) > 0
@@ -652,58 +634,48 @@ def download_pdf():
         # Title - แก้ไขให้เป็นบรรทัดเดียว
         title_text = page_meta['title'].replace('\n', ' ').replace('  ', ' ')  # แทนที่ \n ด้วยช่องว่าง
         story.append(Paragraph(title_text, title_style))
-        story.append(Spacer(1, 10))
+
         
-        # Meta Information Table - แบ่งเป็น 2 ข้าง
-        meta_data = [
-            # University name row - span ทั้งหมด
-            ['มหาวิทยาลัยสงขลานครินทร์', '', '', ''],
-            # แบ่งเป็น 2 ข้าง: ซ้าย (Campus, Department) | ขวา (Year, สร้างรายงานเมื่อ)
-            ['Campus:', page_meta['campus'], 'Year:', str(page_meta['selected_year'])],
-            ['Department:', page_meta['department'], 'สร้างรายงานเมื่อ:', generated_date]
-        ]
-        
-        meta_table = Table(meta_data, colWidths=[1.5*inch, 2.0*inch, 1.5*inch, 2.5*inch])
-        meta_table.setStyle(TableStyle([
-            # University name row - span across all columns
-            ('SPAN', (0, 0), (-1, 0)),
-            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), thai_font_bold),
-            ('FONTSIZE', (0, 0), (-1, 0), 12),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.Color(75/255, 85/255, 99/255)),  # text-gray-600
-            ('TOPPADDING', (0, 0), (-1, 0), 8),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            
-            # Data rows - ข้างซ้าย (Campus, Department)
-            ('FONTNAME', (0, 1), (1, -1), thai_font_name),
-            ('FONTSIZE', (0, 1), (1, -1), 10),
-            ('TEXTCOLOR', (0, 1), (0, -1), colors.Color(107/255, 114/255, 128/255)),  # Labels gray-500
-            ('TEXTCOLOR', (1, 1), (1, -1), colors.Color(55/255, 65/255, 81/255)),   # Values gray-700
-            ('ALIGN', (0, 1), (0, -1), 'RIGHT'),    # Labels align right
-            ('ALIGN', (1, 1), (1, -1), 'LEFT'),     # Values align left
-            ('FONTNAME', (1, 1), (1, -1), thai_font_bold),  # Values bold
-            
-            # Data rows - ข้างขวา (Year, สร้างรายงานเมื่อ)
-            ('FONTNAME', (2, 1), (3, -1), thai_font_name),
-            ('FONTSIZE', (2, 1), (3, -1), 10),
-            ('TEXTCOLOR', (2, 1), (2, -1), colors.Color(107/255, 114/255, 128/255)),  # Labels gray-500
-            ('TEXTCOLOR', (3, 1), (3, -1), colors.Color(55/255, 65/255, 81/255)),   # Values gray-700
-            ('ALIGN', (2, 1), (2, -1), 'RIGHT'),    # Labels align right
-            ('ALIGN', (3, 1), (3, -1), 'LEFT'),     # Values align left
-            ('FONTNAME', (3, 1), (3, -1), thai_font_bold),  # Values bold
-            
-            # Padding และ alignment
-            ('TOPPADDING', (0, 1), (-1, -1), 4),
-            ('BOTTOMPADDING', (0, 1), (-1, -1), 4),
-            ('LEFTPADDING', (0, 1), (-1, -1), 8),
-            ('RIGHTPADDING', (0, 1), (-1, -1), 8),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            
-            # เส้นแบ่งกลาง (เอาออกแล้ว)
-            # ('LINEAFTER', (1, 1), (1, -1), 0.5, colors.Color(229/255, 231/255, 235/255)),  # เส้นแบ่งข้างซ้ายกับขวา
-        ]))
-        story.append(meta_table)
-        story.append(Spacer(1, 20))
+        # --- Group meta_data and meta_table creation into a function ---
+        def create_meta_table(page_meta, generated_date, thai_font_name, thai_font_bold):
+            meta_data = [
+                ['มหาวิทยาลัยสงขลานครินทร์', '', '', ''],
+                ['Campus:', page_meta['campus'], 'Year:', str(page_meta['selected_year'])],
+                ['Department:', page_meta['department'], 'สร้างรายงานเมื่อ:', generated_date]
+            ]
+            meta_table = Table(meta_data, colWidths=[1.5*inch, 2.0*inch, 1.5*inch, 2.5*inch])
+            meta_table.setStyle(TableStyle([
+                ('SPAN', (0, 0), (-1, 0)),
+                ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), thai_font_bold),
+                ('FONTSIZE', (0, 0), (-1, 0), 12),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.Color(75/255, 85/255, 99/255)),
+                ('TOPPADDING', (0, 0), (-1, 0), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('FONTNAME', (0, 1), (1, -1), thai_font_name),
+                ('FONTSIZE', (0, 1), (1, -1), 10),
+                ('TEXTCOLOR', (0, 1), (0, -1), colors.Color(107/255, 114/255, 128/255)),
+                ('TEXTCOLOR', (1, 1), (1, -1), colors.Color(55/255, 65/255, 81/255)),
+                ('ALIGN', (0, 1), (0, -1), 'RIGHT'),
+                ('ALIGN', (1, 1), (1, -1), 'LEFT'),
+                ('FONTNAME', (1, 1), (1, -1), thai_font_bold),
+                ('FONTNAME', (2, 1), (3, -1), thai_font_name),
+                ('FONTSIZE', (2, 1), (3, -1), 10),
+                ('TEXTCOLOR', (2, 1), (2, -1), colors.Color(107/255, 114/255, 128/255)),
+                ('TEXTCOLOR', (3, 1), (3, -1), colors.Color(55/255, 65/255, 81/255)),
+                ('ALIGN', (2, 1), (2, -1), 'RIGHT'),
+                ('ALIGN', (3, 1), (3, -1), 'LEFT'),
+                ('FONTNAME', (3, 1), (3, -1), thai_font_bold),
+                ('TOPPADDING', (0, 1), (-1, -1), 4),
+                ('BOTTOMPADDING', (0, 1), (-1, -1), 4),
+                ('LEFTPADDING', (0, 1), (-1, -1), 8),
+                ('RIGHTPADDING', (0, 1), (-1, -1), 8),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ]))
+            return meta_table
+
+        story.append(create_meta_table(page_meta, generated_date, thai_font_name, thai_font_bold))
+
         
         # Detailed Data - เหมือนหน้าเว็บ (แสดงรายละเอียดทั้งหมดเสมอ)
         for scope in scope_data:
@@ -918,8 +890,8 @@ def download_pdf():
                     Spacer(1, 10)    # ระยะห่างหลังตาราง materials
                 ])
             
-            # จัดกลุ่ม Scope Header กับ Sub-scopes ทั้งหมดไว้ด้วยกัน
-            story.append(KeepTogether(scope_elements))
+            # เพิ่ม scope header และ subscope elements เข้า story โดยไม่ใช้ KeepTogether
+            story.extend(scope_elements)
             story.append(Spacer(1, 8))   # ลดช่องว่างระหว่าง scope จาก 12 เป็น 8
         
         # Grand Total (เหมือนหน้าเว็บ - bg-gray-400 text-white)
