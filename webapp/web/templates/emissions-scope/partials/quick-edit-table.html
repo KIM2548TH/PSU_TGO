@@ -465,10 +465,12 @@ function clearAllQuickEditInputs() {
         
         updateModifiedCount();
         
+        // Pure HTMX approach - no JavaScript toast needed
+        // Backend will handle toast notifications via HX-Trigger
         if (clearedFields > 0) {
-            showToast(`ล้างข้อมูลแล้ว ${clearedFields} ฟิลด์`, 'info');
+            console.log(`Cleared ${clearedFields} fields`);
         } else {
-            showToast('ไม่มีข้อมูลใหม่ให้ล้าง', 'info');
+            console.log('No new data to clear');
         }
     }
 }
@@ -491,17 +493,6 @@ document.addEventListener('DOMContentLoaded', function() {
     inputs.forEach(input => {
         input.addEventListener('input', scheduleAutoSave);
     });
-});
-
-// Include scope navigation JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    // Load scope navigation script if not already loaded
-    if (!window.scopeNavigationLoaded) {
-        const script = document.createElement('script');
-        script.src = "{{ url_for('static', filename='js/scope-navigation.js') }}";
-        document.head.appendChild(script);
-        window.scopeNavigationLoaded = true;
-    }
 });
 </script>
 

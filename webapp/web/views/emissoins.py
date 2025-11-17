@@ -70,7 +70,7 @@ def get_user_scopes():
         return user_scopes
 
     except Exception as e:
-        print(f"Error getting user scopes: {e}")
+        # print(f"Error getting user scopes: {e}")
         return []
 
 
@@ -84,7 +84,7 @@ def get_current_scope_index(user_scopes, scope_id, sub_scope_id):
                 return i
         return -1
     except Exception as e:
-        print(f"Error getting current scope index: {e}")
+        # print(f"Error getting current scope index: {e}")
         return -1
 
 
@@ -141,7 +141,7 @@ def view_emissions():
     selected_year = request.form.get("year_form_scope")
     quick_edit = request.form.get("quick_edit", "false").lower() == "true"
 
-    print(f"view_emissions received quick_edit: {quick_edit}")
+    # print(f"view_emissions received quick_edit: {quick_edit}")
 
     # ดึงปีจาก Material
     years = sorted(Material.objects().distinct("year"))
@@ -174,7 +174,7 @@ def view_emissions():
             current_scope_index = i
             break
 
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", selected_year)
+    # print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", selected_year)
     return render_template(
         "emissions-scope/view-emissions.html",
         scope_id=scope_id,
@@ -199,16 +199,16 @@ def load_emissions_table():
     # Handle URL encoding issue - check for malformed parameter names
     if not sub_scope_id and request.args.get("amp;sub_scope_id"):
         sub_scope_id = request.args.get("amp;sub_scope_id")
-        print("Found malformed sub_scope_id parameter, corrected it")
+        # print("Found malformed sub_scope_id parameter, corrected it")
 
     year = request.args.get("year") or datetime.datetime.now().year
     page = int(request.args.get("page", 1))
 
     # Validate required parameters
     if not scope_id or not sub_scope_id:
-        print(
-            f"Missing required parameters: scope_id={scope_id}, sub_scope_id={sub_scope_id}"
-        )
+        # print(
+        # f"Missing required parameters: scope_id={scope_id}, sub_scope_id={sub_scope_id}"
+        # )
         return jsonify({"error": "Missing required parameters"}), 400
 
     # Check for quick_edit parameter from both args and form data
@@ -223,15 +223,15 @@ def load_emissions_table():
             quick_edit = True
 
     # Debug information
-    print(f"=== LOAD EMISSIONS TABLE DEBUG ===")
-    print(f"Request method: {request.method}")
-    print(f"Request URL: {request.url}")
-    print(f"Request args: {dict(request.args)}")
-    print(f"Request form: {dict(request.form)}")
-    print(f"HX-Request header: {request.headers.get('HX-Request')}")
-    print(f"Quick edit param raw: {repr(quick_edit_param)}")
-    print(f"Quick edit mode final: {quick_edit}")
-    print(f"==================================")
+    # print(f"=== LOAD EMISSIONS TABLE DEBUG ===")
+    # print(f"Request method: {request.method}")
+    # print(f"Request URL: {request.url}")
+    # print(f"Request args: {dict(request.args)}")
+    # print(f"Request form: {dict(request.form)}")
+    # print(f"HX-Request header: {request.headers.get('HX-Request')}")
+    # print(f"Quick edit param raw: {repr(quick_edit_param)}")
+    # print(f"Quick edit mode final: {quick_edit}")
+    # print(f"==================================")
 
     scope = Scope.objects(
         ghg_scope=int(scope_id),
@@ -290,12 +290,12 @@ def load_emissions_table():
         else "emissions-scope/partials/emissions-table.html"
     )
 
-    print(f"Using template: {template_name} (Quick Edit: {quick_edit})")
+    # print(f"Using template: {template_name} (Quick Edit: {quick_edit})")
 
     # Force quick edit template for testing
     if request.args.get("force_quick") == "true":
         template_name = "emissions-scope/partials/quick-edit-table.html"
-        print("FORCED Quick Edit template!")
+        # print("FORCED Quick Edit template!")
 
     return render_template(
         template_name,
@@ -332,7 +332,7 @@ def load_material_form():
 
     # ตรวจสอบข้อมูลที่จำเป็น
     if not month_id or not head:
-        print("Missing month_id or head in request")
+        # print("Missing month_id or head in request")
         return jsonify({"error": "Invalid month or head"}), 400
 
     # สร้างฟอร์มใหม่
@@ -362,7 +362,7 @@ def load_materials_form():
     scope_id = request.args.get("scope_id")
     sub_scope_id = request.args.get("sub_scope_id")
     month = request.args.get("month")
-    print("<<<<<<<<<<<<<<<<<<<<<<", scope_id, sub_scope_id, month_id, year)
+    # print("<<<<<<<<<<<<<<<<<<<<<<", scope_id, sub_scope_id, month_id, year)
 
     # ดึงข้อมูล materials
     materials = Material.objects(
@@ -418,7 +418,7 @@ def calculate_result(material):
     # ดึงข้อมูลสูตรจากฐานข้อมูล
     form_and_formula = FormAndFormula.objects(material_name=material.name).first()
     if not form_and_formula:
-        # print(f"ไม่พบสูตรสำหรับ material: {material.name}")
+        print(f"ไม่พบสูตรสำหรับ material: {material.name}")
         return
 
     # สร้าง mapping ระหว่างชื่อตัวแปรภาษาไทย กับชื่อที่ปลอดภัย
@@ -476,7 +476,7 @@ def calculate_result(material):
                 material.result2 = eval_result2
 
             except Exception as e:
-                print(f"เกิดข้อผิดพลาดในการคำนวณ result2 สำหรับ : {e}")
+                # print(f"เกิดข้อผิดพลาดในการคำนวณ result2 สำหรับ : {e}")
                 material.result2 = None
         else:
             # ถ้าไม่มี formula2 ให้ตั้งค่า result2 เป็น None
@@ -498,7 +498,7 @@ def calculate_result(material):
             material.result_nf3 = gas_results.get("result_nf3")
 
         except Exception as e:
-            print(f"เกิดข้อผิดพลาดในการคำนวณผลลัพธ์ก๊าซ: {e}")
+            # print(f"เกิดข้อผิดพลาดในการคำนวณผลลัพธ์ก๊าซ: {e}")
             # ตั้งค่า gas results เป็น None หากคำนวณไม่สำเร็จ
             material.result_co2 = None
             material.result_ch4 = None
@@ -512,12 +512,12 @@ def calculate_result(material):
         material.save()
 
     except Exception as e:
-        # print(f"เกิดข้อผิดพลาดในการคำนวณผลลัพธ์สำหรับ {material.name}: {e}")
-        # print("--- Debug Information ---")
-        # print(f"Original formula: {form_and_formula.formula}")
-        # print(f"Sanitized formula: {sanitized_formula}")
-        # print(f"Sanitized variables: {sanitized_variables}")
-        print("-----------------------")
+        print(f"เกิดข้อผิดพลาดในการคำนวณผลลัพธ์สำหรับ {material.name}: {e}")
+        print("--- Debug Information ---")
+        print(f"Original formula: {form_and_formula.formula}")
+        print(f"Sanitized formula: {sanitized_formula}")
+        print(f"Sanitized variables: {sanitized_variables}")
+        # print("-----------------------")
 
 
 def save_material(scope_id, sub_scope_id, month_id, year, material_data):
@@ -678,18 +678,18 @@ def save_materials():
     quick_edit_mode = request.form.get("quick_edit_mode", "false").lower() == "true"
 
     # Debug information for save_materials
-    print(f"=== SAVE MATERIALS DEBUG ===")
-    print(f"Request form keys: {list(request.form.keys())}")
-    print(f"Quick edit mode: {quick_edit_mode}")
-    print(f"Scope: {scope_id}, Sub scope: {sub_scope_id}")
-    print(f"Year: {year}, Page: {page}")
+    # print(f"=== SAVE MATERIALS DEBUG ===")
+    # print(f"Request form keys: {list(request.form.keys())}")
+    # print(f"Quick edit mode: {quick_edit_mode}")
+    # print(f"Scope: {scope_id}, Sub scope: {sub_scope_id}")
+    # print(f"Year: {year}, Page: {page}")
 
     # Show form data related to amounts
     amount_keys = [key for key in request.form.keys() if key.startswith("amount_")]
-    print(f"Amount keys found: {len(amount_keys)}")
-    for key in amount_keys[:5]:  # Show first 5 for debugging
-        print(f"  {key}: {request.form.get(key)}")
-    print(f"=============================")
+    # print(f"Amount keys found: {len(amount_keys)}")
+    # for key in amount_keys[:5]:  # Show first 5 for debugging
+    # print(f"  {key}: {request.form.get(key)}")
+    # print(f"=============================")
 
     # ตรวจสอบว่า scope และ sub_scope มีอยู่ในฐานข้อมูล
     scope = Scope.objects(
@@ -745,7 +745,7 @@ def save_materials():
     elif quick_edit_mode:
         # Quick edit mode: handle multiple months and materials
         # Only save data that has actually changed
-        print("Processing quick edit mode data...")
+        # print("Processing quick edit mode data...")
 
         # Get all current materials for comparison
         current_materials = Material.objects(
@@ -763,7 +763,7 @@ def save_materials():
                 key = f"{material.month}_{material.name}_{qt.field}"
                 existing_data[key] = str(qt.amount) if qt.amount else ""
 
-        print(f"Found {len(existing_data)} existing data entries")
+        # print(f"Found {len(existing_data)} existing data entries")
 
         for key in request.form.keys():
             if key.startswith("amount_"):
@@ -779,9 +779,9 @@ def save_materials():
 
                     # Check if value has changed (including deletion - empty to non-empty or vice versa)
                     if new_amount != existing_amount:
-                        print(
-                            f"Value changed for {lookup_key}: '{existing_amount}' -> '{new_amount}'"
-                        )
+                        # print(
+                        # f"Value changed for {lookup_key}: '{existing_amount}' -> '{new_amount}'"
+                        # )
 
                         if new_amount:  # New value provided
                             materials.append(
@@ -805,10 +805,10 @@ def save_materials():
                                     "delete": True,  # Flag for deletion
                                 }
                             )
-                    else:
-                        print(f"No change for {lookup_key}: '{existing_amount}'")
+                    # else:
+                    # print(f"No change for {lookup_key}: '{existing_amount}'")
 
-        print(f"Total changed materials to save: {len(materials)}")
+        # print(f"Total changed materials to save: {len(materials)}")
     else:
         # Multiple materials case (from materials-form.html)
         for key in request.form.keys():
@@ -831,9 +831,9 @@ def save_materials():
     if quick_edit_mode:
         # In quick edit mode, we don't need month_id as a single parameter
         if not scope_id or not sub_scope_id or not year:
-            print(
-                f"Missing required parameters in quick edit mode: scope_id={scope_id}, sub_scope_id={sub_scope_id}, year={year}"
-            )
+            # print(
+            # f"Missing required parameters in quick edit mode: scope_id={scope_id}, sub_scope_id={sub_scope_id}, year={year}"
+            # )
             # ใช้ toast notification สำหรับ error
             response = make_response("")
             encoded_message = urllib.parse.quote("ข้อมูลไม่ครบถ้วน กรุณาตรวจสอบอีกครั้ง")
@@ -844,9 +844,9 @@ def save_materials():
     else:
         # In normal mode, we need all parameters including month_id
         if not scope_id or not sub_scope_id or not month_id or not year:
-            print(
-                f"Missing required parameters in normal mode: scope_id={scope_id}, sub_scope_id={sub_scope_id}, month_id={month_id}, year={year}"
-            )
+            # print(
+            # f"Missing required parameters in normal mode: scope_id={scope_id}, sub_scope_id={sub_scope_id}, month_id={month_id}, year={year}"
+            # )
             # ใช้ toast notification สำหรับ error
             response = make_response("")
             encoded_message = urllib.parse.quote("ข้อมูลไม่ครบถ้วน กรุณาตรวจสอบอีกครั้ง")
@@ -896,9 +896,9 @@ def save_materials():
                 material_data["field"],
             ):
                 deleted_count += 1
-                print(
-                    f"Deleted field {material_data['field']} for {material_data['head']}"
-                )
+                # print(
+                # f"Deleted field {material_data['field']} for {material_data['head']}"
+                # )
         else:
             # Save/update the material
             if save_material(
@@ -906,7 +906,7 @@ def save_materials():
             ):
                 saved_count += 1
 
-    print(f"Operation completed: {saved_count} saved, {deleted_count} deleted")
+    # print(f"Operation completed: {saved_count} saved, {deleted_count} deleted")
 
     # Update emissions table
     head_table = scope.head_table  # Re-fetch head_table after saving materials
@@ -1670,7 +1670,7 @@ def get_form_details(material_name):
     except Exception as e:
         import traceback
 
-        traceback.print_exc()
+        # traceback.print_exc()
         return render_template(
             "emissions-scope/partials/form-detail-modal.html",
             error=f"เกิดข้อผิดพลาด: {str(e)}",
@@ -1727,7 +1727,7 @@ def get_linked_form_info(material_name):
     except Exception as e:
         import traceback
 
-        traceback.print_exc()
+        # traceback.print_exc()
         return render_template(
             "emissions-scope/partials/linked-form-info-modal.html",
             error=f"เกิดข้อผิดพลาด: {str(e)}",

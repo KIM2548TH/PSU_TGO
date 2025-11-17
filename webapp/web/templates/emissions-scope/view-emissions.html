@@ -95,7 +95,12 @@
                                    value="true"
                                    class="toggle toggle-success"
                                    {% if quick_edit %}checked{% endif %}
-                                   onchange="toggleEditMode(this.checked)">
+                                   hx-get="{{ url_for('emissions.load_emissions_table', scope_id=scope_id, sub_scope_id=sub_scope_id) }}"
+                                   hx-target="#emissions-table-container"
+                                   hx-swap="innerHTML"
+                                   hx-trigger="change"
+                                   hx-include="#year-select"
+                                   hx-vals='{"scope_id": "{{ scope_id }}", "sub_scope_id": "{{ sub_scope_id }}", "page": "1"}'>
                             <span class="label-text font-medium {{ color.text }}">
                                 <i data-feather="zap" class="w-4 h-4 inline mr-1"></i>
                                 โหมดกรอกเร็ว
@@ -123,7 +128,7 @@
         
             <!-- Table Container -->
             <div id="emissions-table-container" 
-                 hx-get="{{ url_for('emissions.load_emissions_table', scope_id=scope_id, sub_scope_id=sub_scope_id) }}" 
+                 hx-get="{{ url_for('emissions.load_emissions_table', scope_id=scope_id, sub_scope_id=sub_scope_id, quick_edit=quick_edit) }}" 
                  hx-trigger="load" 
                  hx-target="#emissions-table-container" 
                  hx-swap="innerHTML"
@@ -138,117 +143,9 @@
 
 {% block js %}
 <script>
-// Toggle between normal and quick edit mode
-function toggleEditMode(isQuickEdit) {
-    console.log('toggleEditMode called with:', isQuickEdit);
-    
-    // Store state in localStorage
-    localStorage.setItem('quickEditMode', isQuickEdit.toString());
-    
-    const container = document.getElementById('emissions-table-container');
-    const yearSelect = document.getElementById('year-select');
-    const selectedYear = yearSelect.value;
-    
-    // Get base URL without template encoding
-    const scopeId = "{{ scope_id }}";
-    const subScopeId = "{{ sub_scope_id }}";
-    const baseUrl = `/emissions/load-emissions-table`;
-    
-    // Build parameters object
-    const params = {
-        'scope_id': scopeId,
-        'sub_scope_id': subScopeId,
-        'year': selectedYear,
-        'page': '1'
-    };
-    
-    if (isQuickEdit) {
-        params['quick_edit'] = 'true';
-    }
-    
-    console.log('Request parameters:', params);
-    
-    // Use htmx.ajax with values parameter to avoid URL encoding issues
-    htmx.ajax('GET', baseUrl, {
-        target: '#emissions-table-container',
-        swap: 'innerHTML',
-        values: params
-    }).then(function() {
-        console.log('HTMX request completed successfully');
-        feather.replace(); // Refresh icons
-    }).catch(function(error) {
-        console.error('HTMX request failed:', error);
-    });
-    
-    // Update year select for future changes
-    yearSelect.setAttribute('hx-vals', JSON.stringify({
-        'scope_id': scopeId,
-        'sub_scope_id': subScopeId,
-        'page': '1',
-        ...(isQuickEdit ? {'quick_edit': 'true'} : {})
-    }));
-    
-    // Update all navigation links to include quick_edit parameter
-    updateNavigationLinks(isQuickEdit);
-    
-    // Update UI feedback
-    const toggle = document.getElementById('quick-edit-toggle');
-    const label = toggle.nextElementSibling;
-    
-    if (isQuickEdit) {
-        label.classList.add('text-success');
-        label.innerHTML = '<i data-feather="zap" class="w-4 h-4 inline mr-1"></i>โหมดกรอกเร็ว (เปิดใช้งาน)';
-    } else {
-        label.classList.remove('text-success');
-        label.innerHTML = '<i data-feather="zap" class="w-4 h-4 inline mr-1"></i>โหมดกรอกเร็ว';
-    }
-    
-    feather.replace();
-}
-
-// Update navigation links to maintain quick edit mode
-function updateNavigationLinks(isQuickEdit) {
-    const navButtons = document.querySelectorAll('[hx-post*="view_emissions"]');
-    
-    navButtons.forEach(button => {
-        const currentVals = button.getAttribute('hx-vals');
-        if (currentVals) {
-            try {
-                const vals = JSON.parse(currentVals.replace(/'/g, '"'));
-                if (isQuickEdit) {
-                    vals.quick_edit = 'true';
-                } else {
-                    delete vals.quick_edit;
-                }
-                button.setAttribute('hx-vals', JSON.stringify(vals).replace(/"/g, "'"));
-            } catch (e) {
-                console.warn('Could not parse hx-vals:', currentVals);
-            }
-        }
-    });
-}
-
-// Initialize on page load
+// Pure HTMX approach - minimal JavaScript for initialization only
 document.addEventListener('DOMContentLoaded', function() {
     feather.replace();
-    
-    // Check if backend passed quick_edit state (from scope navigation)
-    const backendQuickEdit = {{ quick_edit|default(false)|tojson }};
-    
-    // Check localStorage for saved state
-    const savedQuickEdit = localStorage.getItem('quickEditMode') === 'true';
-    
-    // Check if URL has quick_edit parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlQuickEdit = urlParams.get('quick_edit') === 'true';
-    
-    // Priority: backend state > URL parameter > saved state
-    const shouldEnableQuickEdit = backendQuickEdit || urlQuickEdit || savedQuickEdit;
-    
-    if (shouldEnableQuickEdit) {
-        document.getElementById('quick-edit-toggle').checked = true;
-        toggleEditMode(true);
-    }
 });
 </script>
 {% endblock js %}
