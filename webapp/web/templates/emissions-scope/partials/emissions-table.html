@@ -65,19 +65,26 @@
                     {% set sub_column_count = materials_form[loop.index0] | length %}
                     <th colspan="{{ sub_column_count }}"
                         class="px-2 py-3 text-xs font-bold material-head border-b border-r {{ color.border }} relative group text-white {{ head_bg }}"
-                        style="width: auto; min-width: fit-content; max-width: none; word-wrap: break-word; white-space: normal; overflow-wrap: break-word;"
-                        title="{{ head }}">
+                        style="width: auto; min-width: fit-content; max-width: none; word-wrap: break-word; white-space: normal; overflow-wrap: break-word;">
                         <div class="flex items-center justify-center gap-1 leading-tight">
-                            <span class="cursor-pointer text-center" style="line-height: 1.2;">
-                                {% if head|length <= 15 %}
-                                    {{ head }}
-                                {% elif head|length <= 30 %}
-                                    {% set mid = (head|length // 2) %}
-                                    {{ head[:mid] }}<br>{{ head[mid:] }}
-                                {% else %}
-                                    {{ head[:15] }}<br>{{ head[15:25] }}...
-                                {% endif %}
-                            </span>
+                            <details class="dropdown dropdown-end relative">
+                                <summary class="cursor-pointer text-center hover:text-gray-200 transition-colors" style="line-height: 1.2; list-style: none;">
+                                    {% if head|length <= 15 %}
+                                        {{ head }}
+                                    {% elif head|length <= 30 %}
+                                        {% set mid = (head|length // 2) %}
+                                        {{ head[:mid] }}<br>{{ head[mid:] }}
+                                    {% else %}
+                                        {{ head[:15] }}<br>{{ head[15:25] }}...
+                                    {% endif %}
+                                    <i data-feather="chevron-down" class="w-3 h-3 inline ml-1 details-chevron transition-transform"></i>
+                                </summary>
+                                <div class="dropdown-content absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-3 min-w-max max-w-xs">
+                                    <div class="text-sm text-gray-800 font-normal leading-relaxed">
+                                        {{ head }}
+                                    </div>
+                                </div>
+                            </details>
                             {% if form_info and form_info.is_linked %}
                                 <br>
                                 <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-white text-{{ color.main }}-700 cursor-pointer mt-1"
@@ -274,5 +281,36 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+    
+    /* CSS สำหรับ details/summary dropdown */
+    details[open] .details-chevron {
+        transform: rotate(180deg);
+    }
+    
+    details summary {
+        outline: none;
+    }
+    
+    details summary::-webkit-details-marker {
+        display: none;
+    }
+    
+    details summary::marker {
+        display: none;
+    }
+    
+    /* Dropdown content แบบ overlay */
+    details:not([open]) .dropdown-content {
+        display: none;
+    }
+    
+    details[open] .dropdown-content {
+        display: block;
+    }
+    
+    /* เพิ่ม z-index สูงเพื่อแสดงทับ element อื่น */
+    .material-head {
+        overflow: visible;
     }
 </style>
