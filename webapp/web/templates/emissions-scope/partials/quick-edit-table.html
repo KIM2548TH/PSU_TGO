@@ -529,6 +529,37 @@ tr.modified {
     background-color: #f0f9f4 !important;
 }
 
+/* CSS สำหรับ details/summary dropdown */
+details[open] .details-chevron {
+    transform: rotate(180deg);
+}
+
+details summary {
+    outline: none;
+}
+
+details summary::-webkit-details-marker {
+    display: none;
+}
+
+details summary::marker {
+    display: none;
+}
+
+/* Dropdown content แบบ overlay */
+details:not([open]) .dropdown-content {
+    display: none;
+}
+
+details[open] .dropdown-content {
+    display: block;
+}
+
+/* เพิ่ม z-index สูงเพื่อแสดงทับ element อื่น */
+.material-head {
+    overflow: visible;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .quick-edit-input {
