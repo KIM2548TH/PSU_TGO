@@ -1,137 +1,40 @@
-<!-- Download PDF Modal -->
+
+<!-- Download PDF Modal Fragment สำหรับ HTMX -->
 <div class="modal modal-open" id="download-pdf-modal">
-  <div class="modal-box max-w-2xl">
-    <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
-      <i data-feather="download" class="w-5 h-5 text-success"></i>
-      ดาวน์โหลดรายงานสรุปผล Carbon Footprint
-    </h3>
-    
-    <form hx-post="{{ url_for('summary.download_pdf') }}" 
-          hx-target="body" 
-          hx-swap="beforeend"
-          hx-include="[name='selected_scopes']:checked, [name='selected_sub_scopes']:checked, [name='selected_year']:checked, [name='time_period']:checked">
-      
-      <!-- Hidden field to indicate HTMX request -->
-      <input type="hidden" name="htmx_request" value="1">
-      
-      <!-- Report Title -->
-      <div class="form-control mb-4">
-        <label class="label">
-          <span class="label-text font-medium">ชื่อรายงาน</span>
-        </label>
-        <input type="text" 
-               name="report_title" 
-               class="input input-bordered w-full" 
-               value="รายงานสรุปผล Carbon Footprint ปี {{ selected_year }}"
-               required>
-      </div>
-      
-      <!-- PDF Format -->
-      <div class="form-control mb-4">
-        <label class="label">
-          <span class="label-text font-medium">รูปแบบรายงาน</span>
-        </label>
-        <div class="space-y-2">
-          <label class="cursor-pointer label justify-start gap-3">
-            <input type="radio" name="pdf_format" value="summary" class="radio radio-primary" checked>
-            <span class="label-text">สรุปผลโดยรวม (Summary Report)</span>
-          </label>
-          <label class="cursor-pointer label justify-start gap-3">
-            <input type="radio" name="pdf_format" value="detailed" class="radio radio-primary">
-            <span class="label-text">รายละเอียดทั้งหมด (Detailed Report)</span>
-          </label>
-          <label class="cursor-pointer label justify-start gap-3">
-            <input type="radio" name="pdf_format" value="charts_only" class="radio radio-primary">
-            <span class="label-text">กราฟและแผนภูมิ (Charts & Graphs Only)</span>
-          </label>
+  <div class="modal-box w-11/12 max-w-md">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="font-bold text-lg">ดาวน์โหลด PDF</h3>
+      <button class="btn btn-sm btn-circle btn-ghost" onclick="document.getElementById('download-pdf-modal').remove()">✕</button>
+    </div>
+    <form method="post" action="{{ url_for('summary.download_pdf') }}"
+          enctype="application/x-www-form-urlencoded"
+          style="margin-bottom:0;">
+      <input type="hidden" name="selected_year" value="{{ selected_year }}">
+      <input type="hidden" name="pdf_format" value="detailed">
+      <div class="space-y-4">
+        <!-- ชื่อรายงาน -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อรายงาน</label>
+          <input type="text" name="report_title"
+                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                 value="รายงานสรุปผล Carbon Footprint ปี {{ selected_year }}"
+                 placeholder="ป้อนชื่อรายงาน" required>
+        </div>
+        <!-- หมายเหตุ -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">หมายเหตุ (ไม่บังคับ)</label>
+          <textarea name="notes" rows="3"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="เพิ่มหมายเหตุหรือข้อมูลเพิ่มเติม..."></textarea>
         </div>
       </div>
-      
-      <!-- Notes -->
-      <div class="form-control mb-6">
-        <label class="label">
-          <span class="label-text font-medium">หมายเหตุเพิ่มเติม</span>
-        </label>
-        <textarea name="notes" 
-                  class="textarea textarea-bordered h-20" 
-                  placeholder="เพิ่มหมายเหตุหรือคำอธิบายเพิ่มเติมสำหรับรายงาน (ไม่บังคับ)"></textarea>
-      </div>
-      
-      <!-- Selected Data Info -->
-      <div class="bg-base-200 p-4 rounded-lg mb-6">
-        <h4 class="font-medium mb-2 flex items-center gap-2">
-          <i data-feather="info" class="w-4 h-4"></i>
-          ข้อมูลที่จะรวมในรายงาน
-        </h4>
-        <div class="text-sm space-y-1">
-          <div><strong>Campus:</strong> {{ user.campus }}</div>
-          <div><strong>Department:</strong> {{ user.department }}</div>
-          <div><strong>Selected Year:</strong> <span id="pdf-selected-year">{{ selected_year }}</span></div>
-          <div><strong>Time Period:</strong> <span id="pdf-time-period">Week</span></div>
-          <div><strong>Scopes:</strong> <span id="pdf-selected-scopes">-</span></div>
-          <div><strong>Sub Scopes:</strong> <span id="pdf-selected-sub-scopes">-</span></div>
-        </div>
-      </div>
-      
-      <!-- Action Buttons -->
       <div class="modal-action">
-        <button type="button" 
-                class="btn btn-ghost" 
-                onclick="this.closest('.modal').remove()">
-          ยกเลิก
-        </button>
-        <button type="submit" 
-                class="btn btn-success">
-          <i data-feather="download" class="w-4 h-4 mr-2"></i>
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('download-pdf-modal').remove()">ยกเลิก</button>
+        <button type="submit" class="btn btn-primary flex items-center">
+          <i data-feather="download" class="w-4 h-4 mr-1"></i>
           ดาวน์โหลด PDF
         </button>
       </div>
     </form>
   </div>
-  
-  <!-- Close modal when clicking outside -->
-  <div class="modal-backdrop" onclick="this.closest('.modal').remove()"></div>
 </div>
-
-<script>
-  // Update feather icons
-  if (typeof feather !== 'undefined') {
-    feather.replace();
-  }
-  
-  // Update selected data display
-  function updatePdfModalData() {
-    // Update year
-    const selectedYear = document.querySelector('[name="selected_year"]:checked');
-    if (selectedYear) {
-      document.getElementById('pdf-selected-year').textContent = selectedYear.value;
-    }
-    
-    // Update time period
-    const selectedTimePeriod = document.querySelector('[name="time_period"]:checked');
-    if (selectedTimePeriod) {
-      const periodLabels = {
-        'Day': 'รายวัน',
-        'week': 'รายสัปดาห์', 
-        'month': 'รายเดือน'
-      };
-      document.getElementById('pdf-time-period').textContent = periodLabels[selectedTimePeriod.value] || selectedTimePeriod.value;
-    }
-    
-    // Update scopes
-    const selectedScopes = Array.from(document.querySelectorAll('[name="selected_scopes"]:checked'));
-    if (selectedScopes.length > 0) {
-      const scopeTexts = selectedScopes.map(s => `Scope ${s.value}`).join(', ');
-      document.getElementById('pdf-selected-scopes').textContent = scopeTexts;
-    }
-    
-    // Update sub scopes  
-    const selectedSubScopes = Array.from(document.querySelectorAll('[name="selected_sub_scopes"]:checked'));
-    if (selectedSubScopes.length > 0) {
-      document.getElementById('pdf-selected-sub-scopes').textContent = `${selectedSubScopes.length} sub scope(s) selected`;
-    }
-  }
-  
-  // Run update on load
-  updatePdfModalData();
-</script>
