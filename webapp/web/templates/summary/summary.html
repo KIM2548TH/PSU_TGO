@@ -116,9 +116,11 @@
           <span class="badge badge-secondary badge-sm">{{ user.department }}</span>
         </div>
         
+        
         <!-- PDF Action Buttons -->
         <div id="pdf-actions" class="flex gap-2">
           <!-- Preview Button -->
+           {% if has_permission('ดูตัวอย่างสรุปผล PDF') %}
           <button class="btn btn-sm btn-info text-white opacity-50 cursor-not-allowed" 
                   id="preview-pdf-btn"
                   disabled
@@ -126,8 +128,10 @@
             <i data-feather="eye" class="w-3.5 h-3.5 mr-1"></i>
             <span class="hidden sm:inline">Preview</span>
           </button>
+          {% endif %}
           
           <!-- Download Button -->
+           {% if has_permission('โหลดรายงานสรุปผล PDF') %}
           <button class="btn btn-sm btn-success text-white opacity-50 cursor-not-allowed" 
                   id="download-pdf-btn"
                   disabled
@@ -135,6 +139,7 @@
             <i data-feather="download" class="w-3.5 h-3.5 mr-1"></i>
             <span class="hidden sm:inline">PDF</span>
           </button>
+          {% endif %}
         </div>
       </div>
     </div>
