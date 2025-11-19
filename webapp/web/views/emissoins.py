@@ -6,7 +6,6 @@ from flask import (
     request,
     jsonify,
     make_response,
-    flash,
 )
 from flask_login import login_required, logout_user, current_user
 from ..forms.user_form import LoginForm, RegisterForm, EditUserForm, EditprofileForm
@@ -143,6 +142,7 @@ def view_emissions():
     quick_edit = request.form.get("quick_edit", "false").lower() == "true"
 
     # print(f"view_emissions received quick_edit: {quick_edit}")
+
     # ดึงปีจาก Material
     years = sorted(Material.objects().distinct("year"))
     # ถ้ามีปีใน database ใช้ปีแรก, ถ้าไม่มีให้ใช้ปีปัจจุบัน
@@ -150,7 +150,7 @@ def view_emissions():
     # ปีปัจจุบัน
     current_year = datetime.datetime.now().year
     years = list(range(start_year, current_year + 1))
-    
+    # year_list = list(range(start_year, current_year + 1))
     scope = Scope.objects(
         ghg_scope=int(scope_id),
         ghg_sup_scope=int(sub_scope_id),
@@ -183,7 +183,7 @@ def view_emissions():
         years=years,
         ghg_name=ghg_name,
         current_year=current_year,  # ส่งปีปัจจุบันไปยังเทมเพลต
-        selected_year=selected_year,  # ใช้ปีที่เลือกหรือปีปัจจุบัน
+        selected_year=int(selected_year),  # ใช้ปีที่เลือกหรือปีปัจจุบัน
         user_scopes=user_scopes,
         current_scope_index=current_scope_index,
         quick_edit=quick_edit,  # ส่ง quick_edit state ไปยัง template
@@ -700,8 +700,14 @@ def save_materials():
     ).first()
 
     if not scope:
-        flash("ไม่พบข้อมูล Scope ที่ระบุ", "error")
+
+        # ใช้ toast notification สำหรับ error
+
         response = make_response("")
+        encoded_message = urllib.parse.quote("ไม่พบข้อมูล Scope ที่ระบุ")
+
+        trigger_data = {"showError": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
         return response
 
     head_table = scope.head_table
@@ -715,14 +721,24 @@ def save_materials():
 
         form_and_formula = FormAndFormula.objects(material_name=head).first()
         if not form_and_formula:
-            flash("ไม่พบฟอร์มสำหรับวัสดุที่ระบุ", "error")
+
+            # ใช้ toast notification สำหรับ error
             response = make_response("")
+            encoded_message = urllib.parse.quote("ไม่พบฟอร์มสำหรับวัสดุที่ระบุ")
+
+            trigger_data = {"showError": encoded_message}
+            response.headers["HX-Trigger"] = json.dumps(trigger_data)
             return response
 
         field = input_field
         if not field:
-            flash("ไม่พบฟิลด์ข้อมูลสำหรับวัสดุที่ระบุ", "error")
+
+            # ใช้ toast notification สำหรับ error
             response = make_response("")
+            encoded_message = urllib.parse.quote("ไม่พบฟิลด์ข้อมูลสำหรับวัสดุที่ระบุ")
+
+            trigger_data = {"showError": encoded_message}
+            response.headers["HX-Trigger"] = json.dumps(trigger_data)
             return response
 
         materials.append({"head": head, "field": field, "amount": amount})
@@ -828,13 +844,24 @@ def save_materials():
     else:
         # In normal mode, we need all parameters including month_id
         if not scope_id or not sub_scope_id or not month_id or not year:
-            flash("ข้อมูลไม่ครบถ้วน กรุณาตรวจสอบอีกครั้ง", "error")
+            # print(
+            # f"Missing required parameters in normal mode: scope_id={scope_id}, sub_scope_id={sub_scope_id}, month_id={month_id}, year={year}"
+            # )
+            # ใช้ toast notification สำหรับ error
             response = make_response("")
+            encoded_message = urllib.parse.quote("ข้อมูลไม่ครบถ้วน กรุณาตรวจสอบอีกครั้ง")
+
+            trigger_data = {"showError": encoded_message}
+            response.headers["HX-Trigger"] = json.dumps(trigger_data)
             return response
 
     if not materials:
-        flash("กรุณากรอกข้อมูลอย่างน้อย 1 ฟิลด์", "warning")
+        # ใช้ toast notification สำหรับ warning
         response = make_response("")
+        encoded_message = urllib.parse.quote("กรุณากรอกข้อมูลอย่างน้อย 1 ฟิลด์")
+
+        trigger_data = {"showWarning": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
         return response
 
     # Save each material
@@ -953,9 +980,12 @@ def save_materials():
 
         response = make_response(table_html)
 
-        # เพิ่ม flash message สำหรับความสำเร็จ
+        # เพิ่ม toast notification สำหรับความสำเร็จ
         if saved_count > 0:
-            flash(f"บันทึกข้อมูลสำเร็จ!", "success")
+            encoded_message = urllib.parse.quote(f"บันทึกข้อมูลสำเร็จ!")
+
+        trigger_data = {"showSuccess": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
 
         return response
     else:
@@ -1136,7 +1166,11 @@ def delete_material():
 
         response = make_response(table_html)
 
-        flash("ลบข้อมูลเรียบร้อยแล้ว", "warning")
+        # เพิ่ม toast notification สีเหลืองสำหรับการลบ
+        encoded_message = urllib.parse.quote("ลบข้อมูลเรียบร้อยแล้ว")
+
+        trigger_data = {"showWarning": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
 
         return response
 
@@ -1291,15 +1325,27 @@ def delete_all_materials():
 
             # เปลี่ยนเป็น toast notification สีเหลืองสำหรับการลบ
             if deleted_count > 0:
-                flash(f"ลบข้อมูลทั้งหมดเรียบร้อยแล้ว ({deleted_count} รายการ)", "warning")
+                # แสดง warning toast สีเหลืองแทนสีเขียว
+                encoded_message = urllib.parse.quote(
+                    f"ลบข้อมูลทั้งหมดเรียบร้อยแล้ว ({deleted_count} รายการ)"
+                )
+                trigger_data = {"showWarning": encoded_message}
             else:
-                flash("ไม่มีข้อมูลที่สามารถลบได้", "info")
+                # แสดง info toast ถ้าไม่มีการลบ
+                encoded_message = urllib.parse.quote("ไม่มีข้อมูลที่สามารถลบได้")
+                trigger_data = {"showInfo": encoded_message}
+
+            response.headers["HX-Trigger"] = json.dumps(trigger_data)
 
             return response
 
     except Exception as e:
-        flash(f"เกิดข้อผิดพลาดในการลบข้อมูล: {str(e)}", "error")
+        # ใช้ toast notification สำหรับ error
         response = make_response("")
+        encoded_message = urllib.parse.quote(f"เกิดข้อผิดพลาดในการลบข้อมูล: {str(e)}")
+
+        trigger_data = {"showError": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
         return response
 
 
@@ -1359,8 +1405,13 @@ def load_upload_modal(
 def upload_file():
     file = request.files.get("file")
     if not file:
-        flash("กรุณาเลือกไฟล์ที่ต้องการอัปโหลด", "error")
+        # ใช้ toast notification สำหรับ error
+
         response = make_response("")
+        encoded_message = urllib.parse.quote("กรุณาเลือกไฟล์ที่ต้องการอัปโหลด")
+
+        trigger_data = {"showError": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
         return response
 
     scope_id = request.form.get("scope_id")
@@ -1623,43 +1674,6 @@ def get_form_details(material_name):
 @module.route("/get-linked-form-info/<material_name>", methods=["GET"])
 @login_required
 def get_linked_form_info(material_name):
-    pass
-
-
-@module.route("/show-full-name", methods=["POST"])
-@login_required
-def show_full_name():
-    """แสดงชื่อเต็มผ่าน Flash Message"""
-    full_name = request.form.get('full_name')
-    if full_name:
-        flash(f"ชื่อเต็ม: {full_name}", 'info')
-    
-    # ส่งกลับไปยังหน้าเดิม
-    return make_response("", 200)
-
-
-@module.route("/get-material-name-detail/<material_name>", methods=["GET"])
-@login_required
-def get_material_name_detail(material_name):
-    """
-    แสดงรายละเอียดชื่อ material แบบเต็มใน toast notification
-    """
-    try:
-        # ส่งชื่อ material เต็มกลับไปแสดงใน toast
-        response = make_response("", 200)
-
-        # ใช้ HX-Trigger เพื่อแสดง toast ด้วยชื่อ material เต็ม
-        toast_data = {"showMaterialName": {"message": material_name, "type": "info"}}
-        response.headers["HX-Trigger"] = json.dumps(toast_data)
-        return response
-
-    except Exception as e:
-        response = make_response("", 500)
-        error_data = {
-            "showError": {"message": f"เกิดข้อผิดพลาด: {str(e)}", "type": "error"}
-        }
-        response.headers["HX-Trigger"] = json.dumps(error_data)
-        return response
     """
     ดึงข้อมูลการลิงก์สำหรับแสดงในตารางเมื่อคลิกที่ข้อมูลลิงก์
     """
