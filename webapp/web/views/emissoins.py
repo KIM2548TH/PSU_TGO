@@ -12,7 +12,7 @@ from ..forms.user_form import LoginForm, RegisterForm, EditUserForm, Editprofile
 from ...services.user_service import UserService
 from ...models import User, Role, Permission, Scope, FormAndFormula
 from ...models.materail_model import Material, QuantityType  # เพิ่ม import QuantityType
-from ..forms.material_form import MaterialForm
+from ..forms.material_form import MaterialForm, validate_material_data
 from ..utils.acl import permissions_required_all
 import datetime
 import re
@@ -70,7 +70,6 @@ def get_user_scopes():
         return user_scopes
 
     except Exception as e:
-        # print(f"Error getting user scopes: {e}")
         return []
 
 
@@ -84,7 +83,6 @@ def get_current_scope_index(user_scopes, scope_id, sub_scope_id):
                 return i
         return -1
     except Exception as e:
-        # print(f"Error getting current scope index: {e}")
         return -1
 
 
@@ -141,8 +139,6 @@ def view_emissions():
     selected_year = request.form.get("year_form_scope")
     quick_edit = request.form.get("quick_edit", "false").lower() == "true"
 
-    # print(f"view_emissions received quick_edit: {quick_edit}")
-
     # ดึงปีจาก Material
     years = sorted(Material.objects().distinct("year"))
     # ถ้ามีปีใน database ใช้ปีแรก, ถ้าไม่มีให้ใช้ปีปัจจุบัน
@@ -150,7 +146,6 @@ def view_emissions():
     # ปีปัจจุบัน
     current_year = datetime.datetime.now().year
     years = list(range(start_year, current_year + 1))
-    # year_list = list(range(start_year, current_year + 1))
     scope = Scope.objects(
         ghg_scope=int(scope_id),
         ghg_sup_scope=int(sub_scope_id),
@@ -174,7 +169,6 @@ def view_emissions():
             current_scope_index = i
             break
 
-    # print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", selected_year)
     return render_template(
         "emissions-scope/view-emissions.html",
         scope_id=scope_id,
@@ -182,11 +176,11 @@ def view_emissions():
         user=current_user,
         years=years,
         ghg_name=ghg_name,
-        current_year=current_year,  # ส่งปีปัจจุบันไปยังเทมเพลต
-        selected_year=int(selected_year),  # ใช้ปีที่เลือกหรือปีปัจจุบัน
+        current_year=current_year,
+        selected_year=int(selected_year),
         user_scopes=user_scopes,
         current_scope_index=current_scope_index,
-        quick_edit=quick_edit,  # ส่ง quick_edit state ไปยัง template
+        quick_edit=quick_edit,
     )
 
 
@@ -196,20 +190,8 @@ def load_emissions_table():
     scope_id = request.args.get("scope_id")
     sub_scope_id = request.args.get("sub_scope_id")
 
-    # Handle URL encoding issue - check for malformed parameter names
-    if not sub_scope_id and request.args.get("amp;sub_scope_id"):
-        sub_scope_id = request.args.get("amp;sub_scope_id")
-        # print("Found malformed sub_scope_id parameter, corrected it")
-
     year = request.args.get("year") or datetime.datetime.now().year
     page = int(request.args.get("page", 1))
-
-    # Validate required parameters
-    if not scope_id or not sub_scope_id:
-        # print(
-        # f"Missing required parameters: scope_id={scope_id}, sub_scope_id={sub_scope_id}"
-        # )
-        return jsonify({"error": "Missing required parameters"}), 400
 
     # Check for quick_edit parameter from both args and form data
     quick_edit_param = request.args.get("quick_edit") or request.form.get("quick_edit")
@@ -222,17 +204,6 @@ def load_emissions_table():
         elif quick_edit_param is True:
             quick_edit = True
 
-    # Debug information
-    # print(f"=== LOAD EMISSIONS TABLE DEBUG ===")
-    # print(f"Request method: {request.method}")
-    # print(f"Request URL: {request.url}")
-    # print(f"Request args: {dict(request.args)}")
-    # print(f"Request form: {dict(request.form)}")
-    # print(f"HX-Request header: {request.headers.get('HX-Request')}")
-    # print(f"Quick edit param raw: {repr(quick_edit_param)}")
-    # print(f"Quick edit mode final: {quick_edit}")
-    # print(f"==================================")
-
     scope = Scope.objects(
         ghg_scope=int(scope_id),
         ghg_sup_scope=int(sub_scope_id),
@@ -240,7 +211,9 @@ def load_emissions_table():
         department=current_user.department_key,
     ).first()
     if not scope:
-        return jsonify({"error": "Scope not found"}), 404
+        return render_template(
+            "emissions-scope/partials/error.html", error="Scope not found"
+        )
 
     head_table = scope.head_table
 
@@ -281,21 +254,12 @@ def load_emissions_table():
             current_scope_index = i
             break
 
-    # Always handle HTMX requests and initial page loads
-    # For debugging: Always render the template to see what's happening
     # Choose template based on edit mode
     template_name = (
         "emissions-scope/partials/quick-edit-table.html"
         if quick_edit
         else "emissions-scope/partials/emissions-table.html"
     )
-
-    # print(f"Using template: {template_name} (Quick Edit: {quick_edit})")
-
-    # Force quick edit template for testing
-    if request.args.get("force_quick") == "true":
-        template_name = "emissions-scope/partials/quick-edit-table.html"
-        # print("FORCED Quick Edit template!")
 
     return render_template(
         template_name,
@@ -304,7 +268,7 @@ def load_emissions_table():
         sub_scope_id=sub_scope_id,
         materials=materials,
         head_table=current_headers,
-        head_table_info=head_table_info,  # เพิ่มข้อมูลฟอร์ม
+        head_table_info=head_table_info,
         total_pages=total_pages,
         page=page,
         user=current_user,
@@ -330,16 +294,8 @@ def load_material_form():
     scope_id = request.args.get("scope_id")
     unit = request.args.get("input_unit")
 
-    # ตรวจสอบข้อมูลที่จำเป็น
-    if not month_id or not head:
-        # print("Missing month_id or head in request")
-        return jsonify({"error": "Invalid month or head"}), 400
-
-    # สร้างฟอร์มใหม่
-    form = MaterialForm()
     return render_template(
         "emissions-scope/partials/material-form.html",
-        form=form,
         month_id=month_id,
         head=head,
         year=year,
@@ -350,7 +306,7 @@ def load_material_form():
         input_field=input_field,
         sub_scope_id=sub_scope_id,
         scope_id=scope_id,
-        unit=unit,  # ส่งค่า unit ไปยังเทมเพลต
+        unit=unit,
     )
 
 
@@ -362,7 +318,6 @@ def load_materials_form():
     scope_id = request.args.get("scope_id")
     sub_scope_id = request.args.get("sub_scope_id")
     month = request.args.get("month")
-    # print("<<<<<<<<<<<<<<<<<<<<<<", scope_id, sub_scope_id, month_id, year)
 
     # ดึงข้อมูล materials
     materials = Material.objects(
@@ -402,14 +357,6 @@ def load_materials_form():
     )
 
 
-# สมมติว่าคลาสเหล่านี้มีการกำหนดไว้แล้ว (จากโค้ดเดิมของคุณ)
-# class FormAndFormula:
-#     ...
-#
-# class Material:
-#     ...
-
-
 def calculate_result(material):
     """
     คำนวณผลลัพธ์จากสูตรและบันทึก result และ result2 ลงใน material
@@ -418,7 +365,6 @@ def calculate_result(material):
     # ดึงข้อมูลสูตรจากฐานข้อมูล
     form_and_formula = FormAndFormula.objects(material_name=material.name).first()
     if not form_and_formula:
-        print(f"ไม่พบสูตรสำหรับ material: {material.name}")
         return
 
     # สร้าง mapping ระหว่างชื่อตัวแปรภาษาไทย กับชื่อที่ปลอดภัย
@@ -512,12 +458,8 @@ def calculate_result(material):
         material.save()
 
     except Exception as e:
-        print(f"เกิดข้อผิดพลาดในการคำนวณผลลัพธ์สำหรับ {material.name}: {e}")
-        print("--- Debug Information ---")
-        print(f"Original formula: {form_and_formula.formula}")
-        print(f"Sanitized formula: {sanitized_formula}")
-        print(f"Sanitized variables: {sanitized_variables}")
-        # print("-----------------------")
+        # Log error without printing sensitive data
+        pass
 
 
 def save_material(scope_id, sub_scope_id, month_id, year, material_data):
@@ -676,6 +618,39 @@ def save_materials():
     input_label = request.form.get("input_label")
     input_field = request.form.get("input_field")
     quick_edit_mode = request.form.get("quick_edit_mode", "false").lower() == "true"
+
+    # Flask-WTF validation (minimal impact - same error handling as before)
+    # ✅ กำหนด validation mode ให้ถูกต้อง
+    if quick_edit_mode:
+        validation_mode = "quick_edit"
+    elif "head" in request.form and "amount" in request.form:
+        validation_mode = "single"  # โหมดปกติ (material-form.html)
+    else:
+        validation_mode = "multiple"  # โหมดหลายตัว (materials-form.html)
+
+    is_valid, validation_errors = validate_material_data(
+        dict(request.form), validation_mode
+    )
+
+    if not is_valid:
+        # Add debug logging for troubleshooting
+        print(f"Validation failed: {validation_errors}")
+        print(f"Form data keys: {list(request.form.keys())}")
+        print(f"Validation mode: {validation_mode}")
+        print(
+            f"Amount fields: {[k for k in request.form.keys() if k.startswith('amount_')]}"
+        )
+
+        # Return validation errors via existing toast notification system
+        response = make_response("")
+        error_message = "; ".join(validation_errors[:3])  # Show first 3 errors
+        if len(validation_errors) > 3:
+            error_message += f"... และอีก {len(validation_errors) - 3} ข้อผิดพลาด"
+
+        encoded_message = urllib.parse.quote(error_message)
+        trigger_data = {"showError": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
+        return response
 
     # Debug information for save_materials
     # print(f"=== SAVE MATERIALS DEBUG ===")
