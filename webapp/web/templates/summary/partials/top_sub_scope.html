@@ -1,10 +1,10 @@
 <div id="top-sub-scope-content" class="space-y-1">
-  {% if top_sub_scopes and top_sub_scopes|length > 0 %}
-    {% set total_emissions = top_sub_scopes|sum(attribute='total_result') %}
+  {% if top_materials and top_materials|length > 0 %}
+    {% set total_emissions = top_materials|sum(attribute='result2') %}
     {% set safe_total = total_emissions if total_emissions > 0 else 1 %}
     <div class="space-y-1">
-      {% for sub_scope in top_sub_scopes %}
-        {% set pct = (sub_scope.total_result / safe_total * 100) if safe_total else 0 %}
+      {% for material in top_materials %}
+        {% set pct = (material.result2 / safe_total * 100) if safe_total else 0 %}
         <div class="bg-white rounded-lg p-2 border border-gray-100 hover:border-gray-200 transition-colors">
           <div class="flex items-center space-x-2">
             <div class="flex items-center justify-center w-6 h-6 rounded text-xs font-bold text-white
@@ -16,17 +16,18 @@
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex justify-between items-center">
-                <span class="text-xs font-medium text-gray-900 truncate pr-2">{{ sub_scope.ghg_name }}</span>
+                <span class="text-xs font-medium text-gray-900 truncate pr-2">{{ material.head }}</span>
                 <span class="text-xs font-bold text-gray-900 whitespace-nowrap">
-                  {% if sub_scope.total_result >= 1000000 %}
-                    {{ (sub_scope.total_result / 1000000)|round(1) }}M
-                  {% elif sub_scope.total_result >= 1000 %}
-                    {{ (sub_scope.total_result / 1000)|round(1) }}k
+                  {% if material.result2 >= 1000000 %}
+                    {{ (material.result2 / 1000000)|round(1) }}M
+                  {% elif material.result2 >= 1000 %}
+                    {{ (material.result2 / 1000)|round(1) }}k
                   {% else %}
-                    {{ sub_scope.total_result|round(0) }}
-                  {% endif %}
+                    {{ material.result2|round(1) }}
+                  {% endif %} tonCO₂e
                 </span>
               </div>
+              <div class="text-xs text-gray-500 truncate mb-1">{{ material.scope_name }}</div>
               <div class="mt-1 flex items-center space-x-2">
                 <div class="flex-1 bg-gray-100 rounded-full h-1">
                   <div class="h-full rounded-full transition-all duration-500
@@ -52,7 +53,7 @@
           {% elif total_emissions >= 1000 %}
             {{ (total_emissions / 1000)|round(1) }}k
           {% else %}
-            {{ total_emissions|round(0) }}
+            {{ total_emissions|round(1) }}
           {% endif %} tonCO₂e
         </span>
       </div>
