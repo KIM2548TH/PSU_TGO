@@ -127,10 +127,10 @@
           </div>
           {% if show_dropdown %}
             <div class="mt-2">
-              <button type="button" class="btn btn-xs btn-outline btn-primary" onclick="document.getElementById('responsible-dropdown').classList.toggle('hidden')">
+              <button type="button" id="show-responsible-btn" class="btn btn-xs btn-outline btn-primary" onclick="document.getElementById('responsible-dropdown').classList.remove('hidden'); this.style.display='none';">
                 ดูผู้รับผิดชอบเพิ่มเติม ({{ responsibles[max_cards:]|length }})
               </button>
-              <div id="responsible-dropdown" class="hidden mt-2">
+              <div id="responsible-dropdown" class="hidden mt-2 relative">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                   {% for user in responsibles[max_cards:] %}
                     <div class="relative flex items-center gap-2 bg-gray-50 rounded-md p-2 border border-gray-200 hover:bg-blue-50 transition-colors w-full cursor-pointer" onclick="toggleDropdown(this)">
@@ -171,6 +171,11 @@
                     }
                   </script>
                   {% endfor %}
+                </div>
+                <div class="flex justify-end mt-4">
+                  <button type="button" class="btn btn-xs btn-outline btn-primary" onclick="document.getElementById('responsible-dropdown').classList.add('hidden'); document.getElementById('show-responsible-btn').style.display='';">
+                    ปิดรายชื่อผู้รับผิดชอบเพิ่มเติม
+                  </button>
                 </div>
               </div>
             </div>
