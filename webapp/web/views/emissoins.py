@@ -146,7 +146,6 @@ def view_emissions():
     # ปีปัจจุบัน
     current_year = datetime.datetime.now().year
     years = list(range(start_year, current_year + 1))
-    # year_list = list(range(start_year, current_year + 1))
     scope = Scope.objects(
         ghg_scope=int(scope_id),
         ghg_sup_scope=int(sub_scope_id),
@@ -177,11 +176,11 @@ def view_emissions():
         user=current_user,
         years=years,
         ghg_name=ghg_name,
-        current_year=current_year,  # ส่งปีปัจจุบันไปยังเทมเพลต
-        selected_year=int(selected_year),  # ใช้ปีที่เลือกหรือปีปัจจุบัน
+        current_year=current_year,
+        selected_year=int(selected_year),
         user_scopes=user_scopes,
         current_scope_index=current_scope_index,
-        quick_edit=quick_edit,  # ส่ง quick_edit state ไปยัง template
+        quick_edit=quick_edit,
     )
 
 
@@ -193,13 +192,6 @@ def load_emissions_table():
 
     year = request.args.get("year") or datetime.datetime.now().year
     page = int(request.args.get("page", 1))
-
-    # Validate required parameters
-    if not scope_id or not sub_scope_id:
-        # print(
-        # f"Missing required parameters: scope_id={scope_id}, sub_scope_id={sub_scope_id}"
-        # )
-        return jsonify({"error": "Missing required parameters"}), 400
 
     # Check for quick_edit parameter from both args and form data
     quick_edit_param = request.args.get("quick_edit") or request.form.get("quick_edit")
@@ -219,7 +211,9 @@ def load_emissions_table():
         department=current_user.department_key,
     ).first()
     if not scope:
-        return jsonify({"error": "Scope not found"}), 404
+        return render_template(
+            "emissions-scope/partials/error.html", error="Scope not found"
+        )
 
     head_table = scope.head_table
 
@@ -274,7 +268,7 @@ def load_emissions_table():
         sub_scope_id=sub_scope_id,
         materials=materials,
         head_table=current_headers,
-        head_table_info=head_table_info,  # เพิ่มข้อมูลฟอร์ม
+        head_table_info=head_table_info,
         total_pages=total_pages,
         page=page,
         user=current_user,
@@ -300,11 +294,6 @@ def load_material_form():
     scope_id = request.args.get("scope_id")
     unit = request.args.get("input_unit")
 
-    # ตรวจสอบข้อมูลที่จำเป็น
-    if not month_id or not head:
-        return jsonify({"error": "Invalid month or head"}), 400
-
-    # ✅ ลบการสร้าง MaterialForm ที่ไม่จำเป็น - ใช้ validation ใน backend แล้ว
     return render_template(
         "emissions-scope/partials/material-form.html",
         month_id=month_id,
@@ -317,7 +306,7 @@ def load_material_form():
         input_field=input_field,
         sub_scope_id=sub_scope_id,
         scope_id=scope_id,
-        unit=unit,  # ส่งค่า unit ไปยังเทมเพลต
+        unit=unit,
     )
 
 
@@ -366,14 +355,6 @@ def load_materials_form():
         sub_scope_id=sub_scope_id,
         month=month,
     )
-
-
-# สมมติว่าคลาสเหล่านี้มีการกำหนดไว้แล้ว (จากโค้ดเดิมของคุณ)
-# class FormAndFormula:
-#     ...
-#
-# class Material:
-#     ...
 
 
 def calculate_result(material):
