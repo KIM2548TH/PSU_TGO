@@ -144,16 +144,29 @@
       </div>
     </div>
 
-    <!-- Top Sub Scopes Section -->
+    <!-- Top Materials Section -->
     <details class="bg-white rounded-lg p-4 lg:p-5 mb-4 shadow-sm" id="top-sub-scope-panel">
       <summary class="flex items-center justify-between cursor-pointer">
-        <h3 class="font-semibold text-gray-800 text-sm">{{ t.top_sub_scopes}}</h3>
+        <h3 class="font-semibold text-gray-800 text-sm">Top Materials</h3>
         <span class="text-xs text-primary">{{ t.show }} / {{ t.hide }}</span>
       </summary>
 
       <div class="mt-4">
         <!-- Scope Selector -->
         <div class="flex flex-wrap gap-4 mb-3 text-xs">
+          <!-- All Scopes Option -->
+          <label class="flex items-center gap-1 cursor-pointer">
+            <input type="radio"
+                   name="selected_scope"
+                   value="all"
+                   class="radio radio-xs radio-primary"
+                   hx-get="/summary/partials/top_sub_scope?selected_scope=all"
+                   hx-include="[name='selected_year']:checked"
+                   hx-target="#top-sub-scope-content"
+                   hx-swap="innerHTML"
+                   hx-trigger="change">
+            <span class="text-blue-600 font-medium">ทุก Scope</span>
+          </label>
           {% for s in [1,2,3] %}
           <label class="flex items-center gap-1 cursor-pointer">
             <input type="radio"
@@ -172,7 +185,7 @@
 
         <div id="top-sub-scope-content"
              class="min-h-[60px] text-sm text-gray-500">
-          <span class="text-xs text-gray-400">Select a scope to view top sub scopes.</span>
+          <span class="text-xs text-gray-400">Select a scope to view top materials.</span>
         </div>
       </div>
 
