@@ -267,77 +267,63 @@ def mapping_excel_edit():
 def form_choices_modal():
     if request.method == "GET" and not request.headers.get("HX-Request"):
         abort(404)
-    
     scope_num = int(request.args.get("scope_num"))
     key = request.args.get("key")
     encoded_key = request.args.get("encoded_key", "")
+    sub_scope_index = request.args.get("sub_scope_index")
+    if sub_scope_index is None:
+        sub_scope_index = 0
+    else:
+        sub_scope_index = int(sub_scope_index)
+    # ดึงฟอร์มทั้งหมดของ scope_num แล้วจัดกลุ่มตามซับสโคป
     user = User.objects.with_id(current_user.id)
     selected_subscopes = {
         1: user.ghg_scope_1 or [],
         2: user.ghg_scope_2 or [],
         3: user.ghg_scope_3 or []
     }
-    # หา sub_scope ที่ key อยู่
-    sub_scope = None
+    grouped_forms = {}
     for sub in selected_subscopes[scope_num]:
         forms = FormAndFormula.objects(ghg_scope=scope_num, ghg_sup_scope=sub)
-        for f in forms:
-            if key in f.material_name:
-                sub_scope = sub
-                break
-        if sub_scope:
-            break
-    # ดึง form choices เฉพาะ scope/sub_scope
-    forms = FormAndFormula.objects(ghg_scope=scope_num, ghg_sup_scope=sub_scope)
-    form_choices = [(str(f.id), f.material_name) for f in forms]
-    
+        grouped_forms[sub] = [(str(f.id), f.material_name) for f in forms]
+    # ...existing code...
+    campus_id = current_user.campus_id
+    department_key = current_user.department_key
+    year = request.args.get("year", 2025, type=int)
+    sheet_name = "Fr-04.1"
+    mapping_doc = MaterialMappingExcel.objects(
+        campus_id=campus_id,
+        department_key=department_key,
+        year=year,
+        sheet_name=sheet_name
+    ).first()
+    selected_ids = []
+    if mapping_doc and key in mapping_doc.mappings:
+        selected_ids = []
+        for i in mapping_doc.mappings[key]:
+            if isinstance(i, dict) and "id" in i:
+                selected_ids.append(i["id"])
+            else:
+                selected_ids.append(i)
     form = FormChoicesModalForm()
     if request.method == "POST" and form.validate_on_submit():
         selected = request.form.getlist("form_choices")
-        print(f"DEBUG: scope_num={scope_num}, key={key}, selected={selected}")
-        campus_id = current_user.campus_id
-        department_key = current_user.department_key
-        year = request.args.get("year", 2025, type=int)
-        sheet_name = "Fr-04.1"
-        mapping_doc = MaterialMappingExcel.objects(
-            campus_id=campus_id,
-            department_key=department_key,
-            year=year,
-            sheet_name=sheet_name
-        ).first()
-        if not mapping_doc:
-            mapping_doc = MaterialMappingExcel(
-                campus_id=campus_id,
-                department_key=department_key,
-                year=year,
-                sheet_name=sheet_name,
-                mappings={}
-            )
-        # อัปเดต mappings เฉพาะ key นี้ เป็น list ของ id string
-        mapping_doc.mappings[key] = selected
-        try:
+        if mapping_doc:
+            mapping_doc.mappings[key] = selected
             mapping_doc.updated_date = mapping_doc.updated_date.now()
             mapping_doc.save()
-            print(f"DEBUG: Saved mapping_doc for key={key} with ids={selected}")
-            response = make_response("")
-            response.headers["HX-Trigger"] = '{"showSuccess": "%s", "closeModal": true}' % urllib.parse.quote("บันทึกข้อมูลสำเร็จ")
-            return response
-        except Exception as e:
-            print(f"ERROR: {e}")
-            response = make_response("")
-            response.headers["HX-Trigger"] = '{"showError": "%s", "closeModal": true}' % urllib.parse.quote("บันทึกข้อมูลไม่สำเร็จ")
-            return response
-    
-    # GET request - แสดง modal
-    selected = request.args.getlist("selected")
+        response = make_response("")
+        response.headers["HX-Trigger"] = '{"showSuccess": "success", "closeModal": true}'
+        return response
     return render_template(
         "material-mapping-excel/partials/modal-form-choices.html",
-        form_choices=form_choices,
-        selected=selected,
+        grouped_forms=grouped_forms,
+        selected_ids=selected_ids,
         submit_url=url_for("material_mapping_excel.form_choices_modal", scope_num=scope_num, key=key),
         scope_num=scope_num,
         key=key,
         encoded_key=encoded_key,
+        sub_scope_index=sub_scope_index,
         form=form
     )
 
@@ -346,7 +332,8 @@ def form_choices_modal():
 def update_row():
     key = request.form.get("key")
     encoded_key = request.form.get("encoded_key")
-    selected_scope = int(request.form.get("scope"))
+    selected_scope_val = request.form.get("scope")
+    selected_scope = int(selected_scope_val) if selected_scope_val else 1
     selected_ids = request.form.getlist("form_choices") or request.form.getlist("selected_ids")
     campus_id = current_user.campus_id
     department_key = current_user.department_key

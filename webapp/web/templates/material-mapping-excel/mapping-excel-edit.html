@@ -48,7 +48,7 @@
   {% if keys_by_scope[selected_scope] %}
     <div class="rounded-lg shadow-lg mb-8 border border-gray-200 overflow-hidden">
       {% for sub_scope_title, sub_sub_dict in keys_by_scope[selected_scope].items() %}
-        <div class="{{ subhead_bg }} px-4 py-2 text-base font-bold text-white">{{ sub_scope_title }}</div>
+        <div class="{{ subhead_bg }} px-4 py-2 text-base font-bold text-white">({{ selected_scope }}.{{loop.index}}) {{ sub_scope_title }}</div>
         {% for sub_sub_title, items in sub_sub_dict.items() %}
           <div class="{{ head_bg }} px-4 py-2 text-base font-semibold border-b border-gray-100 text-white">{{ sub_sub_title }}</div>
           <div class="overflow-x-auto {{ field_bg }}">
