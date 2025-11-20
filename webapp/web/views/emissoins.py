@@ -12,7 +12,7 @@ from ..forms.user_form import LoginForm, RegisterForm, EditUserForm, Editprofile
 from ...services.user_service import UserService
 from ...models import User, Role, Permission, Scope, FormAndFormula
 from ...models.materail_model import Material, QuantityType  # เพิ่ม import QuantityType
-from ..forms.material_form import MaterialForm
+from ..forms.material_form import MaterialForm, validate_material_data
 from ..utils.acl import permissions_required_all
 import datetime
 import re
@@ -332,14 +332,11 @@ def load_material_form():
 
     # ตรวจสอบข้อมูลที่จำเป็น
     if not month_id or not head:
-        # print("Missing month_id or head in request")
         return jsonify({"error": "Invalid month or head"}), 400
 
-    # สร้างฟอร์มใหม่
-    form = MaterialForm()
+    # ✅ ลบการสร้าง MaterialForm ที่ไม่จำเป็น - ใช้ validation ใน backend แล้ว
     return render_template(
         "emissions-scope/partials/material-form.html",
-        form=form,
         month_id=month_id,
         head=head,
         year=year,
@@ -676,6 +673,39 @@ def save_materials():
     input_label = request.form.get("input_label")
     input_field = request.form.get("input_field")
     quick_edit_mode = request.form.get("quick_edit_mode", "false").lower() == "true"
+
+    # Flask-WTF validation (minimal impact - same error handling as before)
+    # ✅ กำหนด validation mode ให้ถูกต้อง
+    if quick_edit_mode:
+        validation_mode = "quick_edit"
+    elif "head" in request.form and "amount" in request.form:
+        validation_mode = "single"  # โหมดปกติ (material-form.html)
+    else:
+        validation_mode = "multiple"  # โหมดหลายตัว (materials-form.html)
+
+    is_valid, validation_errors = validate_material_data(
+        dict(request.form), validation_mode
+    )
+
+    if not is_valid:
+        # Add debug logging for troubleshooting
+        print(f"Validation failed: {validation_errors}")
+        print(f"Form data keys: {list(request.form.keys())}")
+        print(f"Validation mode: {validation_mode}")
+        print(
+            f"Amount fields: {[k for k in request.form.keys() if k.startswith('amount_')]}"
+        )
+
+        # Return validation errors via existing toast notification system
+        response = make_response("")
+        error_message = "; ".join(validation_errors[:3])  # Show first 3 errors
+        if len(validation_errors) > 3:
+            error_message += f"... และอีก {len(validation_errors) - 3} ข้อผิดพลาด"
+
+        encoded_message = urllib.parse.quote(error_message)
+        trigger_data = {"showError": encoded_message}
+        response.headers["HX-Trigger"] = json.dumps(trigger_data)
+        return response
 
     # Debug information for save_materials
     # print(f"=== SAVE MATERIALS DEBUG ===")
