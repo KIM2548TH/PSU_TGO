@@ -83,6 +83,17 @@
         </span>
       </div>
     </div>
+
+    <!-- Export Excel Button & Settings in summary card -->
+    <div class="flex justify-end mb-4 gap-2">
+      <button class="btn btn-circle btn-outline" title="ตั้งค่า Material Mapping"
+        onclick="window.location.href='{{ url_for('material_mapping_excel.mapping_excel_edit') }}'">
+        <i data-feather="settings" class="w-5 h-5"></i>
+      </button>
+      <a href="{{ url_for('material_mapping_excel.export_excel') }}" class="btn btn-success" download>
+        <i data-feather="download" class="w-4 h-4 mr-1"></i> ดาวน์โหลดไฟล์ Excel Mapping
+      </a>
+    </div>
   </div>
 
   <!-- ✅ Scope Cards as Radio Buttons -->

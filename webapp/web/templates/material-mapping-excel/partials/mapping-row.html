@@ -1,0 +1,32 @@
+{% set encoded_key = key|replace(' ', '_')|replace('.', '_')|replace('+', '_') %}
+<tr id="row-{{ encoded_key }}" class="bg-white">
+  <td class="text-gray-500 font-semibold">{{ key }}</td>
+  <td>
+    <div>
+      {% if selected_ids and selected_ids|length > 0 %}
+        <ul class="list-disc ml-4 inline-block text-left mb-2">
+          {% for mid in selected_ids %}
+            <li>{{ form_and_formula_dict[mid].material_name if form_and_formula_dict[mid] else mid }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <span class="text-gray-400">-</span>
+      {% endif %}
+    </div>
+    {% for mid in selected_ids %}
+      <input type="hidden" name="material_{{ selected_scope }}_{{ encoded_key }}" value="{{ mid }}">
+    {% endfor %}
+    <button id="formChoicesBtn_{{ selected_scope }}_{{ encoded_key }}" type="button" class="btn btn-outline btn-sm"
+      hx-get="{{ url_for('material_mapping_excel.form_choices_modal', scope_num=selected_scope, key=key, encoded_key=encoded_key) }}"
+      hx-target="#modal-content" hx-swap="innerHTML">
+      เลือก Form/Formula
+    </button>
+  </td>
+  <td>
+    {% if selected_ids and selected_ids|length > 0 %}
+      <span class="badge badge-success">เลือกแล้ว</span>
+    {% else %}
+      <span class="badge badge-warning">ยังไม่ได้เลือก</span>
+    {% endif %}
+  </td>
+</tr>

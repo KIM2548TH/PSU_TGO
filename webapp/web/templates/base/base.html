@@ -66,6 +66,13 @@
       
       // ใช้ event listener เดียวสำหรับ HTMX events
       document.addEventListener('htmx:afterSwap', function(e) {
+        // เปิด modal ถ้า target คือ modal-content
+        if (e.detail.target && e.detail.target.id === 'modal-content') {
+          const modal = document.getElementById('modal');
+          if (modal) {
+            modal.classList.add('modal-open');
+          }
+        }
         // เรียก feather.replace() เฉพาะเมื่อจำเป็น
         setTimeout(() => {
           if (typeof feather !== 'undefined') {

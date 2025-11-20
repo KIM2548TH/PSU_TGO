@@ -1,0 +1,29 @@
+<!-- เนื้อหา modal เฉพาะส่วนที่ต้องแสดงใน modal-content -->
+<h3 class="font-bold text-lg mb-4">เลือก Form/Formula</h3>
+<form id="formChoicesForm" method="POST">
+  {{ form.csrf_token }}
+  <div class="max-h-96 overflow-y-auto">
+    {% for mid, mname in form_choices %}
+    <div class="form-control">
+      <label class="label cursor-pointer">
+        <span class="label-text">{{ mname }}</span>
+        <input type="checkbox" name="form_choices" value="{{ mid }}" {% if mid in selected %}checked{% endif %} class="checkbox checkbox-primary" />
+      </label>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="modal-action">
+    <button type="submit" class="btn btn-primary"
+      hx-post="/material-mapping-excel/update-row"
+      hx-include="#formChoicesForm"
+      hx-target="#row-{{ encoded_key }}"
+      hx-swap="outerHTML">
+      บันทึก
+    </button>
+    <button type="button" class="btn" onclick="document.getElementById('modal').classList.remove('modal-open')">ยกเลิก</button>
+  </div>
+  <input type="hidden" name="key" value="{{ key }}">
+  <input type="hidden" name="encoded_key" value="{{ encoded_key }}">
+  <input type="hidden" name="scope" value="{{ scope_num }}">
+  <input type="hidden" name="year" value="{{ request.args.get('year', 2025) }}">
+</form>
