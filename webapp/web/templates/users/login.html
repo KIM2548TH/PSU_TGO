@@ -113,12 +113,18 @@
         
             <div class="mb-4">
               <label class="label text-sm">Password</label>
-              <input
-                type="password"
-                name="password"
-                placeholder="Enter your password"
-                class="input input-bordered w-full"
-              />
+              <div class="relative">
+                <input
+                  id="password-input"
+                  type="password"
+                  name="password"
+                  placeholder="Enter your password"
+                  class="input input-bordered w-full pr-14"
+                />
+                <button type="button" id="toggle-password" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 focus:outline-none z-10" aria-label="Show password">
+                  <i data-feather="eye" id="eye-icon"></i>
+                </button>
+              </div>
               {% if form.password.errors %}
               <p class="text-red-500 text-sm mt-1">{{ form.password.errors[0] }}</p>
               {% endif %}
@@ -228,6 +234,20 @@
 
   <script>
     feather.replace();
+    // Password toggle
+    document.addEventListener('DOMContentLoaded', function () {
+      const passwordInput = document.getElementById('password-input');
+      const toggleBtn = document.getElementById('toggle-password');
+      let show = false;
+      toggleBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        show = !show;
+        passwordInput.type = show ? 'text' : 'password';
+        // แก้ไข logic: ถ้า show=true (แสดงรหัสผ่าน) ให้ใช้ eye (เปิดตา), ถ้า show=false (ซ่อนรหัสผ่าน) ให้ใช้ eye-off (ปิดตา)
+        toggleBtn.innerHTML = `<i data-feather="${show ? 'eye' : 'eye-off'}" id="eye-icon"></i>`;
+        feather.replace();
+      });
+    });
   </script>
 </body>
 </html>
