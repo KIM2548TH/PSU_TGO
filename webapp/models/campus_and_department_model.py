@@ -1,7 +1,7 @@
 import mongoengine as me
 import datetime
 
-class CampusAndDepartment(me.Document):
+class  CampusAndDepartment(me.Document):
     # name คือ ชื่อ campus ({"0":"hatyai"})
     name = me.DictField(required=True)
     # description คือ คำอธิบายของ campus

@@ -12,7 +12,7 @@
       </div>
       <h2 class="text-lg font-bold text-base-content mt-2">{{ user.name if user.name else  "-" }}</h2>
       <p class="text-sm text-base-content/70">{{ user.roles | join(', ') if user.roles else "-" }}</p>
-      <button class="btn btn-outline btn-primary mt-4 w-full">{{ t.change_photo }}</button>
+      <button class="btn btn-outline btn-primary mt-4 w-full" {% if not is_owner %}disabled style="pointer-events:none;opacity:0.6;"{% endif %}>{{ t.change_photo }}</button>
     </div>
 
     <!-- Column 1: Profile Details Section -->
