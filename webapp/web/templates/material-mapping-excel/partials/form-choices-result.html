@@ -1,0 +1,9 @@
+<div>{{ selected_display }}</div>
+{% for mid in selected_ids %}
+  <input type="hidden" name="material_{{ scope_num }}_{{ key }}" value="{{ mid }}">
+{% endfor %}
+<button id="formChoicesBtn_{{ scope_num }}_{{ key }}" type="button" class="btn btn-outline btn-sm"
+  hx-get="{{ url_for('material_mapping_excel.form_choices_modal', scope_num=scope_num, key=key) }}"
+  hx-target="#modal-content" hx-swap="innerHTML">
+  เลือก Form/Formula
+</button>
