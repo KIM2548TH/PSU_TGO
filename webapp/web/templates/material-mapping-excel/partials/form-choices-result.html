@@ -1,3 +1,21 @@
+<table class="w-full table-fixed border border-gray-300 divide-y divide-gray-200">
+  <thead>
+    <tr class="divide-x divide-gray-200">
+      <th class="w-1/4 text-left border-r border-gray-300">Form/Formula</th>
+      <th class="w-1/4 text-left border-r border-gray-300">ประเภท</th>
+      <th class="w-1/2 text-left">รายละเอียด</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for form_id, form in form_choices.items() %}
+    <tr class="divide-x divide-gray-200">
+      <td class="border-r border-gray-300">{{ form['name'] }}</td>
+      <td class="border-r border-gray-300">{{ form['type'] }}</td>
+      <td>{{ form['description'] }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 <div>{{ selected_display }}</div>
 {% for mid in selected_ids %}
   <input type="hidden" name="material_{{ scope_num }}_{{ key }}" value="{{ mid }}">

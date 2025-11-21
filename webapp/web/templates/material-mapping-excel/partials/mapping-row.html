@@ -1,7 +1,7 @@
       {% set encoded_key = key|replace(' ', '_')|replace('.', '_')|replace('+', '_') %}
-      <tr id="row-{{ encoded_key }}" class="bg-white">
-        <td class="text-gray-500 font-semibold">{{ key }}</td>
-        <td>
+      <tr id="row-{{ encoded_key }}" class="bg-white divide-x divide-gray-200">
+        <td class="text-gray-500 font-semibold border-r border-gray-300">{{ key }}</td>
+        <td class="border-r border-gray-300">
           <div>
             {% if selected_ids and selected_ids|length > 0 %}
               <ul class="list-disc ml-4 inline-block text-left mb-2">

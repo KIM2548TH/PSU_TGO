@@ -50,13 +50,13 @@
       {% for sub_scope_title, sub_sub_dict in keys_by_scope[selected_scope].items() %}
         <div class="{{ subhead_bg }} px-4 py-2 text-base font-bold text-white">({{ selected_scope }}.{{loop.index}}) {{ sub_scope_title }}</div>
         {% for sub_sub_title, items in sub_sub_dict.items() %}
-          <div class="{{ head_bg }} px-4 py-2 text-base font-semibold border-b border-gray-100 text-white">{{ sub_sub_title }}</div>
+          <div class="{{ head_bg }} px-4 py-2 text-base font-semibold border-b border-gray-300 text-white">{{ sub_sub_title }}</div>
           <div class="overflow-x-auto {{ field_bg }}">
-            <table class="table w-full table-fixed">
+            <table class="table w-full table-fixed border border-gray-300 divide-y divide-gray-200">
               <thead>
-                <tr class="{{ field_bg }}">
-                  <th class="text-gray-500 font-semibold">รายการย่อย</th>
-                  <th class="text-gray-700 font-semibold">Form/Formula (เลือกได้หลายตัว)</th>
+                <tr class="{{ field_bg }} divide-x divide-gray-200">
+                  <th class="text-gray-500 font-semibold border-r border-gray-300">รายการย่อย</th>
+                  <th class="text-gray-700 font-semibold border-r border-gray-300">Form/Formula (เลือกได้หลายตัว)</th>
                   <th class="text-gray-700 font-semibold">สถานะ</th>
                 </tr>
               </thead>
@@ -68,7 +68,7 @@
                     {% include "material-mapping-excel/partials/mapping-row.html" with context %}
                   {% endfor %}
                 {% else %}
-                  <tr>
+                  <tr class="divide-x divide-gray-200">
                     <td colspan="3" class="text-center text-gray-500 py-4">
                       <div class="flex items-center justify-center gap-2">
                         <i data-feather="info" class="w-4 h-4"></i>
