@@ -11,8 +11,8 @@
   <form id="formChoicesForm" method="POST">
     <table class="w-full border rounded-lg overflow-hidden">
       <thead>
-        <tr class="{{ theme.bg }}">
-          <th class="py-2 px-3 text-left {{ theme.text }}">ซับสโคป</th>
+        <tr class="{{ theme.bg }} ">
+          <th class="py-2 px-3 text-left {{ theme.text }} border-r border-gray-300">Sub Scope</th>
           <th class="py-2 px-3 text-left {{ theme.text }}">ชื่อฟอร์ม</th>
           <th class="py-2 px-3 text-center {{ theme.text }}">เลือก</th>
         </tr>
@@ -21,7 +21,7 @@
         {% for sub_scope, form_list in grouped_forms.items() %}
           {% for mid, mname in form_list %}
             <tr class="hover:bg-gray-100">
-              <td class="py-2 px-3 align-top border-t border-gray-200">{{ sub_scope }}</td>
+              <td class="py-2 px-3 align-top border-t border-gray-200 border-r border-gray-300 text-center">{{ sub_scope }}</td>
               <td class="py-2 px-3 align-top border-t border-gray-200">{{ mname }}</td>
               <td class="py-2 px-3 align-top border-t border-gray-200 text-center">
                 <input type="checkbox" name="form_choices" value="{{ mid }}"
@@ -34,14 +34,14 @@
       </tbody>
     </table>
     <div class="modal-action flex justify-end gap-2 mt-4">
-      <button type="submit" class="{{ theme.btn }}"
+      <button type="button" class="btn" onclick="document.getElementById('modal').classList.remove('modal-open')">ยกเลิก</button>
+      <button type="submit" class="btn bg-[#193F6C] text-white border border-[#193F6C] hover:bg-[#142c4c] hover:border-[#142c4c]"
         hx-post="/material-mapping-excel/update-row"
         hx-include="#formChoicesForm"
         hx-target="#row-{{ encoded_key }}"
         hx-swap="outerHTML">
         บันทึก
       </button>
-      <button type="button" class="btn" onclick="document.getElementById('modal').classList.remove('modal-open')">ยกเลิก</button>
     </div>
     <input type="hidden" name="key" value="{{ key }}">
     <input type="hidden" name="encoded_key" value="{{ encoded_key }}">

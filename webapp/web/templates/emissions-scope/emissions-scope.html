@@ -83,16 +83,28 @@
         </span>
       </div>
     </div>
+  </div>
 
-    <!-- Export Excel Button & Settings in summary card -->
-    <div class="flex justify-end mb-4 gap-2">
-      <button class="btn btn-circle btn-outline" title="ตั้งค่า Material Mapping"
-        onclick="window.location.href='{{ url_for('material_mapping_excel.mapping_excel_edit') }}'">
-        <i data-feather="settings" class="w-5 h-5"></i>
-      </button>
-      <a href="{{ url_for('material_mapping_excel.export_excel') }}" class="btn btn-success" download>
-        <i data-feather="download" class="w-4 h-4 mr-1"></i> ดาวน์โหลดไฟล์ Excel Mapping
-      </a>
+  <!-- Export Excel & Settings Card -->
+  <div class="card shadow-lg border border-green-200 bg-base-100 p-6 rounded-lg mb-4">
+    <div class="flex items-center justify-between gap-4 mt-1 mb-1">
+      <div class="flex items-center gap-3">
+        <div class="bg-green-200 p-2 rounded-full">
+          <i data-feather="file-text" class="w-6 h-6 text-green-600"></i>
+        </div>
+        <div>
+          <span class="font-bold text-green-800 text-lg">Export Excel & Material Mapping</span>
+          <div class="text-sm text-gray-500">ดาวน์โหลดไฟล์ Excel Mapping และตั้งค่าการแมปข้อมูลวัสดุสำหรับ Scope การปล่อย</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 justify-end self-center h-full">
+        <a href="{{ url_for('material_mapping_excel.mapping_excel_edit') }}" class="btn flex items-center" style="background-color:#179068; color:#fff; border:none;">
+          <i data-feather="settings" class="w-4 h-4 mr-1"></i> ตั้งค่า
+        </a>
+        <a href="{{ url_for('material_mapping_excel.export_excel') }}" class="btn btn-success" download>
+          <i data-feather="download" class="w-4 h-4 mr-1"></i> Excel Mapping
+        </a>
+      </div>
     </div>
   </div>
 

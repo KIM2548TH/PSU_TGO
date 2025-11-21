@@ -1748,7 +1748,8 @@ def download_pdf():
                 ]
             )
         )
-        story.append(
+        from reportlab.platypus import KeepTogether
+        story.append(KeepTogether([
             Paragraph(
                 "ตารางเปรียบเทียบค่า tCO₂e รายเดือน ({} vs {})".format(
                     int(selected_year) - 1, selected_year
@@ -1761,10 +1762,10 @@ def download_pdf():
                     spaceAfter=9,
                     alignment=0,
                 ),
-            )
-        )
-        story.append(compare_table)
-        story.append(Spacer(1, 16))
+            ),
+            compare_table,
+            Spacer(1, 16)
+        ]))
         # Charts (bar, pie)
 
         temp_image_paths = []
@@ -1916,7 +1917,6 @@ def download_pdf():
                     alignment=0,
                 ),
             )
-            story.append(notes_header)
             notes_para = Paragraph(
                 decoded_notes,
                 ParagraphStyle(
@@ -1927,7 +1927,11 @@ def download_pdf():
                     leading=16,
                 ),
             )
-            story.append(notes_para)
+            from reportlab.platypus import KeepTogether
+            story.append(KeepTogether([
+                notes_header,
+                notes_para
+            ]))
 
         doc.build(story)
         pdf_buffer.seek(0)
