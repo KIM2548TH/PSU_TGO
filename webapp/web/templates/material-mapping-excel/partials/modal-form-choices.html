@@ -8,43 +8,46 @@
   <div class="font-bold text-lg mb-4 {{ theme.head }} text-white px-4 py-2 rounded">
     เลือก Form/Formula สำหรับ Scope {{ scope_num }}
   </div>
-  <table class="w-full border rounded-lg overflow-hidden">
-    <thead>
-      <tr class="{{ theme.bg }}">
-        <th class="py-2 px-3 text-left {{ theme.text }}">ซับสโคป</th>
-        <th class="py-2 px-3 text-left {{ theme.text }}">ชื่อฟอร์ม</th>
-        <th class="py-2 px-3 text-center {{ theme.text }}">เลือก</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for sub_scope, form_list in grouped_forms.items() %}
-        {% for mid, mname in form_list %}
-          <tr class="hover:bg-gray-100">
-            <td class="py-2 px-3 align-top border-t border-gray-200">{{ sub_scope }}</td>
-            <td class="py-2 px-3 align-top border-t border-gray-200">{{ mname }}</td>
-            <td class="py-2 px-3 align-top border-t border-gray-200 text-center">
-              <input type="checkbox" name="form_choices" value="{{ mid }}"
-                {% if mid in selected_ids %}checked{% endif %}
-                class="checkbox checkbox-primary" />
-            </td>
-          </tr>
+  <form id="formChoicesForm" method="POST">
+    <table class="w-full border rounded-lg overflow-hidden">
+      <thead>
+        <tr class="{{ theme.bg }}">
+          <th class="py-2 px-3 text-left {{ theme.text }}">ซับสโคป</th>
+          <th class="py-2 px-3 text-left {{ theme.text }}">ชื่อฟอร์ม</th>
+          <th class="py-2 px-3 text-center {{ theme.text }}">เลือก</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sub_scope, form_list in grouped_forms.items() %}
+          {% for mid, mname in form_list %}
+            <tr class="hover:bg-gray-100">
+              <td class="py-2 px-3 align-top border-t border-gray-200">{{ sub_scope }}</td>
+              <td class="py-2 px-3 align-top border-t border-gray-200">{{ mname }}</td>
+              <td class="py-2 px-3 align-top border-t border-gray-200 text-center">
+                <input type="checkbox" name="form_choices" value="{{ mid }}"
+                  {% if mid in selected_ids %}checked{% endif %}
+                  class="checkbox checkbox-primary" />
+              </td>
+            </tr>
+          {% endfor %}
         {% endfor %}
-      {% endfor %}
-    </tbody>
-  </table>
-  <div class="modal-action flex justify-end gap-2 mt-4">
-    <button type="submit" class="{{ theme.btn }}"
-      hx-post="/material-mapping-excel/update-row"
-      hx-include="#formChoicesForm"
-      hx-target="#row-{{ encoded_key }}"
-      hx-swap="outerHTML">
-      บันทึก
-    </button>
-    <button type="button" class="btn" onclick="document.getElementById('modal').classList.remove('modal-open')">ยกเลิก</button>
-  </div>
-  <input type="hidden" name="key" value="{{ key }}">
-  <input type="hidden" name="encoded_key" value="{{ encoded_key }}">
-  <input type="hidden" name="scope" value="{{ scope_num }}">
-  <input type="hidden" name="year" value="{{ request.args.get('year', 2025) }}">
+      </tbody>
+    </table>
+    <div class="modal-action flex justify-end gap-2 mt-4">
+      <button type="submit" class="{{ theme.btn }}"
+        hx-post="/material-mapping-excel/update-row"
+        hx-include="#formChoicesForm"
+        hx-target="#row-{{ encoded_key }}"
+        hx-swap="outerHTML">
+        บันทึก
+      </button>
+      <button type="button" class="btn" onclick="document.getElementById('modal').classList.remove('modal-open')">ยกเลิก</button>
+    </div>
+    <input type="hidden" name="key" value="{{ key }}">
+    <input type="hidden" name="encoded_key" value="{{ encoded_key }}">
+    <input type="hidden" name="scope" value="{{ scope_num }}">
+    <input type="hidden" name="year" value="{{ request.args.get('year', 2025) }}">
+  </form>
+
 
 

@@ -1,7 +1,3 @@
-
-  {% set sub_scope_index = loop.index0 %}
-
-
       {% set encoded_key = key|replace(' ', '_')|replace('.', '_')|replace('+', '_') %}
       <tr id="row-{{ encoded_key }}" class="bg-white">
         <td class="text-gray-500 font-semibold">{{ key }}</td>

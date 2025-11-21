@@ -271,7 +271,7 @@ def form_choices_modal():
     key = request.args.get("key")
     encoded_key = request.args.get("encoded_key", "")
     sub_scope_index = request.args.get("sub_scope_index")
-    if sub_scope_index is None:
+    if not sub_scope_index or str(sub_scope_index).strip() == "":
         sub_scope_index = 0
     else:
         sub_scope_index = int(sub_scope_index)
@@ -286,7 +286,6 @@ def form_choices_modal():
     for sub in selected_subscopes[scope_num]:
         forms = FormAndFormula.objects(ghg_scope=scope_num, ghg_sup_scope=sub)
         grouped_forms[sub] = [(str(f.id), f.material_name) for f in forms]
-    # ...existing code...
     campus_id = current_user.campus_id
     department_key = current_user.department_key
     year = request.args.get("year", 2025, type=int)
@@ -351,8 +350,8 @@ def update_row():
     mappings = mapping_doc.mappings or {}
     if key not in mappings or not isinstance(mappings[key], list):
         mappings[key] = []
-    # เก็บเป็น list ของ dict {"id": <material_id>}
-    mappings[key] = [{"id": mid} for mid in selected_ids]
+    # เก็บเป็น list ของ id string (ไม่ใช่ dict)
+    mappings[key] = selected_ids
     mapping_doc.mappings = mappings
     mapping_doc.updated_date = mapping_doc.updated_date.now()
     mapping_doc.save()
@@ -365,7 +364,8 @@ def update_row():
         selected_ids=selected_ids,
         selected_scope=selected_scope,
         encoded_key=encoded_key,
-        form_and_formula_dict=form_and_formula_dict
+        form_and_formula_dict=form_and_formula_dict,
+        sub_scope_index=request.form.get("sub_scope_index", 0)
     ))
     response.headers["HX-Trigger"] = '{"closeModal": true, "showSuccess": "success"}'
     return response
