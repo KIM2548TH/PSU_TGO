@@ -7,11 +7,13 @@ from ...models import CampusAndDepartment, Material, MaterialMappingExcel, FormA
 from ..forms.material_mapping_excel_form import MaterialMappingExcelForm, FormChoicesModalForm
 from wtforms import FieldList, HiddenField
 from webapp.services.export_excel_service import export_material_mapping_excel, export_material_mapping_excel_to_download
+from ..utils.acl import permissions_required_all
 
 module = Blueprint("material_mapping_excel", __name__, url_prefix="/material-mapping-excel")
-
+print("Material Mapping Excel View Loaded")
 @module.route("/", methods=["GET"])
 @login_required
+@permissions_required_all(["จัดการ mapping excel"])
 def mapping_excel_view():
     campus_id = current_user.campus_id
     department_key = current_user.department_key
@@ -107,6 +109,7 @@ def mapping_excel_view():
 
 @module.route("/edit", methods=["GET", "POST"])
 @login_required
+@permissions_required_all(["แก้ไข mapping excel"])
 def mapping_excel_edit():
     campus_id = current_user.campus_id
     department_key = current_user.department_key
@@ -372,6 +375,7 @@ def update_row():
 
 @module.route("/export-excel", methods=["GET"])
 @login_required
+@permissions_required_all(["ดาวน์โหลด mapping excel"])
 def export_excel():
     campus_id = current_user.campus_id
     department_key = current_user.department_key
