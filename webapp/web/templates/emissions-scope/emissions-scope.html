@@ -2,15 +2,17 @@
 {% block content %}
 <script src="{{ 'js/auto-refresh.js' | static_url }}"></script>
 
-  <!-- Header Section -->
+
+
+  <!-- Header Card -->
   <div class="card shadow-lg border border-orange-200 bg-base-100 p-6 rounded-lg mb-8">
-    <div>
-      <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-3">
+    <div class="flex flex-col gap-4">
+      <!-- Top Row: Title left, Year Selector right -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+        <div class="flex items-center gap-2">
           <h2 class="text-2xl font-bold">
             {{ t.emissions_scope_title.replace("{{ year }}", mockup_data.selected_year|string) }}
           </h2>
-          <!-- Year Selector Dropdown -->
           <div class="dropdown dropdown-end">
             <div tabindex="0" role="button" class="btn btn-ghost btn-xs p-1 hover:bg-blue-100 rounded-full">
               <i data-feather="chevron-down" class="w-3 h-3 text-blue-900"></i>
@@ -31,79 +33,103 @@
           </div>
         </div>
       </div>
-      
-      <div class="flex items-center gap-4 mb-0">
-        <p class="text-sm text-gray-500">
-          {{ t.psu_campus.replace("{{ campus }}", current_user.campus|capitalize) }}
-        </p>
-        {% if current_user.campus or current_user.department %}
-        <div class="flex items-center gap-1 text-xs text-gray-400">
-          {% if current_user.campus %}
-            <span class="inline-flex items-center gap-1">
-              <i data-feather="map-pin" class="w-3 h-3"></i>
-              {{ t.campus }}: {{ current_user.campus | capitalize }}
-            </span>
-          {% endif %}
-          {% if current_user.department %}
-            <span class="inline-flex items-center gap-1">
-              <i data-feather="building" class="w-3 h-3"></i>
-              {{ t.department }}: {{ current_user.department }}
-            </span>
-          {% endif %}
-        </div>
-        {% endif %}
-      </div>
-    </div>
-    <!-- Progress Section -->
-    <div class="mt-4 flex items-center gap-4">
-      {% if mockup_data.overall_progress == 0 %}
-        <progress class="progress w-1/3" value="{{ mockup_data.overall_progress }}" max="100"></progress>
-      {% elif mockup_data.overall_progress <= 50 %}
-        <progress class="progress progress-warning w-1/3" value="{{ mockup_data.overall_progress }}" max="100"></progress>
-      {% elif mockup_data.overall_progress < 100 %}
-        <progress class="progress progress-info w-1/3" value="{{ mockup_data.overall_progress }}" max="100"></progress>
-      {% else %}
-        <progress class="progress progress-success w-1/3" value="{{ mockup_data.overall_progress }}" max="100"></progress>
-      {% endif %}
-      
-      <div class="text-sm">
-        <strong>
-          {{ t.overall_progress.replace("{{ year }}", mockup_data.selected_year|string) }}
-        </strong> 
-        {% if mockup_data.overall_progress == 100 %}
-          <span class="text-gray-800 font-bold text-base">{{ mockup_data.overall_progress|int }}%</span>
-        {% else %}
-          <span class="text-gray-800 font-bold text-base">{{ mockup_data.overall_progress }}%</span>
-        {% endif %}
-        <span class="ml-2 text-xs text-gray-500">
-          {{ t.total_sources }}: <span class="text-gray-800 font-bold text-base">{{ mockup_data.total_sources }}</span> |
-          {{ t.in_progress }}: <span class="text-blue-600 font-bold text-base">{{ mockup_data.in_progress }}</span> |
-          {{ t.not_started }}: <span class="text-red-600 font-bold text-base">{{ mockup_data.not_started }}</span> |
-          {{ t.completed }}: <span class="text-green-600 font-bold text-base">{{ mockup_data.completed }}</span>
-        </span>
-      </div>
-    </div>
-  </div>
+      <!-- Campus/Department Info and summary stats -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-0">
+        <div class="flex items-center gap-2">
+          <p class="text-sm text-gray-500">
+            {{ t.psu_campus.replace("{{ campus }}", current_user.campus|capitalize) }}
+          </p>
+          {% if current_user.campus or current_user.department %}
+          <div class="flex items-center gap-3 text-xs text-gray-400">
+            {% if current_user.campus %}
+              <span class="inline-flex items-center gap-1">
+                <i data-feather="map-pin" class="w-3 h-3"></i>
+                {{ t.campus }}: {{ current_user.campus | capitalize }}
+              </span>
+            {% endif %}
+            {% if current_user.department %}
+              <span class="inline-flex items-center gap-1">
 
-  <!-- Export Excel & Settings Card -->
-  <div class="card shadow-lg border border-green-200 bg-base-100 p-6 rounded-lg mb-4">
-    <div class="flex items-center justify-between gap-4 mt-1 mb-1">
-      <div class="flex items-center gap-3">
-        <div class="bg-green-200 p-2 rounded-full">
-          <i data-feather="file-text" class="w-6 h-6 text-green-600"></i>
-        </div>
-        <div>
-          <span class="font-bold text-green-800 text-lg">Export Excel & Material Mapping</span>
-          <div class="text-sm text-gray-500">ดาวน์โหลดไฟล์ Excel Mapping และตั้งค่าการแมปข้อมูลวัสดุสำหรับ Scope การปล่อย</div>
+                <i data-feather="briefcase" class="w-3 h-3 "></i>
+                {{ t.department }}: {{ current_user.department }}
+              </span>
+            {% endif %}
+          </div>
+          {% endif %}
         </div>
       </div>
-      <div class="flex items-center gap-2 justify-end self-center h-full">
-        <a href="{{ url_for('material_mapping_excel.mapping_excel_edit') }}" class="btn flex items-center" style="background-color:#179068; color:#fff; border:none;">
-          <i data-feather="settings" class="w-4 h-4 mr-1"></i> ตั้งค่า
-        </a>
-        <a href="{{ url_for('material_mapping_excel.export_excel') }}" class="btn btn-success" download>
-          <i data-feather="download" class="w-4 h-4 mr-1"></i> Excel Mapping
-        </a>
+      <!-- Progress Section -->
+      <div class="mt-2">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-1">
+          <div class="flex items-center gap-3 text-xs md:text-sm">
+            <div class="px-3 py-1 rounded-lg bg-orange-50 flex items-center gap-2">
+              <i data-feather="pie-chart" class="w-4 h-4 text-orange-400"></i>
+              <span class="text-orange-700">{{ t.overall_progress.replace("{{ year }}", mockup_data.selected_year|string) }}</span>
+              {% if mockup_data.overall_progress == 0 %}
+                <span class="text-red-600 font-bold text-base">{{ mockup_data.overall_progress|int }}%</span>
+              {% elif mockup_data.overall_progress <= 50 %}
+                <span class="text-yellow-500 font-bold text-base">{{ mockup_data.overall_progress }}%</span>
+              {% elif mockup_data.overall_progress < 100 %}
+                <span class="text-blue-600 font-bold text-base">{{ mockup_data.overall_progress }}%</span>
+              {% else %}
+                <span class="text-green-600 font-bold text-base">{{ mockup_data.overall_progress|int }}%</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="flex items-center gap-3 text-xs md:text-sm justify-end md:justify-end w-full md:w-auto">
+            <div class="px-3 py-1 rounded-lg bg-gray-100 flex items-center gap-2">
+              <i data-feather="database" class="w-4 h-4 text-gray-500"></i>
+              <span class="text-gray-700">จำนวนแหล่งทั้งหมด:</span>
+              <span class="font-bold text-gray-900">{{ mockup_data.total_sources }}</span>
+            </div>
+            <div class="px-3 py-1 rounded-lg bg-blue-50 flex items-center gap-2">
+              <i data-feather="activity" class="w-4 h-4 text-blue-400"></i>
+              <span class="text-blue-700">กำลังดำเนินการ:</span>
+              <span class="font-bold text-blue-700">{{ mockup_data.in_progress }}</span>
+            </div>
+            <div class="px-3 py-1 rounded-lg bg-red-50 flex items-center gap-2">
+              <i data-feather="clock" class="w-4 h-4 text-red-400"></i>
+              <span class="text-red-700">ยังไม่เริ่ม:</span>
+              <span class="font-bold text-red-700">{{ mockup_data.not_started }}</span>
+            </div>
+            <div class="px-3 py-1 rounded-lg bg-green-50 flex items-center gap-2">
+              <i data-feather="check-circle" class="w-4 h-4 text-green-400"></i>
+              <span class="text-green-700">เสร็จสิ้น:</span>
+              <span class="font-bold text-green-700">{{ mockup_data.completed }}</span>
+            </div>
+          </div>
+        </div>
+        {% if mockup_data.overall_progress == 0 %}
+          <progress class="progress w-full" value="{{ mockup_data.overall_progress }}" max="100"></progress>
+        {% elif mockup_data.overall_progress <= 50 %}
+          <progress class="progress progress-warning w-full" value="{{ mockup_data.overall_progress }}" max="100"></progress>
+        {% elif mockup_data.overall_progress < 100 %}
+          <progress class="progress progress-info w-full" value="{{ mockup_data.overall_progress }}" max="100"></progress>
+        {% else %}
+          <progress class="progress progress-success w-full" value="{{ mockup_data.overall_progress }}" max="100"></progress>
+        {% endif %}
+      </div>
+      <!-- Export Excel & Material Mapping Section (moved below progress) -->
+      <div class="border-t pt-6 mt-2 border-gray-300">
+        <div class="flex items-center gap-3 justify-between w-full">
+          <div class="flex items-center gap-3">
+            <div class="bg-green-200 p-2 rounded-full">
+              <i data-feather="file-text" class="w-6 h-6 text-green-600"></i>
+            </div>
+            <div>
+              <span class="font-bold text-green-800 text-lg">Export Excel & Material Mapping</span>
+              <div class="text-sm text-gray-500">ดาวน์โหลดไฟล์ Excel Mapping และตั้งค่าการแมปข้อมูลวัสดุสำหรับ Scope การปล่อย</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <a href="{{ url_for('material_mapping_excel.mapping_excel_edit') }}" class="btn flex items-center" style="background-color:#179068; color:#fff; border:none;">
+              <i data-feather="settings" class="w-4 h-4 mr-1"></i> ตั้งค่า
+            </a>
+            <a href="{{ url_for('material_mapping_excel.export_excel') }}" class="btn btn-success" download>
+              <i data-feather="download" class="w-4 h-4 mr-1"></i> Excel Mapping
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -111,7 +137,7 @@
   <!-- ✅ Scope Cards as Radio Buttons -->
 <div class="flex gap-6 mb-6">
   {% for scope_name, scope_items in mockup_data.scopes.items() %}
-  <div id="scope-card-{{ scope_name.replace(' ', '-') }}" class="cursor-pointer p-4 rounded-xl shadow-md border border-gray-300 flex-1 transition-all duration-200
+  <div id="scope-card-{{ scope_name.replace(' ', '-') }}" class="cursor-pointer p-4 rounded-xl shadow-md border-2 border-gray-300 flex-1 transition-all duration-200
     {% if scope_name.endswith('1') %}hover:bg-purple-50 hover:border-purple-300{% endif %}
     {% if scope_name.endswith('2') %}hover:bg-green-50 hover:border-green-300{% endif %}
     {% if scope_name.endswith('3') %}hover:bg-blue-50 hover:border-blue-300{% endif %}"
@@ -123,7 +149,7 @@
       </div>
       <span class="font-bold text-purple-800">{{ scope_name }} <span>
     </div>
-    <div class="pl-12 text-sm text-gray-500" style="text-align:left;">- {{ t.direct_emission }}</div>
+    <div class="pl-12 text-sm text-gray-500" style="text-align:left;">{{ t.direct_emission }}</div>
     {% elif scope_name.endswith('2') %}
     <div class="flex items-center gap-3">
       <div class="bg-green-200 p-2 rounded-full">
@@ -131,7 +157,7 @@
       </div>
       <span class="font-bold text-green-800">{{ scope_name }}  </span>
     </div>
-    <div class="pl-12 text-sm text-gray-500" style="text-align:left;">- {{ t.indirect_emission }}</div>
+    <div class="pl-12 text-sm text-gray-500" style="text-align:left;">{{ t.indirect_emission }}</div>
     {% elif scope_name.endswith('3') %}
     <div class="flex items-center gap-3">
       <div class="bg-blue-200 p-2 rounded-full">
@@ -139,158 +165,158 @@
       </div>
       <span class="font-bold text-blue-800">{{ scope_name }} </span>
     </div>
-    <div class="pl-12 text-sm text-gray-500" style="text-align:left;">- {{ t.indirect_emission_other }}</div>
+    <div class="pl-12 text-sm text-gray-500" style="text-align:left;">{{ t.indirect_emission_other }}</div>
     {% endif %}
   </div>
   {% endfor %}
 </div>
 
+
 {% for scope_name, scope_items in mockup_data.scopes.items() %}
 <div id="{{ scope_name }}" class="mt-12 w-full hidden">
-  <!-- Header Section - แยกออกมาเป็นส่วนต่างหาก -->
-  <div class="mb-6">
-    {% if scope_name.endswith('1') %}
-    <div class="flex items-center gap-3">
-      <div class="bg-purple-100 p-3 rounded-full">
-        <i data-feather="layers" class="w-6 h-6 text-purple-600"></i>
+  <!-- Card background for all subscope cards -->
+  <div class="card shadow-lg border border-gray-300 bg-base-100 p-8">
+    <!-- Header Section - แยกออกมาเป็นส่วนต่างหาก -->
+    <div class="mb-6">
+      {% if scope_name.endswith('1') %}
+      <div class="flex items-center gap-3">
+        <div class="bg-purple-100 p-3 rounded-full">
+          <i data-feather="layers" class="w-6 h-6 text-purple-600"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-purple-800">{{ scope_name }} - {{ t.direct_emission_desc }}</h3>
+        <span class="badge bg-purple-100 text-purple-800 text-sm">{{ scope_items|length }}</span>
       </div>
-      <h3 class="text-2xl font-bold text-purple-800">{{ scope_name }} - {{ t.direct_emission_desc }}</h3>
-      <span class="badge bg-purple-100 text-purple-800 text-sm">{{ scope_items|length }}</span>
-    </div>
-    {% elif scope_name.endswith('2') %}
-    <div class="flex items-center gap-3">
-      <div class="bg-green-100 p-3 rounded-full">
-        <i data-feather="zap" class="w-6 h-6 text-green-600"></i>
+      {% elif scope_name.endswith('2') %}
+      <div class="flex items-center gap-3">
+        <div class="bg-green-100 p-3 rounded-full">
+          <i data-feather="zap" class="w-6 h-6 text-green-600"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-green-800">{{ scope_name }} - {{ t.indirect_emission_desc }}</h3>
+        <span class="badge bg-green-100 text-green-800 text-sm">{{ scope_items|length }}</span>
       </div>
-      <h3 class="text-2xl font-bold text-green-800">{{ scope_name }} - {{ t.indirect_emission_desc }}</h3>
-      <span class="badge bg-green-100 text-green-800 text-sm">{{ scope_items|length }}</span>
-    </div>
-    {% elif scope_name.endswith('3') %}
-    <div class="flex items-center gap-3">
-      <div class="bg-blue-100 p-3 rounded-full">
-        <i data-feather="globe" class="w-6 h-6 text-blue-600"></i>
+      {% elif scope_name.endswith('3') %}
+      <div class="flex items-center gap-3">
+        <div class="bg-blue-100 p-3 rounded-full">
+          <i data-feather="globe" class="w-6 h-6 text-blue-600"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-blue-800">{{ scope_name }} - {{ t.indirect_emission_other_desc }}</h3>
+        <span class="badge bg-blue-100 text-blue-800 text-sm">{{ scope_items|length }}</span>
       </div>
-      <h3 class="text-2xl font-bold text-blue-800">{{ scope_name }} - {{ t.indirect_emission_other_desc }}</h3>
-      <span class="badge bg-blue-100 text-blue-800 text-sm">{{ scope_items|length }}</span>
+      {% else %}
+      <div class="flex items-center gap-4">
+        <span class="w-10 h-10 flex items-center justify-center bg-primary text-white rounded-full">
+          {{ scope_name[-1] }}
+        </span>
+        <h3 class="text-xl font-semibold">{{ scope_name }}</h3>
+      </div>
+      {% endif %}
     </div>
-    {% else %}
-    <div class="flex items-center gap-4">
-      <span class="w-10 h-10 flex items-center justify-center bg-primary text-white rounded-full">
-        {{ scope_name[-1] }}
-      </span>
-      <h3 class="text-xl font-semibold">{{ scope_name }}</h3>
-    </div>
-    {% endif %}
-  </div>
-  
-  <!-- Grid Container - มีความกว้างคงที่ไม่ขึ้นอยู่กับ header -->
-  <div class="w-full max-w-none">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {% for scope in scope_items %}
-      <div class="card shadow-lg border w-full h-auto min-w-0
-        {% if scope_name.endswith('1') %}border-purple-200 bg-base-100{% endif %}
-        {% if scope_name.endswith('2') %}border-green-200 bg-base-100{% endif %}
-        {% if scope_name.endswith('3') %}border-blue-200 bg-base-100{% endif %}
-        p-6">
-        <!-- แถวที่ 1: ชื่อ + status badge -->
-        <div class="flex justify-between items-start mb-4 w-full">
-          <div class="flex items-center gap-3 min-w-0 flex-1">
-            <div class="
-              {% if scope_name.endswith('1') %}bg-purple-100 text-purple-600{% endif %}
-              {% if scope_name.endswith('2') %}bg-green-100 text-green-600{% endif %}
-              {% if scope_name.endswith('3') %}bg-blue-100 text-blue-600{% endif %}
-              p-2 rounded-full flex-shrink-0 w-8 h-8 flex items-center justify-center">
-              <span class="text-xs font-bold">{{ scope.ghg_scope }}.{{ scope.ghg_sup_scope }}</span>
+    <!-- Grid Container - subscope cards -->
+    <div class="w-full max-w-none">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for scope in scope_items %}
+        <div class="card shadow-lg border w-full h-auto min-w-0
+          {% if scope_name.endswith('1') %}border-purple-200 bg-base-100{% endif %}
+          {% if scope_name.endswith('2') %}border-green-200 bg-base-100{% endif %}
+          {% if scope_name.endswith('3') %}border-blue-200 bg-base-100{% endif %}
+          p-6">
+          <!-- ...existing code for subscope card... -->
+          <div class="flex justify-between items-start mb-4 w-full">
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <div class="
+                {% if scope_name.endswith('1') %}bg-purple-100 text-purple-600{% endif %}
+                {% if scope_name.endswith('2') %}bg-green-100 text-green-600{% endif %}
+                {% if scope_name.endswith('3') %}bg-blue-100 text-blue-600{% endif %}
+                p-2 rounded-full flex-shrink-0 w-8 h-8 flex items-center justify-center">
+                <span class="text-xs font-bold">{{ scope.ghg_scope }}.{{ scope.ghg_sup_scope }}</span>
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="text-lg font-semibold break-words break-all leading-snug flex-1">{{ scope.ghg_name }}</h3>
+                  {% if scope.ghg_desc %}
+                  <button class="info-btn hover:bg-gray-200 p-1 rounded-full transition-colors flex-shrink-0"
+                    hx-get="{{ url_for('emissions_scope.scope_description', ghg_scope=scope.ghg_scope, ghg_sup_scope=scope.ghg_sup_scope) }}"
+                    hx-target="#modal-content"
+                    hx-swap="innerHTML"
+                    hx-on="htmx:afterRequest: document.getElementById('modal').classList.add('modal-open')"
+                    title="{{ t.view_details }}">
+                    <i data-feather="info" class="w-4 h-4 text-gray-500 hover:text-
+                      {% if scope_name.endswith('1') %}purple{% endif %}
+                      {% if scope_name.endswith('2') %}green{% endif %}
+                      {% if scope_name.endswith('3') %}blue{% endif %}
+                      -600 cursor-pointer"></i>
+                  </button>
+                  {% endif %}
+                </div>
+              </div>
             </div>
-            <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-2 mb-1">
-                <h3 class="text-lg font-semibold break-words break-all leading-snug flex-1">{{ scope.ghg_name }}</h3>
-                {% if scope.ghg_desc %}
-                <button class="info-btn hover:bg-gray-200 p-1 rounded-full transition-colors flex-shrink-0"
-                  hx-get="{{ url_for('emissions_scope.scope_description', ghg_scope=scope.ghg_scope, ghg_sup_scope=scope.ghg_sup_scope) }}"
-                  hx-target="#modal-content"
-                  hx-swap="innerHTML"
-                  hx-on="htmx:afterRequest: document.getElementById('modal').classList.add('modal-open')"
-                  title="{{ t.view_details }}">
-                  <i data-feather="info" class="w-4 h-4 text-gray-500 hover:text-
-                    {% if scope_name.endswith('1') %}purple{% endif %}
-                    {% if scope_name.endswith('2') %}green{% endif %}
-                    {% if scope_name.endswith('3') %}blue{% endif %}
-                    -600 cursor-pointer"></i>
-                </button>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              {% if scope.progress == 0 %}
+                <span class="px-3 py-1 bg-red-500 text-white text-xs rounded-full">{{ scope.status }}</span>
+              {% elif scope.progress <= 50 %}
+                <span class="px-3 py-1 bg-yellow-500 text-white text-xs rounded-full">{{ scope.status }}</span>
+              {% elif scope.progress < 100 %}
+                <span class="px-3 py-1 bg-blue-500 text-white text-xs rounded-full">{{ scope.status }}</span>
+              {% else %}
+                <span class="px-3 py-1 bg-green-500 text-white text-xs rounded-full">{{ scope.status }}</span>
+              {% endif %}
+            </div>
+          </div>
+          <!-- แถวที่ 2: Progress Circle (ซ้าย) + Settings & Edit Buttons (ขวา) -->
+          <div class="flex justify-between items-center w-full">
+            <div class="relative w-12 h-12">
+              <svg class="w-full h-full transform -rotate-90">
+                <circle cx="50%" cy="50%" r="18" stroke="#e5e7eb" stroke-width="3" fill="none"></circle>
+                {% if scope.progress == 0 %}
+                {% elif scope.progress <= 50 %}
+                  <circle cx="50%" cy="50%" r="18" stroke="#fbbf24" stroke-width="3" fill="none"
+                    stroke-dasharray="113" stroke-dashoffset="{{ 113 - (scope.progress / 100) * 113 }}"></circle>
+                {% elif scope.progress < 100 %}
+                  <circle cx="50%" cy="50%" r="18" stroke="#3b82f6" stroke-width="3" fill="none"
+                    stroke-dasharray="113" stroke-dashoffset="{{ 113 - (scope.progress / 100) * 113 }}"></circle>
+                {% else %}
+                  <circle cx="50%" cy="50%" r="18" stroke="#10b981" stroke-width="3" fill="none"
+                    stroke-dasharray="113" stroke-dashoffset="{{ 113 - (scope.progress / 100) * 113 }}"></circle>
+                {% endif %}
+              </svg>
+              <div class="absolute inset-0 flex items-center justify-center">
+                {% if scope.progress == 0 %}
+                  <span class="text-xs font-bold text-gray-400">{{ scope.progress|int }}%</span>
+                {% elif scope.progress <= 50 %}
+                  <span class="text-xs font-bold text-yellow-600">{{ scope.progress }}%</span>
+                {% elif scope.progress < 100 %}
+                  <span class="text-xs font-bold text-blue-600">{{ scope.progress }}%</span>
+                {% else %}
+                  <span class="text-xs font-bold text-green-600">{{ scope.progress|int }}%</span>
                 {% endif %}
               </div>
             </div>
-          </div>
-          
-          <div class="flex items-center gap-2 flex-shrink-0">
-            {% if scope.progress == 0 %}
-              <span class="px-3 py-1 bg-red-500 text-white text-xs rounded-full">{{ scope.status }}</span>
-            {% elif scope.progress <= 50 %}
-              <span class="px-3 py-1 bg-yellow-500 text-white text-xs rounded-full">{{ scope.status }}</span>
-            {% elif scope.progress < 100 %}
-              <span class="px-3 py-1 bg-blue-500 text-white text-xs rounded-full">{{ scope.status }}</span>
-            {% else %}
-              <span class="px-3 py-1 bg-green-500 text-white text-xs rounded-full">{{ scope.status }}</span>
-            {% endif %}
-          </div>
-        </div>
-        
-        <!-- แถวที่ 2: Progress Circle (ซ้าย) + Settings & Edit Buttons (ขวา) -->
-        <div class="flex justify-between items-center w-full">
-          <div class="relative w-12 h-12">
-            <svg class="w-full h-full transform -rotate-90">
-              <circle cx="50%" cy="50%" r="18" stroke="#e5e7eb" stroke-width="3" fill="none"></circle>
-              {% if scope.progress == 0 %}
-              {% elif scope.progress <= 50 %}
-                <circle cx="50%" cy="50%" r="18" stroke="#fbbf24" stroke-width="3" fill="none"
-                  stroke-dasharray="113" stroke-dashoffset="{{ 113 - (scope.progress / 100) * 113 }}"></circle>
-              {% elif scope.progress < 100 %}
-                <circle cx="50%" cy="50%" r="18" stroke="#3b82f6" stroke-width="3" fill="none"
-                  stroke-dasharray="113" stroke-dashoffset="{{ 113 - (scope.progress / 100) * 113 }}"></circle>
-              {% else %}
-                <circle cx="50%" cy="50%" r="18" stroke="#10b981" stroke-width="3" fill="none"
-                  stroke-dasharray="113" stroke-dashoffset="{{ 113 - (scope.progress / 100) * 113 }}"></circle>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              {% if has_permission("แก้ไขข้อมูลการปล่อย") %}
+              <button 
+                class="text-blue-500 hover:text-blue-700 btn btn-ghost btn-sm btn-circle"
+                title="{{ t.edit_scope }}"
+                hx-get="{{ url_for('emissions_scope.edit_scope', ghg_scope=scope.ghg_scope, ghg_sup_scope=scope.ghg_sup_scope) }}"
+                hx-target="#modal-content"
+                hx-swap="innerHTML"
+                hx-on="htmx:afterRequest: document.getElementById('modal').classList.add('modal-open')"
+                title="{{ t.edit_scope }}">
+                <i data-feather="settings" class="w-5 h-5"></i>
+              </button>
               {% endif %}
-            </svg>
-            <div class="absolute inset-0 flex items-center justify-center">
-              {% if scope.progress == 0 %}
-                <span class="text-xs font-bold text-gray-400">{{ scope.progress|int }}%</span>
-              {% elif scope.progress <= 50 %}
-                <span class="text-xs font-bold text-yellow-600">{{ scope.progress }}%</span>
-              {% elif scope.progress < 100 %}
-                <span class="text-xs font-bold text-blue-600">{{ scope.progress }}%</span>
-              {% else %}
-                <span class="text-xs font-bold text-green-600">{{ scope.progress|int }}%</span>
-              {% endif %}
+              <form action="{{ url_for('emissions.view_emissions') }}" method="POST" style="display: inline;">
+                <input type="hidden" name="scope_id" value="{{ scope.ghg_scope }}">
+                <input type="hidden" name="sub_scope_id" value="{{ scope.ghg_sup_scope }}">
+                <input type="hidden" name="year_form_scope" value="{{ mockup_data.selected_year }}">
+                <button type="submit" class="text-blue-500 hover:text-blue-700 btn btn-ghost btn-sm btn-circle" title="Edit Data">
+                  <i data-feather="edit" class="w-5 h-5"></i>
+                </button>
+              </form>
             </div>
           </div>
-          
-          <div class="flex items-center gap-2 flex-shrink-0">
-            {% if has_permission("แก้ไขข้อมูลการปล่อย") %}
-            <button 
-              class="text-blue-500 hover:text-blue-700 btn btn-ghost btn-sm btn-circle"
-              title="{{ t.edit_scope }}"
-              hx-get="{{ url_for('emissions_scope.edit_scope', ghg_scope=scope.ghg_scope, ghg_sup_scope=scope.ghg_sup_scope) }}"
-              hx-target="#modal-content"
-              hx-swap="innerHTML"
-              hx-on="htmx:afterRequest: document.getElementById('modal').classList.add('modal-open')"
-              title="{{ t.edit_scope }}">
-              <i data-feather="settings" class="w-5 h-5"></i>
-            </button>
-            {% endif %}
-            <form action="{{ url_for('emissions.view_emissions') }}" method="POST" style="display: inline;">
-              <input type="hidden" name="scope_id" value="{{ scope.ghg_scope }}">
-              <input type="hidden" name="sub_scope_id" value="{{ scope.ghg_sup_scope }}">
-              <input type="hidden" name="year_form_scope" value="{{ mockup_data.selected_year }}">
-              <button type="submit" class="text-blue-500 hover:text-blue-700 btn btn-ghost btn-sm btn-circle" title="Edit Data">
-                <i data-feather="edit" class="w-5 h-5"></i>
-              </button>
-            </form>
-          </div>
         </div>
+        {% endfor %}
       </div>
-      {% endfor %}
     </div>
   </div>
 </div>
