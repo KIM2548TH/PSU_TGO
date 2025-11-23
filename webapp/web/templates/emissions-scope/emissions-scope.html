@@ -5,7 +5,7 @@
 
 
   <!-- Header Card -->
-  <div class="card shadow-lg border border-orange-200 bg-base-100 p-6 rounded-lg mb-8">
+  <div class="card shadow-lg border border-orange-200 bg-base-100 p-6 rounded-lg mb-6">
     <div class="flex flex-col gap-4">
       <!-- Top Row: Title left, Year Selector right -->
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
@@ -135,72 +135,83 @@
   </div>
 
   <!-- ✅ Scope Cards as Radio Buttons -->
-<div class="flex gap-6 mb-6">
+<div class="flex gap-4 mb-6">
   {% for scope_name, scope_items in mockup_data.scopes.items() %}
-  <div id="scope-card-{{ scope_name.replace(' ', '-') }}" class="cursor-pointer p-4 rounded-xl shadow-md border-2 border-gray-300 flex-1 transition-all duration-200
+  <div id="scope-card-{{ scope_name.replace(' ', '-') }}" class="cursor-pointer p-4 rounded-xl shadow-md border-2 border-gray-300 flex-1 transition-all duration-200 bg-white
     {% if scope_name.endswith('1') %}hover:bg-purple-50 hover:border-purple-300{% endif %}
     {% if scope_name.endswith('2') %}hover:bg-green-50 hover:border-green-300{% endif %}
     {% if scope_name.endswith('3') %}hover:bg-blue-50 hover:border-blue-300{% endif %}"
        onclick="toggleScope('{{ scope_name }}')">
-    {% if scope_name.endswith('1') %}
-    <div class="flex items-center gap-3">
-      <div class="bg-purple-200 p-2 rounded-full">
-        <i data-feather="layers" class="w-5 h-5 text-purple-600"></i>
-      </div>
-      <span class="font-bold text-purple-800">{{ scope_name }} <span>
+    <div class="flex items-center gap-4">
+      {% if scope_name.endswith('1') %}
+        <div class="bg-purple-100 p-2 rounded-full flex items-center justify-center">
+          <i data-feather="layers" class="w-6 h-6 text-purple-600"></i>
+        </div>
+        <div>
+          <p class="font-bold text-gray-800">Scope 1</p>
+          <p class="text-sm text-gray-600">การปล่อยทางตรง</p>
+        </div>
+      {% elif scope_name.endswith('2') %}
+        <div class="bg-green-100 p-2 rounded-full flex items-center justify-center">
+          <i data-feather="zap" class="w-6 h-6 text-green-600"></i>
+        </div>
+        <div>
+          <p class="font-bold text-gray-800">Scope 2</p>
+          <p class="text-sm text-gray-600">การปล่อยก๊าซ(พลังงาน)</p>
+        </div>
+      {% elif scope_name.endswith('3') %}
+        <div class="bg-blue-100 p-2 rounded-full flex items-center justify-center">
+          <i data-feather="globe" class="w-6 h-6 text-blue-600"></i>
+        </div>
+        <div>
+          <p class="font-bold text-gray-800">Scope 3</p>
+          <p class="text-sm text-gray-600">การปล่อยก๊าซ(อื่นๆ)</p>
+        </div>
+      {% endif %}
     </div>
-    <div class="pl-12 text-sm text-gray-500" style="text-align:left;">{{ t.direct_emission }}</div>
-    {% elif scope_name.endswith('2') %}
-    <div class="flex items-center gap-3">
-      <div class="bg-green-200 p-2 rounded-full">
-        <i data-feather="zap" class="w-5 h-5 text-green-600"></i>
-      </div>
-      <span class="font-bold text-green-800">{{ scope_name }}  </span>
-    </div>
-    <div class="pl-12 text-sm text-gray-500" style="text-align:left;">{{ t.indirect_emission }}</div>
-    {% elif scope_name.endswith('3') %}
-    <div class="flex items-center gap-3">
-      <div class="bg-blue-200 p-2 rounded-full">
-        <i data-feather="globe" class="w-5 h-5 text-blue-600"></i>
-      </div>
-      <span class="font-bold text-blue-800">{{ scope_name }} </span>
-    </div>
-    <div class="pl-12 text-sm text-gray-500" style="text-align:left;">{{ t.indirect_emission_other }}</div>
-    {% endif %}
   </div>
   {% endfor %}
 </div>
 
 
 {% for scope_name, scope_items in mockup_data.scopes.items() %}
-<div id="{{ scope_name }}" class="mt-12 w-full hidden">
+<div id="{{ scope_name }}" class="w-full hidden mb-6">
   <!-- Card background for all subscope cards -->
   <div class="card shadow-lg border border-gray-300 bg-base-100 p-8">
     <!-- Header Section - แยกออกมาเป็นส่วนต่างหาก -->
     <div class="mb-6">
       {% if scope_name.endswith('1') %}
-      <div class="flex items-center gap-3">
-        <div class="bg-purple-100 p-3 rounded-full">
+      <div class="flex items-center gap-4">
+        <div class="bg-purple-100 p-3 rounded-full flex items-center justify-center">
           <i data-feather="layers" class="w-6 h-6 text-purple-600"></i>
         </div>
-        <h3 class="text-2xl font-bold text-purple-800">{{ scope_name }} - {{ t.direct_emission_desc }}</h3>
-        <span class="badge bg-purple-100 text-purple-800 text-sm">{{ scope_items|length }}</span>
+        <div class="flex-1">
+          <h2 class="text-2xl font-bold text-purple-800">Scope 1 - การปล่อยทางตรง</h2>
+          <p class="text-sm text-gray-600">{{ t.direct_emission_desc }}</p>
+        </div>
+        <span class="ml-auto badge bg-purple-100 text-purple-800 text-sm font-medium px-3 py-1 rounded-full">{{ scope_items|length }} รายการ</span>
       </div>
       {% elif scope_name.endswith('2') %}
-      <div class="flex items-center gap-3">
-        <div class="bg-green-100 p-3 rounded-full">
+      <div class="flex items-center gap-4">
+        <div class="bg-green-100 p-3 rounded-full flex items-center justify-center">
           <i data-feather="zap" class="w-6 h-6 text-green-600"></i>
         </div>
-        <h3 class="text-2xl font-bold text-green-800">{{ scope_name }} - {{ t.indirect_emission_desc }}</h3>
-        <span class="badge bg-green-100 text-green-800 text-sm">{{ scope_items|length }}</span>
+        <div class="flex-1">
+          <h2 class="text-2xl font-bold text-green-800">Scope 2 - การปล่อยก๊าซ(พลังงาน)</h2>
+          <p class="text-sm text-gray-600">{{ t.indirect_emission_desc }}</p>
+        </div>
+        <span class="ml-auto badge bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">{{ scope_items|length }} รายการ</span>
       </div>
       {% elif scope_name.endswith('3') %}
-      <div class="flex items-center gap-3">
-        <div class="bg-blue-100 p-3 rounded-full">
+      <div class="flex items-center gap-4">
+        <div class="bg-blue-100 p-3 rounded-full flex items-center justify-center">
           <i data-feather="globe" class="w-6 h-6 text-blue-600"></i>
         </div>
-        <h3 class="text-2xl font-bold text-blue-800">{{ scope_name }} - {{ t.indirect_emission_other_desc }}</h3>
-        <span class="badge bg-blue-100 text-blue-800 text-sm">{{ scope_items|length }}</span>
+        <div class="flex-1">
+          <h2 class="text-2xl font-bold text-blue-800">Scope 3 - การปล่อยก๊าซ(อื่นๆ)</h2>
+          <p class="text-sm text-gray-600">{{ t.indirect_emission_other_desc }}</p>
+        </div>
+        <span class="ml-auto badge bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">{{ scope_items|length }} รายการ</span>
       </div>
       {% else %}
       <div class="flex items-center gap-4">
