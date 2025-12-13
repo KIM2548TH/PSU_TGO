@@ -6,8 +6,12 @@
     
     <div class="mb-4 p-4 bg-gray-50 rounded-lg">
         <div class="flex items-center gap-3 mb-2">
-            <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold">
+            <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold overflow-hidden border-2 border-white shadow-sm">
+                {% if user.profile_picture %}
+                <img src="{{ user.profile_picture }}" alt="Profile" class="w-full h-full object-cover">
+                {% else %}
                 <span class="text-lg font-bold">{{ (user.name[0] if user.name else user.username[0])|upper }}</span>
+                {% endif %}
             </div>
             <div>
                 <div class="font-medium">{{ user.name if user.name else user.username }}</div>
