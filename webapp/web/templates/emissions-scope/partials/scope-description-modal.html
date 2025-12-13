@@ -99,8 +99,12 @@
             {% for user in responsibles[:max_cards] %}
                 <div class="relative flex items-center gap-2 bg-gray-50 rounded-md p-2 border border-gray-200 hover:bg-blue-50 transition-colors w-full cursor-pointer" onclick="toggleDropdown(this)">
                   <a href="{{ url_for('profile.view_profile', username=user.username) }}" class="flex-shrink-0" onclick="event.stopPropagation();">
-                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-200 text-blue-700">
+                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-200 text-blue-700 overflow-hidden border-2 border-white shadow-sm">
+                      {% if user.profile_picture %}
+                      <img src="{{ user.profile_picture }}" alt="Profile" class="w-full h-full object-cover">
+                      {% else %}
                       <i data-feather="user" class="w-5 h-5"></i>
+                      {% endif %}
                     </span>
                   </a>
                   <span class="font-semibold text-sm text-gray-900 break-words flex-1">{{ user.display_name if user.display_name else user.name }}</span>
@@ -135,8 +139,12 @@
                   {% for user in responsibles[max_cards:] %}
                     <div class="relative flex items-center gap-2 bg-gray-50 rounded-md p-2 border border-gray-200 hover:bg-blue-50 transition-colors w-full cursor-pointer" onclick="toggleDropdown(this)">
                       <a href="{{ url_for('profile.view_profile', username=user.username) }}" class="flex-shrink-0" onclick="event.stopPropagation();">
-                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-200 text-blue-700">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-200 text-blue-700 overflow-hidden border-2 border-white shadow-sm">
+                          {% if user.profile_picture %}
+                          <img src="{{ user.profile_picture }}" alt="Profile" class="w-full h-full object-cover">
+                          {% else %}
                           <i data-feather="user" class="w-5 h-5"></i>
+                          {% endif %}
                         </span>
                       </a>
                       <span class="font-semibold text-sm text-gray-900 break-words flex-1">{{ user.display_name if user.display_name else user.name }}</span>

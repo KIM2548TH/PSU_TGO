@@ -17,8 +17,12 @@
           <tr class="hover:bg-base-100 border-t border-base-200 {% if user.status != 'active' %}opacity-50 bg-gray-50{% endif %}">
             <td class="px-4 py-3">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold {% if user.status != 'active' %}opacity-70{% endif %}">
+                <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold overflow-hidden border-2 border-white shadow-sm {% if user.status != 'active' %}opacity-70{% endif %}">
+                  {% if user.profile_picture %}
+                  <img src="{{ user.profile_picture }}" alt="Profile" class="w-full h-full object-cover">
+                  {% else %}
                   <span class="text-lg font-bold">{{ (user.name[0] if user.name else user.username[0])|upper }}</span>
+                  {% endif %}
                 </div>
                 <div>
                   <div class="font-medium {% if user.status != 'active' %}text-gray-500{% endif %}">{{ user.name if user.name else user.username }}</div>

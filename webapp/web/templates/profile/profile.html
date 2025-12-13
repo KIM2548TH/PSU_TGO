@@ -7,12 +7,28 @@
     <!-- Column 0: Profile Overview Section -->
     <div class="col-span-1 card bg-base-100 shadow-md p-6 flex flex-col items-center h-86">
       <h2 class="text-lg font-bold text-base-content mb-4">{{ t.profile_overview }}</h2>
-      <div class="w-32 h-32 rounded-full bg-primary text-primary-content flex items-center justify-center mb-4">
-        <span class="text-4xl font-bold">{{ (user.name[0] if user.name else user.username[0])|upper }}</span>
+      
+      <!-- Profile Picture -->
+      <div class="relative w-32 h-32 mb-4">
+        <div id="profile-picture" class="w-32 h-32 rounded-full bg-primary text-primary-content flex items-center justify-center overflow-hidden border-4 border-white shadow-lg">
+          {% if user.profile_picture %}
+          <img src="{{ user.profile_picture }}" alt="Profile" class="w-full h-full object-cover">
+          {% else %}
+          <span class="text-4xl font-bold">{{ (user.name[0] if user.name else user.username[0])|upper }}</span>
+          {% endif %}
+        </div>
+        <!-- Camera Icon Overlay -->
+        <label for="profile-picture-input" class="absolute bottom-0 right-0 w-10 h-10 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary-focus transition-colors shadow-lg border-2 border-white {% if not is_owner %}hidden{% endif %}">
+          <i data-feather="camera" class="w-5 h-5 text-primary-content"></i>
+        </label>
       </div>
+      
+      <!-- Hidden File Input -->
+      <input type="file" id="profile-picture-input" accept="image/*" class="hidden" {% if not is_owner %}disabled{% endif %}>
+      
       <h2 class="text-lg font-bold text-base-content mt-2">{{ user.name if user.name else  "-" }}</h2>
       <p class="text-sm text-base-content/70">{{ user.roles | join(', ') if user.roles else "-" }}</p>
-      <button class="btn btn-outline btn-primary mt-4 w-full" {% if not is_owner %}disabled style="pointer-events:none;opacity:0.6;"{% endif %}>{{ t.change_photo }}</button>
+      <button id="upload-photo-btn" class="btn btn-outline btn-primary mt-4 w-full hidden" {% if not is_owner %}disabled style="pointer-events:none;opacity:0.6;"{% endif %}>{{ t.save_photo or 'บันทึกรูปภาพ' }}</button>
     </div>
 
     <!-- Column 1: Profile Details Section -->
@@ -127,4 +143,82 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('profile-picture-input');
+    const profilePicture = document.getElementById('profile-picture');
+    const uploadBtn = document.getElementById('upload-photo-btn');
+    let selectedFile = null;
+
+    // Handle file selection
+    if (fileInput) {
+      fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+          selectedFile = file;
+          
+          // Preview the image
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            profilePicture.innerHTML = `<img src="${event.target.result}" alt="Profile" class="w-full h-full object-cover">`;
+            uploadBtn.classList.remove('hidden');
+          };
+          reader.readAsDataURL(file);
+        } else {
+          alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+        }
+      });
+    }
+
+    // Handle upload button click
+    if (uploadBtn) {
+      uploadBtn.addEventListener('click', async function() {
+        if (!selectedFile) {
+          alert('กรุณาเลือกรูปภาพก่อน');
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('profile_picture', selectedFile);
+
+        try {
+          uploadBtn.disabled = true;
+          uploadBtn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> กำลังบันทึก...';
+
+          const response = await fetch('/profile/upload-picture', {
+            method: 'POST',
+            body: formData
+          });
+
+          const result = await response.json();
+
+          if (response.ok && result.success) {
+            alert('บันทึกรูปโปรไฟล์สำเร็จ!');
+            uploadBtn.classList.add('hidden');
+            selectedFile = null;
+            
+            // Update profile picture in navbar
+            const navbarProfilePic = document.querySelector('nav .w-10.h-10.bg-primary.rounded-full');
+            if (navbarProfilePic && result.profile_picture_url) {
+              navbarProfilePic.innerHTML = `<img src="${result.profile_picture_url}" alt="Profile" class="w-full h-full object-cover rounded-full">`;
+            }
+          } else {
+            alert('เกิดข้อผิดพลาด: ' + (result.message || 'ไม่สามารถบันทึกรูปภาพได้'));
+            // Restore original profile picture on error
+            location.reload();
+          }
+        } catch (error) {
+          console.error('Error uploading profile picture:', error);
+          alert('เกิดข้อผิดพลาดในการอัพโหลดรูปภาพ');
+          location.reload();
+        } finally {
+          uploadBtn.disabled = false;
+          uploadBtn.innerHTML = '{{ t.save_photo or "บันทึกรูปภาพ" }}';
+        }
+      });
+    }
+  });
+</script>
+
 {% endblock content %}

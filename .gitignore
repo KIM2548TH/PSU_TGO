@@ -47,4 +47,15 @@ node_modules/
 # Cython debug symbols
 cython_debug/
 
+# Upload files (but keep folder structure)
+webapp/web/static/uploads/*
+!webapp/web/static/uploads/.gitkeep
+!webapp/web/static/uploads/*/
+webapp/web/static/uploads/*/*.jpg
+webapp/web/static/uploads/*/*.jpeg
+webapp/web/static/uploads/*/*.png
+webapp/web/static/uploads/*/*.gif
+webapp/web/static/uploads/*/*.webp
+!webapp/web/static/uploads/*/.gitkeep
+
 webapp/web/static/css/app.css

@@ -183,116 +183,158 @@
 
       <!-- Menu Section -->
       <div class="flex-1 overflow-y-auto">
-        <ul class="menu w-full p-2 bg-base-100 space-y-4">
-          <!-- Admin Functions -->
-          {% if has_permission("เข้าถึงหน้าจัดการผู้ใช้") %}
-          <li>
-            <a href="/users-management" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
-              <i data-feather="users"></i>
-              <span class="text-md">{{ t.sidebar_user }}</span>
-            </a>
+        <ul class="menu w-full p-2 bg-base-100 space-y-2">
+          
+          <!-- Group 1: System Management -->
+          {% set show_system_management = has_permission("เข้าถึงหน้าจัดการผู้ใช้") or has_permission("เข้าถึงหน้าจัดการผู้ใช้ในหน่วยงาน") or has_permission("เข้าถึงหน้าจัดการสิทธิ์") or has_permission("เข้าถึงหน้าแหล่งปล่อยก๊าซเรือนกระจก") or has_permission("เข้าถึงหน้าจัดการ GHG Scope") or has_permission("เข้าถึงหน้าจัดการวิทยาเขตและหน่วยงาน") %}
+          {% if show_system_management %}
+          <li class="menu-group">
+            <button onclick="toggleMenuGroup('system-management')" class="flex items-center justify-between w-full rounded-lg p-3 font-bold hover:bg-base-200">
+              <div class="flex items-center gap-3">
+                <i data-feather="settings" class="w-5 h-5"></i>
+                <span class="text-md">การจัดการระบบ</span>
+              </div>
+              <i data-feather="chevron-down" class="w-4 h-4 transition-transform duration-200" id="system-management-icon"></i>
+            </button>
+            <ul class="ml-4 mt-1 space-y-1 hidden" id="system-management-submenu">
+              {% if has_permission("เข้าถึงหน้าจัดการผู้ใช้") %}
+              <li>
+                <a href="/users-management" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path == '/users-management/' %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
+                  <i data-feather="users" class="w-4 h-4"></i>
+                  <span>{{ t.sidebar_user }}</span>
+                </a>
+              </li>
+              {% endif %}
+              
+              {% if has_permission("เข้าถึงหน้าจัดการผู้ใช้ในหน่วยงาน") %}
+              <li>
+                <a href="/department-management" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path.startswith('/department-management') %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
+                  <i data-feather="user-check" class="w-4 h-4"></i>
+                  <span>จัดการผู้ใช้ในหน่วยงาน</span>
+                </a>
+              </li>
+              {% endif %}
+              
+              {% if has_permission("เข้าถึงหน้าจัดการสิทธิ์") %}
+              <li>
+                <a href="/role-management" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path == '/role-management/' %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
+                  <i data-feather="shield" class="w-4 h-4"></i>
+                  <span>{{ t.sidebar_role }}</span>
+                </a>
+              </li>
+              {% endif %}
+              
+              {% if has_permission("เข้าถึงหน้าแหล่งปล่อยก๊าซเรือนกระจก") %}
+              <li>
+                <a href="/form-management/" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path == '/form-management/' %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
+                  <i data-feather="file-text" class="w-4 h-4"></i>
+                  <span>{{ t.sidebar_form }}</span>
+                </a>
+              </li>
+              {% endif %}
+              
+              {% if has_permission("เข้าถึงหน้าจัดการ GHG Scope") %}
+              <li>
+                <a href="/scope" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path == '/scope/' %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
+                  <i data-feather="layers" class="w-4 h-4"></i>
+                  <span>{{t.scope_management}}</span>
+                </a>
+              </li>
+              {% endif %}
+              
+              {% if has_permission("เข้าถึงหน้าจัดการวิทยาเขตและหน่วยงาน") %}
+              <li>
+                <a href="/campus-department" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path.startswith('/campus-department') %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
+                  <i data-feather="map-pin" class="w-4 h-4"></i>
+                  <span>{{ t.Manage_campuses_departments }}</span>
+                </a>
+              </li>
+              {% endif %}
+            </ul>
           </li>
           {% endif %}
           
-          {% if has_permission("เข้าถึงหน้าจัดการผู้ใช้ในหน่วยงาน") %}
-          <li>
-            <a href="/department-management" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
-              <i data-feather="user-check"></i>
-              <span class="text-md">จัดการผู้ใช้ในหน่วยงาน</span>
-            </a>
+          <!-- Group 2: Emissions Data -->
+          {% set show_emissions_data = has_permission("เข้าถึงหน้าข้อมูลการปล่อย") or has_permission("เข้าถึงหน้าภาพรวมความคืบหน้า") or has_permission("เข้าถึงหน้าสัดส่วนการปล่อย") or has_permission("เข้าถึงหน้าภาพรวมสัดส่วนการปล่อย") %}
+          {% if show_emissions_data %}
+          <li class="menu-group">
+            <button onclick="toggleMenuGroup('emissions-data')" class="flex items-center justify-between w-full rounded-lg p-3 font-bold hover:bg-base-200">
+              <div class="flex items-center gap-3">
+                <i data-feather="bar-chart-2" class="w-5 h-5"></i>
+                <span class="text-md">ข้อมูลการปล่อย</span>
+              </div>
+              <i data-feather="chevron-down" class="w-4 h-4 transition-transform duration-200" id="emissions-data-icon"></i>
+            </button>
+            <ul class="ml-4 mt-1 space-y-1 hidden" id="emissions-data-submenu">
+              {% if has_permission("เข้าถึงหน้าข้อมูลการปล่อย") %}
+              <li>
+                <a href="/emissions-scope" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path == '/emissions-scope/' %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
+                  <i data-feather="bar-chart-2" class="w-4 h-4"></i>
+                  <span>{{ t.sidebar_emissions }}</span>
+                </a>
+              </li>
+              {% endif %}
+              
+              {% if has_permission("เข้าถึงหน้าภาพรวมความคืบหน้า") %}
+              <li>
+                <a href="/scope-progress" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path.startswith('/scope-progress') %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
+                  <i data-feather="activity" class="w-4 h-4"></i>
+                  <span>{{ t.overall_progress }}</span>
+                </a>
+              </li>
+              {% endif %}
+              
+              {% if has_permission("เข้าถึงหน้าสัดส่วนการปล่อย") %}
+              <li>
+                <a href="/proportions" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path == '/proportions/' %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
+                  <i data-feather="pie-chart" class="w-4 h-4"></i>
+                  <span>{{ t.sidebar_proportions }}</span>
+                </a>
+              </li>
+              {% endif %}
+              
+              {% if has_permission("เข้าถึงหน้าภาพรวมสัดส่วนการปล่อย") %}
+              <li>
+                <a href="/proportions/overview" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path == '/proportions/overview/' %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
+                  <i data-feather="target" class="w-4 h-4"></i>
+                  <span>ภาพรวมสัดส่วนการปล่อย</span>
+                </a>
+              </li>
+              {% endif %}
+            </ul>
           </li>
           {% endif %}
           
-          {% if has_permission("เข้าถึงหน้าจัดการสิทธิ์") %}
-          <li>
-            <a href="/role-management" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
-              <i data-feather="shield"></i>
-              <span class="text-md">{{ t.sidebar_role }}</span>
-            </a>
+          <!-- Group 3: Reports & Settings -->
+          {% set show_reports_settings = has_permission("เข้าถึงหน้าสรุปผล") %}
+          {% if show_reports_settings %}
+          <li class="menu-group">
+            <button onclick="toggleMenuGroup('reports-settings')" class="flex items-center justify-between w-full rounded-lg p-3 font-bold hover:bg-base-200">
+              <div class="flex items-center gap-3">
+                <i data-feather="file-text" class="w-5 h-5"></i>
+                <span class="text-md">รายงานและการตั้งค่า</span>
+              </div>
+              <i data-feather="chevron-down" class="w-4 h-4 transition-transform duration-200" id="reports-settings-icon"></i>
+            </button>
+            <ul class="ml-4 mt-1 space-y-1 hidden" id="reports-settings-submenu">
+              {% if has_permission("เข้าถึงหน้าสรุปผล") %}
+              <li>
+                <a href="/summary" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path == '/summary' or request.path == '/summary/' %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
+                  <i data-feather="trending-up" class="w-4 h-4"></i>
+                  <span>{{ t.sidebar_summary }}</span>
+                </a>
+              </li>
+              <li>
+                <a href="/setting" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path == '/setting' %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
+                  <i data-feather="settings" class="w-4 h-4"></i>
+                  <span>{{ t.sidebar_settings }}</span>
+                </a>
+              </li>
+              {% endif %}
+            </ul>
           </li>
           {% endif %}
           
-          {% if has_permission("เข้าถึงหน้าแหล่งปล่อยก๊าซเรือนกระจก") %}
-          <li>
-            <a href="/form-management/" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
-              <i data-feather="file-text"></i>
-              <span class="text-md">{{ t.sidebar_form }}</span>
-            </a>
-          </li>
-          {% endif %}
-          
-          {% if has_permission("เข้าถึงหน้าจัดการ GHG Scope") %}
-          <li>
-            <a href="/scope" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
-              <i data-feather="layers"></i>
-              <span class="text-md">{{t.scope_management}}</span>
-            </a>
-          </li>
-          {% endif %}
-          
-          {% if has_permission("เข้าถึงหน้าจัดการวิทยาเขตและหน่วยงาน") %}
-          <li>
-            <a href="/campus-department" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
-              <i data-feather="map-pin"></i>
-              <span class="text-md">{{ t.Manage_campuses_departments }}</span>
-            </a>
-          </li>
-          {% endif %}
-          
-          <!-- User Functions -->
-          {% if has_permission("เข้าถึงหน้าข้อมูลการปล่อย") %}
-          <li>
-            <a href="/emissions-scope" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
-              <i data-feather="bar-chart-2"></i>
-              <span class="text-md">{{ t.sidebar_emissions }}</span>
-            </a>
-          </li>
-          {% endif %}
-          
-          {% if has_permission("เข้าถึงหน้าภาพรวมความคืบหน้า") %}
-          <li>
-            <a href="/scope-progress" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
-              <i data-feather="activity"></i>
-              <span class="text-md">{{ t.overall_progress }}</span>
-            </a>
-          </li>
-          {% endif %}
-          
-          {% if has_permission("เข้าถึงหน้าสัดส่วนการปล่อย") %}
-          <li>
-            <a href="/proportions" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
-              <i data-feather="pie-chart"></i>
-              <span class="text-md">{{ t.sidebar_proportions }}</span>
-            </a>
-          </li>
-          {% endif %}
-          
-          {% if has_permission("เข้าถึงหน้าภาพรวมสัดส่วนการปล่อย") %}
-          <li>
-            <a href="/proportions/overview" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
-              <i data-feather="target"></i>
-              <span class="text-md">ภาพรวมสัดส่วนการปล่อย</span>
-            </a>
-          </li>
-          {% endif %}
-          
-          {% if has_permission("เข้าถึงหน้าสรุปผล") %}
-          <li>
-            <a href="/summary" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
-              <i data-feather="trending-up"></i>
-              <span class="text-md">{{ t.sidebar_summary }}</span>
-            </a>
-          </li>
-          {% endif %}
-          
-          {% if has_permission("เข้าถึงหน้าสรุปผล") %}
-          <li>
-            <a href="/setting" class="flex items-center gap-4 rounded-lg p-3 font-bold hover:bg-primary/90 hover:text-primary-content/90">
-              <i data-feather="settings"></i>
-              <span class="text-md">{{ t.sidebar_settings }}</span>
-            </a>
-          </li>
-          {% endif %}
         </ul>
       </div>
 
@@ -324,8 +366,12 @@
     <!-- User Profile -->
     <div class="flex items-center gap-2">
       <a href="/profile/" class="flex items-center gap-2 text-white hover:text-white/80">
-        <div class="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white font-bold border border-white/30">
+        <div class="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white font-bold border border-white/30 overflow-hidden">
+          {% if current_user.profile_picture %}
+          <img src="{{ current_user.profile_picture }}" alt="Profile" class="w-full h-full object-cover">
+          {% else %}
           <span class="text-lg font-bold">{{ current_user.name[0]|upper if current_user.name else current_user.username[0]|upper if current_user else 'U' }}</span>
+          {% endif %}
         </div>
         <span class="ml-2 text-base font-medium">{{ current_user.name if current_user.name else current_user.username if current_user else 'Username' }}</span>
       </a>
@@ -544,6 +590,17 @@
     // Feather Replace Script
     feather.replace();
 
+    // Toggle menu group functionality
+    function toggleMenuGroup(groupId) {
+      const submenu = document.getElementById(groupId + '-submenu');
+      const icon = document.getElementById(groupId + '-icon');
+      
+      if (submenu && icon) {
+        submenu.classList.toggle('hidden');
+        icon.classList.toggle('rotate-180');
+      }
+    }
+
     // Zoom function for index page
     function applyZoom(zoomLevel) {
       console.log('Index: Applying zoom:', zoomLevel);
@@ -613,6 +670,22 @@
           navbar.classList.add('scrolled');
         } else {
           navbar.classList.remove('scrolled');
+        }
+      });
+
+      // Auto-expand active menu group on page load
+      const activeLinks = document.querySelectorAll('.menu-group a.bg-primary');
+      
+      activeLinks.forEach(link => {
+        // Find parent submenu and expand it
+        const submenu = link.closest('ul[id$="-submenu"]');
+        if (submenu) {
+          submenu.classList.remove('hidden');
+          const groupId = submenu.id.replace('-submenu', '');
+          const icon = document.getElementById(groupId + '-icon');
+          if (icon) {
+            icon.classList.add('rotate-180');
+          }
         }
       });
 

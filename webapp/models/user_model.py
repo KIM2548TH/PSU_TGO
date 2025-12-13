@@ -65,6 +65,9 @@ class User(me.Document, UserMixin):
         required=False, unique=False, null=True, default=""
     )
     
+    # Profile picture field
+    profile_picture = me.StringField(required=False, default="")
+    
     # ฟิลด์สำหรับเก็บซับสโคป 3 ฟิลด์ - ใช้ default=[] แล้วเซ็ตค่าใน UserService
     ghg_scope_1 = me.ListField(me.IntField(), default=list)  # เก็บเลขซับสโคปของ scope 1
     ghg_scope_2 = me.ListField(me.IntField(), default=list)  # เก็บเลขซับสโคปของ scope 2  
