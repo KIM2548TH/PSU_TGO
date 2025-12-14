@@ -17,7 +17,7 @@
             <input type="hidden" name="material_{{ selected_scope }}_{{ encoded_key }}" value="{{ mid }}">
           {% endfor %}
           <button id="formChoicesBtn_{{ selected_scope }}_{{ encoded_key }}" type="button" class="btn btn-outline btn-sm"
-            hx-get="{{ url_for('material_mapping_excel.form_choices_modal', scope_num=selected_scope, key=key, encoded_key=encoded_key, sub_scope_index=sub_scope_index) }}"
+            hx-get="{{ url_for('material_mapping_excel.form_choices_modal', scope_num=selected_scope, key=key, encoded_key=encoded_key, sub_scope_index=sub_scope_index, campus_id=request.args.get('campus_id', ''), department_key=request.args.get('department_key', '')) }}"
             hx-target="#modal-content" hx-swap="innerHTML">
             เลือก Form/Formula
           </button>

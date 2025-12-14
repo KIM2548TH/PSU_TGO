@@ -1,6 +1,27 @@
 {% extends "base/default_page.html" %}
 {% block title %}Material Mapping Excel{% endblock %}
 {% block content %}
+<div class="card bg-base-100 shadow-md mb-4 p-4 border border-blue-200">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <i data-feather="map-pin" class="w-5 h-5 text-blue-600"></i>
+      <span class="font-bold text-gray-700">วิทยาเขต:</span>
+      <span class="text-gray-900">{{ campus.name['0'] }}</span>
+      <span class="mx-2 text-gray-400">|</span>
+      <i data-feather="building" class="w-5 h-5 text-blue-600"></i>
+      <span class="font-bold text-gray-700">หน่วยงาน:</span>
+      <span class="text-gray-900">{{ department_name }}</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="badge badge-info">โหมดดู</span>
+      <button type="button" class="btn btn-sm btn-success" onclick="window.location.href='{{ url_for('material_mapping_excel.mapping_excel_edit') }}?campus_id={{ campus_id }}&department_key={{ department_key }}&year={{ request.args.get('year', 2025) }}&scope={{ request.args.get('scope', '1') }}'">
+        <i data-feather="edit-2" class="w-4 h-4 mr-1"></i>
+        แก้ไข Scope นี้
+      </button>
+    </div>
+  </div>
+</div>
+
 <h2 class="text-xl font-bold mb-4">Material Mapping Excel</h2>
 <div class="mb-6 flex gap-2 justify-center">
   {% set scope_labels = ["Scope 1 - การปล่อยทางตรง", "Scope 2 - การใช้ไฟฟ้า", "Scope 3 - ทางอ้อมอื่น ๆ"] %}
@@ -14,7 +35,7 @@
     {% for scope_num in [1,2,3] %}
       <button type="button" class="w-full p-4 rounded-xl border-2 font-bold flex flex-col items-center justify-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary
         {% if selected_scope == scope_num %}{{ scope_colors[scope_num-1].border }} {{ scope_colors[scope_num-1].bg }} {{ scope_colors[scope_num-1].text }} shadow-md{% else %}border-gray-200 bg-white text-gray-800 hover:{{ scope_colors[scope_num-1].border }} hover:{{ scope_colors[scope_num-1].bg }} hover:{{ scope_colors[scope_num-1].text }} hover:shadow-lg{% endif %}"
-        onclick="window.location.href='?scope={{ scope_num }}'">
+        onclick="window.location.href='?campus_id={{ campus_id }}&department_key={{ department_key }}&scope={{ scope_num }}'">
         <div class="flex items-center gap-3">
           <div class="p-2 rounded-full {% if scope_num == 1 %}bg-purple-100{% elif scope_num == 2 %}bg-green-100{% else %}bg-blue-100{% endif %}">
             {% if scope_num == 1 %}<i data-feather="layers" class="w-6 h-6 text-purple-600"></i>{% endif %}

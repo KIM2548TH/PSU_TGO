@@ -1,0 +1,29 @@
+{% for campus in campuses %}
+  {% if not filter_campus_id or filter_campus_id == campus.id|string %}
+    {% for dept_key, dept_name in campus.departments.items() %}
+      {% set year = filter_year|int if filter_year else None %}
+      {% if not filter_year or dept_key and year %}
+        {% set mapping = mappings|selectattr('campus_id', 'equalto', campus.id|string)|selectattr('department_key', 'equalto', dept_key)|selectattr('year', 'equalto', year if year else mappings[0].year if mappings else None)|list|first %}
+        <tr id="row-{{ campus.id }}-{{ dept_key }}">
+          <td>{{ campus.name['0'] }}</td>
+          <td>{{ dept_name }}</td>
+          <td>{{ year if year else mappings[0].year if mappings else '' }}</td>
+          <td>
+            <a 
+              href="{{ url_for('material_mapping_excel.mapping_excel_view') }}?campus_id={{ campus.id }}&department_key={{ dept_key }}&year={{ year }}" 
+              class="btn btn-primary btn-sm"
+            >ดูและแก้ไข</a>
+            {% if mapping %}
+              <a 
+                href="{{ url_for('material_mapping_excel.export_excel') }}?campus_id={{ campus.id }}&department_key={{ dept_key }}&year={{ year }}" 
+                class="btn btn-success btn-sm" download
+              >ดาวน์โหลด</a>
+            {% else %}
+              <span class="text-gray-400">ยังไม่มีข้อมูล</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endfor %}
