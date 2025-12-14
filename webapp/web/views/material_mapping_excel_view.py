@@ -15,10 +15,15 @@ print("Material Mapping Excel View Loaded")
 @login_required
 @permissions_required_all(["จัดการ mapping excel"])
 def mapping_excel_view():
-    campus_id = current_user.campus_id
-    department_key = current_user.department_key
+    campus_id = request.args.get('campus_id') or current_user.campus_id
+    department_key = request.args.get('department_key') or current_user.department_key
     year = request.args.get("year", 2025, type=int)
     sheet_name = "Fr-04.1"
+    
+    # ดึงข้อมูล campus และ department_name
+    campus = CampusAndDepartment.objects.get(id=campus_id)
+    department_name = campus.departments.get(department_key, "ไม่ทราบหน่วยงาน")
+    
     mapping_doc = MaterialMappingExcel.objects(
         campus_id=campus_id,
         department_key=department_key,
@@ -104,17 +109,26 @@ def mapping_excel_view():
         mapping_doc=mapping_doc,
         form_choices_by_scope=form_choices_by_scope,
         keys_by_scope=keys_by_scope,
-        form_and_formula_dict=form_and_formula_dict
+        form_and_formula_dict=form_and_formula_dict,
+        campus=campus,
+        department_name=department_name,
+        campus_id=campus_id,
+        department_key=department_key
     )
 
 @module.route("/edit", methods=["GET", "POST"])
 @login_required
 @permissions_required_all(["แก้ไข mapping excel"])
 def mapping_excel_edit():
-    campus_id = current_user.campus_id
-    department_key = current_user.department_key
+    campus_id = request.args.get('campus_id') or current_user.campus_id
+    department_key = request.args.get('department_key') or current_user.department_key
     year = request.args.get("year", 2025, type=int)
     sheet_name = "Fr-04.1"
+    
+    # ดึงข้อมูล campus และ department_name
+    campus = CampusAndDepartment.objects.get(id=campus_id)
+    department_name = campus.departments.get(department_key, "ไม่ทราบหน่วยงาน")
+    
     template_path = os.path.join(os.path.dirname(__file__), "../../tamplate_file/การคำนวณCFO.xlsx")
     wb = openpyxl.load_workbook(template_path)
     ws = wb[sheet_name]
@@ -241,7 +255,11 @@ def mapping_excel_edit():
                 form_choices_by_scope=form_choices_by_scope,
                 form=form,
                 mapping_doc=mapping_doc,
-                form_and_formula_dict=form_and_formula_dict
+                form_and_formula_dict=form_and_formula_dict,
+                campus=campus,
+                department_name=department_name,
+                campus_id=campus_id,
+                department_key=department_key
             ))
             response.headers["HX-Trigger"] = '{"showSuccess": "บันทึกข้อมูล Mapping สำเร็จ"}'
             return response
@@ -252,7 +270,11 @@ def mapping_excel_edit():
                 form_choices_by_scope=form_choices_by_scope,
                 form=form,
                 mapping_doc=mapping_doc,
-                form_and_formula_dict=form_and_formula_dict
+                form_and_formula_dict=form_and_formula_dict,
+                campus=campus,
+                department_name=department_name,
+                campus_id=campus_id,
+                department_key=department_key
             ))
             response.headers["HX-Trigger"] = '{"showError": "บันทึกข้อมูลไม่สำเร็จ"}'
             return response
@@ -262,7 +284,11 @@ def mapping_excel_edit():
         form_choices_by_scope=form_choices_by_scope,
         form=form,
         mapping_doc=mapping_doc,
-        form_and_formula_dict=form_and_formula_dict
+        form_and_formula_dict=form_and_formula_dict,
+        campus=campus,
+        department_name=department_name,
+        campus_id=campus_id,
+        department_key=department_key
     )
 
 @module.route("/form-choices-modal", methods=["GET", "POST"])
@@ -337,8 +363,10 @@ def update_row():
     selected_scope_val = request.form.get("scope")
     selected_scope = int(selected_scope_val) if selected_scope_val else 1
     selected_ids = request.form.getlist("form_choices") or request.form.getlist("selected_ids")
-    campus_id = current_user.campus_id
-    department_key = current_user.department_key
+    
+    # รับ campus_id และ department_key จาก form แทน current_user
+    campus_id = request.form.get("campus_id") or current_user.campus_id
+    department_key = request.form.get("department_key") or current_user.department_key
     year = request.form.get("year", 2025, type=int)
     sheet_name = "Fr-04.1"
     mapping_doc = MaterialMappingExcel.objects(
@@ -377,8 +405,8 @@ def update_row():
 @login_required
 @permissions_required_all(["ดาวน์โหลด mapping excel"])
 def export_excel():
-    campus_id = current_user.campus_id
-    department_key = current_user.department_key
+    campus_id = request.args.get('campus_id') or current_user.campus_id
+    department_key = request.args.get('department_key') or current_user.department_key
     year = request.args.get("year", 2025, type=int)
     sheet_name = "Fr-04.1"
     input_excel_path = "webapp/tamplate_file/การคำนวณCFO.xlsx"

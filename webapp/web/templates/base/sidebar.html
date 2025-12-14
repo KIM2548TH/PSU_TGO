@@ -17,7 +17,7 @@
     <ul class="menu w-full p-2 bg-base-100 space-y-2">
       
       <!-- Group 1: System Management -->
-      {% set show_system_management = has_permission("เข้าถึงหน้าจัดการผู้ใช้") or has_permission("เข้าถึงหน้าจัดการผู้ใช้ในหน่วยงาน") or has_permission("เข้าถึงหน้าจัดการสิทธิ์") or has_permission("เข้าถึงหน้าแหล่งปล่อยก๊าซเรือนกระจก") or has_permission("เข้าถึงหน้าจัดการ GHG Scope") or has_permission("เข้าถึงหน้าจัดการวิทยาเขตและหน่วยงาน") %}
+      {% set show_system_management = has_permission("เข้าถึงหน้าจัดการผู้ใช้") or has_permission("เข้าถึงหน้าจัดการผู้ใช้ในหน่วยงาน") or has_permission("เข้าถึงหน้าจัดการสิทธิ์") or has_permission("เข้าถึงหน้าแหล่งปล่อยก๊าซเรือนกระจก") or has_permission("เข้าถึงหน้าจัดการ GHG Scope") or has_permission("เข้าถึงหน้าจัดการวิทยาเขตและหน่วยงาน") or has_permission("เข้าถึงหน้าจัดการ Material Mapping Excel") %}
       {% if show_system_management %}
       <li class="menu-group">
         <button onclick="toggleMenuGroup('system-management')" class="flex items-center justify-between w-full rounded-lg p-3 font-bold hover:bg-base-200">
@@ -64,6 +64,15 @@
           </li>
           {% endif %}
           
+          {% if has_permission("เข้าถึงหน้าจัดการ Material Mapping Excel") %}
+          <li>
+            <a href="/material-mapping-excel-admin" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path.startswith('/material-mapping-excel-admin') %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
+              <i data-feather="database" class="w-4 h-4"></i>
+              <span>จัดการ Material Mapping Excel</span>
+            </a>
+          </li>
+          {% endif %}
+          
           {% if has_permission("เข้าถึงหน้าจัดการ GHG Scope") %}
           <li>
             <a href="/scope" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path == '/scope/' %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
@@ -86,7 +95,7 @@
       {% endif %}
       
       <!-- Group 2: Emissions Data -->
-      {% set show_emissions_data = has_permission("เข้าถึงหน้าข้อมูลการปล่อย") or has_permission("เข้าถึงหน้าภาพรวมความคืบหน้า") or has_permission("เข้าถึงหน้าสัดส่วนการปล่อย") or has_permission("เข้าถึงหน้าภาพรวมสัดส่วนการปล่อย") %}
+      {% set show_emissions_data = has_permission("เข้าถึงหน้าข้อมูลการปล่อย") or has_permission("เข้าถึงหน้าภาพรวมความคืบหน้า") or has_permission("เข้าถึงหน้าสัดส่วนการปล่อย") or has_permission("เข้าถึงหน้าภาพรวมสัดส่วนการปล่อย") or has_permission("เข้าถึงหน้าสรุปผล") %}
       {% if show_emissions_data %}
       <li class="menu-group">
         <button onclick="toggleMenuGroup('emissions-data')" class="flex items-center justify-between w-full rounded-lg p-3 font-bold hover:bg-base-200">
@@ -106,11 +115,11 @@
           </li>
           {% endif %}
           
-          {% if has_permission("เข้าถึงหน้าภาพรวมความคืบหน้า") %}
+          {% if has_permission("เข้าถึงหน้าสรุปผล") %}
           <li>
-            <a href="/scope-progress" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path.startswith('/scope-progress') %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
-              <i data-feather="activity" class="w-4 h-4"></i>
-              <span>{{ t.overall_progress }}</span>
+            <a href="/summary" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path == '/summary' or request.path == '/summary/' %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
+              <i data-feather="trending-up" class="w-4 h-4"></i>
+              <span>{{ t.sidebar_summary }}</span>
             </a>
           </li>
           {% endif %}
@@ -123,6 +132,16 @@
             </a>
           </li>
           {% endif %}
+
+          {% if has_permission("เข้าถึงหน้าภาพรวมความคืบหน้า") %}
+          <li>
+            <a href="/scope-progress" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path.startswith('/scope-progress') %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
+              <i data-feather="activity" class="w-4 h-4"></i>
+              <span>{{ t.overall_progress }}</span>
+            </a>
+          </li>
+          {% endif %}
+          
           
           {% if has_permission("เข้าถึงหน้าภาพรวมสัดส่วนการปล่อย") %}
           <li>
@@ -132,39 +151,19 @@
             </a>
           </li>
           {% endif %}
+          
         </ul>
       </li>
       {% endif %}
-      
-      <!-- Group 3: Reports & Settings -->
-      {% set show_reports_settings = has_permission("เข้าถึงหน้าสรุปผล") %}
-      {% if show_reports_settings %}
-      <li class="menu-group">
-        <button onclick="toggleMenuGroup('reports-settings')" class="flex items-center justify-between w-full rounded-lg p-3 font-bold hover:bg-base-200">
-          <div class="flex items-center gap-3">
-            <i data-feather="file-text" class="w-5 h-5"></i>
-            <span class="text-md">รายงานและการตั้งค่า</span>
-          </div>
-          <i data-feather="chevron-down" class="w-4 h-4 transition-transform duration-200" id="reports-settings-icon"></i>
-        </button>
-        <ul class="ml-4 mt-1 space-y-1 hidden" id="reports-settings-submenu">
-          {% if has_permission("เข้าถึงหน้าสรุปผล") %}
-          <li>
-            <a href="/summary" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path == '/summary' or request.path == '/summary/' %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
-              <i data-feather="trending-up" class="w-4 h-4"></i>
-              <span>{{ t.sidebar_summary }}</span>
-            </a>
-          </li>
-          <li>
-            <a href="/setting" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path == '/setting' %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
-              <i data-feather="settings" class="w-4 h-4"></i>
-              <span>{{ t.sidebar_settings }}</span>
-            </a>
-          </li>
-          {% endif %}
-        </ul>
+
+      <!-- Settings Menu (Outside Groups) -->
+      <li>
+        <a href="/setting" class="flex items-center gap-3 rounded-lg p-3 font-bold hover:bg-base-200 {% if request.path == '/setting' %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
+          <i data-feather="settings" class="w-5 h-5"></i>
+          <span class="text-md">{{ t.sidebar_settings }}</span>
+        </a>
       </li>
-      {% endif %}
+
       
     </ul>
   </div>

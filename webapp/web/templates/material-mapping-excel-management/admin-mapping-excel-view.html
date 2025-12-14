@@ -1,0 +1,52 @@
+{% extends "/base/default_page.html" %}
+{% block content %}
+<div class="card shadow-lg border border-orange-200 bg-base-100 p-6 rounded-lg mb-6">
+  <h2 class="text-2xl font-bold mb-4">จัดการ Material Mapping (Admin)</h2>
+  <form class="mb-6 flex gap-4 items-end" id="filter-form">
+    <div>
+      <label class="block font-bold mb-1">เลือกวิทยาเขต</label>
+      <select name="campus_id" class="select select-bordered w-full" id="campus-select">
+        <option value="">ทุกวิทยาเขต</option>
+        {% for campus in campuses %}
+          <option value="{{ campus.id }}" {% if request.args.get('campus_id') == campus.id|string %}selected{% endif %}>{{ campus.name['0'] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block font-bold mb-1">เลือกปี</label>
+      <select name="year" class="select select-bordered w-full" id="year-select">
+        <option value="">ทุกปี</option>
+        {% for year in years %}
+          <option value="{{ year }}" {% if filter_year|string == year|string %}selected{% endif %}>{{ year }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+  <script>
+    function updateTableRows() {
+      const campusId = document.getElementById('campus-select').value;
+      const year = document.getElementById('year-select').value;
+      const url = `{{ url_for('material_mapping_excel_management.material_mapping_excel_management_table_rows') }}?campus_id=${campusId}&year=${year}`;
+      htmx.ajax('GET', url, { target: '#table-rows', swap: 'innerHTML' });
+    }
+    document.getElementById('campus-select').addEventListener('change', updateTableRows);
+    document.getElementById('year-select').addEventListener('change', updateTableRows);
+  </script>
+  <div class="overflow-x-auto">
+    <table class="table w-full">
+      <thead>
+        <tr>
+          <th>Campus</th>
+          <th>Department</th>
+          <th>Year</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="table-rows">
+        {% include 'material-mapping-excel-management/partials/table-rows.html' %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div id="modal-content"></div>
+{% endblock content %}

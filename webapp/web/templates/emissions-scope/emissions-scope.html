@@ -123,7 +123,7 @@
           </div>
           <div class="flex items-center gap-2">
             {% if has_permission("จัดการ mapping excel") %}
-            <a href="{{ url_for('material_mapping_excel.mapping_excel_edit') }}" class="btn flex items-center" style="background-color:#179068; color:#fff; border:none;">
+            <a href="{{ url_for('material_mapping_excel.mapping_excel_view') }}" class="btn flex items-center" style="background-color:#179068; color:#fff; border:none;">
               <i data-feather="settings" class="w-4 h-4 mr-1"></i> ตั้งค่า
             </a>
             {% endif %}
