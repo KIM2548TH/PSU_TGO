@@ -3,6 +3,9 @@ from flask_login import login_required, current_user
 import openpyxl
 import os
 import urllib.parse
+import re
+from functools import lru_cache
+from datetime import datetime
 from ...models import CampusAndDepartment, Material, MaterialMappingExcel, FormAndFormula, Scope, User
 from ..forms.material_mapping_excel_form import MaterialMappingExcelForm, FormChoicesModalForm
 from wtforms import FieldList, HiddenField
@@ -11,6 +14,101 @@ from ..utils.acl import permissions_required_all
 
 module = Blueprint("material_mapping_excel", __name__, url_prefix="/material-mapping-excel")
 print("Material Mapping Excel View Loaded")
+
+# Cache สำหรับ keys_by_scope จาก Excel
+# maxsize=128 หมายความว่าเก็บได้หลาย version (แต่จริงๆ ใช้แค่ 1)
+# Cache จะอยู่ตลอดจนกว่าจะ restart server หรือเรียก .cache_clear()
+# หรือเมื่อ file_mtime เปลี่ยน (แก้ไข Excel)
+@lru_cache(maxsize=128)
+def get_keys_by_scope_from_excel(sheet_name="Fr-04.1", file_mtime=None):
+    """อ่านไฟล์ Excel และสร้าง keys_by_scope (cache ไว้)
+    
+    Args:
+        sheet_name: ชื่อ sheet ใน Excel
+        file_mtime: เวลาแก้ไขไฟล์ล่าสุด (ใช้เพื่อ invalidate cache เมื่อไฟล์เปลี่ยน)
+    
+    Note:
+        - Cache จะอยู่ใน memory ตลอดจนกว่าจะ restart server
+        - ถ้าแก้ไขไฟล์ Excel, file_mtime จะเปลี่ยน → cache จะ rebuild
+        - maxsize=1 หมายถึงเก็บได้แค่ 1 version (ประหยัด memory)
+    """
+    template_path = os.path.join(os.path.dirname(__file__), "../../tamplate_file/การคำนวณCFO.xlsx")
+    wb = openpyxl.load_workbook(template_path)
+    ws = wb[sheet_name]
+    
+    def get_cell_color(cell):
+        fill = cell.fill
+        if fill and fill.fgColor and fill.fgColor.type == 'rgb':
+            return fill.fgColor.rgb.upper()
+        return None
+    
+    SCOPE_SUB_COLOR = "FFFFC000"
+    SUB_SCOPE_ITEM_COLOR = "FFFBD4B4"
+    keys_by_scope = {1: {}, 2: {}, 3: {}}
+    scope_numbers = {1: {}, 2: {}, 3: {}}  # เก็บเลขสโคปแยกต่างหาก
+    current_scope = None
+    current_sub_scope = None
+    current_sub_sub_scope = None
+    sub_scope_counters = {1: 0, 2: 0, 3: 0}
+    
+    for row in ws.iter_rows(min_row=2, max_col=4):
+        col_a = row[0].value
+        cell_b = row[1]
+        col_b = cell_b.value
+        cell_b_color = get_cell_color(cell_b)
+        
+        if col_a:
+            col_a_str = str(col_a)
+            if "ขอบเขต 1" in col_a_str:
+                current_scope = 1
+                current_sub_scope = None
+                current_sub_sub_scope = None
+            elif "ขอบเขต 2" in col_a_str:
+                current_scope = 2
+                current_sub_scope = None
+                current_sub_sub_scope = None
+            elif "ขอบเขต 3" in col_a_str:
+                current_scope = 3
+                current_sub_scope = None
+                current_sub_sub_scope = None
+        
+        if current_scope and col_b and cell_b_color == SCOPE_SUB_COLOR:
+            current_sub_scope = str(col_b).strip()
+            
+            # สร้างเลขสโคป
+            if current_scope == 3:
+                # Scope 3: ดึง Cat จากชื่อ
+                match_cat = re.match(r'^(Cat\.?\s*\d+)', current_sub_scope, re.IGNORECASE)
+                if match_cat:
+                    scope_number = match_cat.group(1).replace('.', '').replace(' ', ' ').strip()
+                    # Normalize เป็น "Cat X" (เว้นวรรค)
+                    scope_number = re.sub(r'Cat\s*', 'Cat ', scope_number, flags=re.IGNORECASE)
+                else:
+                    # ถ้าไม่เจอ Cat ให้ใช้ counter
+                    sub_scope_counters[current_scope] += 1
+                    scope_number = f"Cat {sub_scope_counters[current_scope]}"
+            else:
+                # Scope 1, 2: ใช้ counter
+                sub_scope_counters[current_scope] += 1
+                scope_number = f"{current_scope}.{sub_scope_counters[current_scope]}"
+            
+            if current_sub_scope not in keys_by_scope[current_scope]:
+                keys_by_scope[current_scope][current_sub_scope] = {}
+                scope_numbers[current_scope][current_sub_scope] = scope_number
+            current_sub_sub_scope = None
+        elif current_scope and col_b and cell_b_color == SUB_SCOPE_ITEM_COLOR:
+            current_sub_sub_scope = str(col_b).strip()
+            if current_sub_scope and current_sub_sub_scope not in keys_by_scope[current_scope][current_sub_scope]:
+                keys_by_scope[current_scope][current_sub_scope][current_sub_sub_scope] = []
+        elif current_scope and current_sub_scope and col_b and (cell_b_color is None or cell_b_color in ["FFFFFFFF", "#FFFFFF", "00000000"] ) and str(col_b).strip() != "":
+            if not current_sub_sub_scope:
+                current_sub_sub_scope = "-"
+                if current_sub_scope and current_sub_sub_scope not in keys_by_scope[current_scope][current_sub_scope]:
+                    keys_by_scope[current_scope][current_sub_scope][current_sub_sub_scope] = []
+            keys_by_scope[current_scope][current_sub_scope][current_sub_sub_scope].append(str(col_b).strip())
+    
+    return keys_by_scope, scope_numbers
+
 @module.route("/", methods=["GET"])
 @login_required
 @permissions_required_all(["จัดการ mapping excel"])
@@ -23,6 +121,10 @@ def mapping_excel_view():
     # ดึงข้อมูล campus และ department_name
     campus = CampusAndDepartment.objects.get(id=campus_id)
     department_name = campus.departments.get(department_key, "ไม่ทราบหน่วยงาน")
+    
+    # ตรวจสอบเวลาแก้ไขไฟล์ Excel เพื่อ invalidate cache ถ้าไฟล์เปลี่ยน
+    template_path = os.path.join(os.path.dirname(__file__), "../../tamplate_file/การคำนวณCFO.xlsx")
+    file_mtime = os.path.getmtime(template_path) if os.path.exists(template_path) else None
     
     mapping_doc = MaterialMappingExcel.objects(
         campus_id=campus_id,
@@ -39,6 +141,7 @@ def mapping_excel_view():
             mappings={}
         )
         mapping_doc.save()
+    
     # ดึง scope/sub-scope ที่ผู้ใช้ในคณะนี้ติ๊กไว้
     user = User.objects.with_id(current_user.id)
     selected_subscopes = {
@@ -46,69 +149,31 @@ def mapping_excel_view():
         2: user.ghg_scope_2 or [],
         3: user.ghg_scope_3 or []
     }
+    
+    # Query FormAndFormula ครั้งเดียว แล้ว filter ใน Python
+    all_forms = list(FormAndFormula.objects.only('id', 'material_name', 'ghg_scope', 'ghg_sup_scope'))
+    form_and_formula_dict = {str(f.id): f for f in all_forms}
+    
+    # สร้าง form_choices_by_scope โดย filter จาก all_forms
     form_choices_by_scope = {1: [], 2: [], 3: []}
     for scope_num in [1, 2, 3]:
-        for sub_scope in selected_subscopes[scope_num]:
-            forms = FormAndFormula.objects(ghg_scope=scope_num, ghg_sup_scope=sub_scope)
-            for f in forms:
-                form_choices_by_scope[scope_num].append((str(f.id), f.material_name))
-        form_choices_by_scope[scope_num] = sorted(form_choices_by_scope[scope_num], key=lambda x: x[1])
-    # สร้าง dict id -> FormAndFormula object
-    form_and_formula_dict = {str(f.id): f for f in FormAndFormula.objects()}
-    # สร้าง keys_by_scope เหมือนหน้า edit
-    template_path = os.path.join(os.path.dirname(__file__), "../../tamplate_file/การคำนวณCFO.xlsx")
-    wb = openpyxl.load_workbook(template_path)
-    ws = wb[sheet_name]
-    def get_cell_color(cell):
-        fill = cell.fill
-        if fill and fill.fgColor and fill.fgColor.type == 'rgb':
-            return fill.fgColor.rgb.upper()
-        return None
-    SCOPE_SUB_COLOR = "FFFFC000"
-    SUB_SCOPE_ITEM_COLOR = "FFFBD4B4"
-    keys_by_scope = {1: {}, 2: {}, 3: {}}
-    current_scope = None
-    current_sub_scope = None
-    current_sub_sub_scope = None
-    for row in ws.iter_rows(min_row=2, max_col=4):
-        col_a = row[0].value
-        cell_b = row[1]
-        col_b = cell_b.value
-        cell_b_color = get_cell_color(cell_b)
-        if col_a:
-            col_a_str = str(col_a)
-            if "ขอบเขต 1" in col_a_str:
-                current_scope = 1
-                current_sub_scope = None
-                current_sub_sub_scope = None
-            elif "ขอบเขต 2" in col_a_str:
-                current_scope = 2
-                current_sub_scope = None
-                current_sub_sub_scope = None
-            elif "ขอบเขต 3" in col_a_str:
-                current_scope = 3
-                current_sub_scope = None
-                current_sub_sub_scope = None
-        if current_scope and col_b and cell_b_color == SCOPE_SUB_COLOR:
-            current_sub_scope = str(col_b).strip()
-            if current_sub_scope not in keys_by_scope[current_scope]:
-                keys_by_scope[current_scope][current_sub_scope] = {}
-            current_sub_sub_scope = None
-        elif current_scope and col_b and cell_b_color == SUB_SCOPE_ITEM_COLOR:
-            current_sub_sub_scope = str(col_b).strip()
-            if current_sub_scope and current_sub_sub_scope not in keys_by_scope[current_scope][current_sub_scope]:
-                keys_by_scope[current_scope][current_sub_scope][current_sub_sub_scope] = []
-        elif current_scope and current_sub_scope and col_b and (cell_b_color is None or cell_b_color in ["FFFFFFFF", "#FFFFFF", "00000000"] ) and str(col_b).strip() != "":
-            if not current_sub_sub_scope:
-                current_sub_sub_scope = "-"
-                if current_sub_scope and current_sub_sub_scope not in keys_by_scope[current_scope][current_sub_scope]:
-                    keys_by_scope[current_scope][current_sub_scope][current_sub_sub_scope] = []
-            keys_by_scope[current_scope][current_sub_scope][current_sub_sub_scope].append(str(col_b).strip())
+        scope_forms = [
+            (str(f.id), f.material_name) 
+            for f in all_forms 
+            if f.ghg_scope == scope_num and f.ghg_sup_scope in selected_subscopes[scope_num]
+        ]
+        form_choices_by_scope[scope_num] = sorted(scope_forms, key=lambda x: x[1])
+    
+    # ใช้ cached function แทนการอ่าน Excel ทุกครั้ง
+    # ส่ง file_mtime เพื่อให้ cache rebuild อัตโนมัติเมื่อไฟล์ Excel เปลี่ยน
+    keys_by_scope, scope_numbers = get_keys_by_scope_from_excel(sheet_name, file_mtime)
+    
     return render_template(
         "material-mapping-excel/mapping-excel-view.html",
         mapping_doc=mapping_doc,
         form_choices_by_scope=form_choices_by_scope,
         keys_by_scope=keys_by_scope,
+        scope_numbers=scope_numbers,
         form_and_formula_dict=form_and_formula_dict,
         campus=campus,
         department_name=department_name,
@@ -129,62 +194,12 @@ def mapping_excel_edit():
     campus = CampusAndDepartment.objects.get(id=campus_id)
     department_name = campus.departments.get(department_key, "ไม่ทราบหน่วยงาน")
     
+    # ตรวจสอบเวลาแก้ไขไฟล์ Excel เพื่อ invalidate cache ถ้าไฟล์เปลี่ยน
     template_path = os.path.join(os.path.dirname(__file__), "../../tamplate_file/การคำนวณCFO.xlsx")
-    wb = openpyxl.load_workbook(template_path)
-    ws = wb[sheet_name]
-
-    def get_cell_color(cell):
-        fill = cell.fill
-        if fill and fill.fgColor and fill.fgColor.type == 'rgb':
-            return fill.fgColor.rgb.upper()
-        return None
-
-    SCOPE_SUB_COLOR = "FFFFC000"  # #ffc000
-    SUB_SCOPE_ITEM_COLOR = "FFFBD4B4"  # #fbd4b4
-
-    keys_by_scope = {1: {}, 2: {}, 3: {}}
-    current_scope = None
-    current_sub_scope = None
-    current_sub_sub_scope = None
-    for row in ws.iter_rows(min_row=2, max_col=4):
-        col_a = row[0].value
-        cell_b = row[1]
-        col_b = cell_b.value
-        cell_b_color = get_cell_color(cell_b)
-        # ตรวจสอบหัวข้อขอบเขต
-        if col_a:
-            col_a_str = str(col_a)
-            if "ขอบเขต 1" in col_a_str:
-                current_scope = 1
-                current_sub_scope = None
-                current_sub_sub_scope = None
-            elif "ขอบเขต 2" in col_a_str:
-                current_scope = 2
-                current_sub_scope = None
-                current_sub_sub_scope = None
-            elif "ขอบเขต 3" in col_a_str:
-                current_scope = 3
-                current_sub_scope = None
-                current_sub_sub_scope = None
-        # ถ้า cell ช่อง B มีสี #ffc000 → เป็นชื่อซับสโคป
-        if current_scope and col_b and cell_b_color == SCOPE_SUB_COLOR:
-            current_sub_scope = str(col_b).strip()
-            if current_sub_scope not in keys_by_scope[current_scope]:
-                keys_by_scope[current_scope][current_sub_scope] = {}
-            current_sub_sub_scope = None
-        # ถ้า cell ช่อง B มีสี #fbd4b4 → เป็นชื่อหัวข้อย่อย
-        elif current_scope and col_b and cell_b_color == SUB_SCOPE_ITEM_COLOR:
-            current_sub_sub_scope = str(col_b).strip()
-            if current_sub_scope and current_sub_sub_scope not in keys_by_scope[current_scope][current_sub_scope]:
-                keys_by_scope[current_scope][current_sub_scope][current_sub_sub_scope] = []
-        # ถ้า cell ช่อง B ไม่มีสี (None) หรือสีขาว #ffffff หรือสีดำ #00000000 → เป็นรายการย่อยที่ต้องแมป (ข้ามเฉพาะ cell ที่ว่างจริง ๆ)
-        elif current_scope and current_sub_scope and col_b and (cell_b_color is None or cell_b_color in ["FFFFFFFF", "#FFFFFF", "00000000"] ) and str(col_b).strip() != "":
-            # ถ้าไม่มีหัวข้อย่อย ให้สร้างหัวข้อย่อยอัตโนมัติเป็น '-'
-            if not current_sub_sub_scope:
-                current_sub_sub_scope = "-"
-                if current_sub_scope and current_sub_sub_scope not in keys_by_scope[current_scope][current_sub_scope]:
-                    keys_by_scope[current_scope][current_sub_scope][current_sub_sub_scope] = []
-            keys_by_scope[current_scope][current_sub_scope][current_sub_sub_scope].append(str(col_b).strip())
+    file_mtime = os.path.getmtime(template_path) if os.path.exists(template_path) else None
+    
+    # ใช้ cached function แทนการอ่าน Excel ทุกครั้ง
+    keys_by_scope, scope_numbers = get_keys_by_scope_from_excel(sheet_name, file_mtime)
 
     # ดึง scope/sub-scope ที่ผู้ใช้ในคณะนี้ติ๊กไว้
     user = User.objects.with_id(current_user.id)
@@ -193,17 +208,20 @@ def mapping_excel_edit():
         2: user.ghg_scope_2 or [],
         3: user.ghg_scope_3 or []
     }
-    # ดึง FormAndFormula ทุกอันในขอบเขตนั้น ๆ (scope/sub-scope)
+    
+    # Query FormAndFormula ครั้งเดียว แล้ว filter ใน Python
+    all_forms = list(FormAndFormula.objects.only('id', 'material_name', 'ghg_scope', 'ghg_sup_scope'))
+    form_and_formula_dict = {str(f.id): f for f in all_forms}
+    
+    # สร้าง form_choices_by_scope โดย filter จาก all_forms
     form_choices_by_scope = {1: [], 2: [], 3: []}
     for scope_num in [1, 2, 3]:
-        for sub_scope in selected_subscopes[scope_num]:
-            forms = FormAndFormula.objects(ghg_scope=scope_num, ghg_sup_scope=sub_scope)
-            for f in forms:
-                form_choices_by_scope[scope_num].append((str(f.id), f.material_name))
-        # sort by material_name
-        form_choices_by_scope[scope_num] = sorted(form_choices_by_scope[scope_num], key=lambda x: x[1])
-    # สร้าง dict id -> FormAndFormula object
-    form_and_formula_dict = {str(f.id): f for f in FormAndFormula.objects()}
+        scope_forms = [
+            (str(f.id), f.material_name) 
+            for f in all_forms 
+            if f.ghg_scope == scope_num and f.ghg_sup_scope in selected_subscopes[scope_num]
+        ]
+        form_choices_by_scope[scope_num] = sorted(scope_forms, key=lambda x: x[1])
     
     # ดึงหรือสร้าง MaterialMappingExcel
     mapping_doc = MaterialMappingExcel.objects(
@@ -252,6 +270,7 @@ def mapping_excel_edit():
             response = make_response(render_template(
                 "material-mapping-excel/mapping-excel-edit.html",
                 keys_by_scope=keys_by_scope,
+                scope_numbers=scope_numbers,
                 form_choices_by_scope=form_choices_by_scope,
                 form=form,
                 mapping_doc=mapping_doc,
@@ -267,6 +286,7 @@ def mapping_excel_edit():
             response = make_response(render_template(
                 "material-mapping-excel/mapping-excel-edit.html",
                 keys_by_scope=keys_by_scope,
+                scope_numbers=scope_numbers,
                 form_choices_by_scope=form_choices_by_scope,
                 form=form,
                 mapping_doc=mapping_doc,
@@ -281,6 +301,7 @@ def mapping_excel_edit():
     return render_template(
         "material-mapping-excel/mapping-excel-edit.html",
         keys_by_scope=keys_by_scope,
+        scope_numbers=scope_numbers,
         form_choices_by_scope=form_choices_by_scope,
         form=form,
         mapping_doc=mapping_doc,

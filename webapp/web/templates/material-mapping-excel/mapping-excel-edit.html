@@ -1,51 +1,72 @@
 {% extends "base/default_page.html" %}
 {% block title %}Material Mapping Excel (แก้ไข){% endblock %}
 {% block content %}
-<div class="card bg-base-100 shadow-md mb-4 p-4 border border-green-200">
-  <div class="flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <i data-feather="map-pin" class="w-5 h-5 text-green-600"></i>
-      <span class="font-bold text-gray-700">วิทยาเขต:</span>
-      <span class="text-gray-900">{{ campus.name['0'] }}</span>
-      <span class="mx-2 text-gray-400">|</span>
-      <i data-feather="building" class="w-5 h-5 text-green-600"></i>
-      <span class="font-bold text-gray-700">หน่วยงาน:</span>
-      <span class="text-gray-900">{{ department_name }}</span>
+<!-- Header Card -->
+<div class="card shadow-lg border border-green-200 bg-base-100 p-6 rounded-lg mb-6">
+  <div class="flex flex-col gap-4">
+    <!-- Title Row -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+          <i data-feather="edit-3" class="w-6 h-6 text-green-600"></i>
+          Material Mapping Excel
+        </h2>
+        <p class="text-sm text-gray-500 mt-1">แก้ไขการแมปข้อมูลวัสดุสำหรับแต่ละ Scope</p>
+      </div>
+      <!-- Toggle Switch -->
+      <div class="flex items-center gap-3">
+        <span class="text-sm font-medium text-gray-600">โหมด:</span>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" class="sr-only peer" checked onchange="window.location.href='{{ url_for('material_mapping_excel.mapping_excel_view') }}?campus_id={{ campus_id }}&department_key={{ department_key }}&year={{ request.args.get('year', 2025) }}&scope={{ request.args.get('scope', '1') }}'">
+          <div class="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-600"></div>
+          <span class="ms-3 text-sm font-medium text-gray-700">
+            <i data-feather="edit-2" class="w-4 h-4 inline"></i> แก้ไข
+          </span>
+        </label>
+      </div>
     </div>
-    <div class="flex items-center gap-3">
-      <span class="badge badge-success">โหมดแก้ไข</span>
-      <button type="button" class="btn btn-sm btn-primary" onclick="window.location.href='{{ url_for('material_mapping_excel.mapping_excel_view') }}?campus_id={{ campus_id }}&department_key={{ department_key }}&year={{ request.args.get('year', 2025) }}&scope={{ request.args.get('scope', '1') }}'">
-        <i data-feather="eye" class="w-4 h-4 mr-1"></i>
-        กลับไปหน้าดูข้อมูล
-      </button>
+    <!-- Campus/Department Info -->
+    <div class="flex items-center gap-4 text-sm text-gray-600 bg-green-50 p-3 rounded-lg">
+      <div class="flex items-center gap-2">
+        <i data-feather="map-pin" class="w-4 h-4 text-green-600"></i>
+        <span class="font-semibold">วิทยาเขต:</span>
+        <span class="text-gray-800">{{ campus.name['0'] }}</span>
+      </div>
+      <span class="text-gray-400">|</span>
+      <div class="flex items-center gap-2">
+        <i data-feather="building" class="w-4 h-4 text-green-600"></i>
+        <span class="font-semibold">หน่วยงาน:</span>
+        <span class="text-gray-800">{{ department_name }}</span>
+      </div>
     </div>
   </div>
 </div>
-
-<h2 class="text-xl font-bold mb-4">Material Mapping Excel (แก้ไข)</h2>
 <form method="POST" hx-post="{{ url_for('material_mapping_excel.mapping_excel_edit') }}?campus_id={{ campus_id }}&department_key={{ department_key }}&year={{ request.args.get('year', 2025) }}&scope={{ request.args.get('scope', '1') }}" hx-target="body" hx-swap="none">
   {{ form.csrf_token }}
-  {% set scope_labels = ["Scope 1 - การปล่อยทางตรง", "Scope 2 - การใช้ไฟฟ้า", "Scope 3 - ทางอ้อมอื่น ๆ"] %}
-  {% set scope_colors = [
-    {"bg": "bg-purple-200", "text": "text-purple-800", "border": "border-purple-200", "head": "bg-violet-600", "subhead": "bg-violet-100"},
-    {"bg": "bg-green-200", "text": "text-green-800", "border": "border-green-200", "head": "bg-emerald-600", "subhead": "bg-emerald-100"},
-    {"bg": "bg-blue-200", "text": "text-blue-800", "border": "border-blue-200", "head": "bg-cyan-600", "subhead": "bg-cyan-100"}
-  ] %}
   {% set selected_scope = request.args.get('scope', '1')|int %}
-  <div class="mb-6 flex gap-2 justify-center">
+  <!-- Scope Selection Cards -->
+  <div class="flex gap-4 mb-6">
     {% for scope_num in [1,2,3] %}
-      <button type="button" class="w-full p-4 rounded-xl border-2 font-bold flex flex-col items-center justify-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary
-        {% if selected_scope == scope_num %}{{ scope_colors[scope_num-1].border }} {{ scope_colors[scope_num-1].bg }} {{ scope_colors[scope_num-1].text }} shadow-md{% else %}border-gray-200 bg-white text-gray-800 hover:{{ scope_colors[scope_num-1].border }} hover:{{ scope_colors[scope_num-1].bg }} hover:{{ scope_colors[scope_num-1].text }} hover:shadow-lg{% endif %}"
+      <div class="cursor-pointer p-4 rounded-xl shadow-md border-2 flex-1 transition-all duration-200
+        {% if selected_scope == scope_num %}
+          {% if scope_num == 1 %}border-purple-400 bg-purple-50{% elif scope_num == 2 %}border-green-400 bg-green-50{% else %}border-blue-400 bg-blue-50{% endif %}
+        {% else %}
+          border-gray-300 bg-white
+          {% if scope_num == 1 %}hover:bg-purple-50 hover:border-purple-300{% elif scope_num == 2 %}hover:bg-green-50 hover:border-green-300{% else %}hover:bg-blue-50 hover:border-blue-300{% endif %}
+        {% endif %}"
         onclick="window.location.href='?campus_id={{ campus_id }}&department_key={{ department_key }}&scope={{ scope_num }}'">
-        <div class="flex items-center gap-3">
-          <div class="p-2 rounded-full {% if scope_num == 1 %}bg-purple-100{% elif scope_num == 2 %}bg-green-100{% else %}bg-blue-100{% endif %}">
+        <div class="flex items-center gap-4">
+          <div class="p-2 rounded-full flex items-center justify-center {% if scope_num == 1 %}bg-purple-100{% elif scope_num == 2 %}bg-green-100{% else %}bg-blue-100{% endif %}">
             {% if scope_num == 1 %}<i data-feather="layers" class="w-6 h-6 text-purple-600"></i>{% endif %}
             {% if scope_num == 2 %}<i data-feather="zap" class="w-6 h-6 text-green-600"></i>{% endif %}
             {% if scope_num == 3 %}<i data-feather="globe" class="w-6 h-6 text-blue-600"></i>{% endif %}
           </div>
-          <span>{{ scope_labels[scope_num-1] }}</span>
+          <div>
+            <p class="font-bold text-gray-800">Scope {{ scope_num }}</p>
+            <p class="text-sm text-gray-600">{% if scope_num == 1 %}การปล่อยทางตรง{% elif scope_num == 2 %}การใช้ไฟฟ้า{% else %}ทางอ้อมอื่น ๆ{% endif %}</p>
+          </div>
         </div>
-      </button>
+      </div>
     {% endfor %}
   </div>
   {% set scope_head_bg = {
@@ -69,7 +90,8 @@
   {% if keys_by_scope[selected_scope] %}
     <div class="rounded-lg shadow-lg mb-8 border border-gray-200 overflow-hidden">
       {% for sub_scope_title, sub_sub_dict in keys_by_scope[selected_scope].items() %}
-        <div class="{{ subhead_bg }} px-4 py-2 text-base font-bold text-white">({{ selected_scope }}.{{loop.index}}) {{ sub_scope_title }}</div>
+        {% set scope_num = scope_numbers[selected_scope][sub_scope_title] %}
+        <div class="{{ subhead_bg }} px-4 py-2 text-base font-bold text-white">({{ scope_num }}) {{ sub_scope_title }}</div>
         {% for sub_sub_title, items in sub_sub_dict.items() %}
           <div class="{{ head_bg }} px-4 py-2 text-base font-semibold border-b border-gray-300 text-white">{{ sub_sub_title }}</div>
           <div class="overflow-x-auto {{ field_bg }}">
@@ -105,8 +127,5 @@
       {% endfor %}
     </div>
   {% endif %}
-  <div class="mt-6 flex justify-end gap-2">
-    <a href="{{ url_for('material_mapping_excel.mapping_excel_view') }}?scope={{ selected_scope }}" class="btn btn-outline">กลับไปหน้าดูข้อมูล</a>
-  </div>
 </form>
 {% endblock %}
