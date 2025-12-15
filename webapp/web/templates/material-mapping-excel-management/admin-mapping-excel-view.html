@@ -1,11 +1,23 @@
 {% extends "/base/default_page.html" %}
 {% block content %}
-<div class="card shadow-lg border border-orange-200 bg-base-100 p-6 rounded-lg mb-6">
-  <h2 class="text-2xl font-bold mb-4">จัดการ Material Mapping (Admin)</h2>
-  <form class="mb-6 flex gap-4 items-end" id="filter-form">
+<!-- Filter Card -->
+<div class="card shadow-lg border border-orange-200 bg-base-100 p-6 rounded-lg mb-4">
+  <h2 class="text-2xl font-bold mb-2">จัดการ Material Mapping (Admin)</h2>
+  <p class="text-gray-600 text-sm mb-4">จัดการและติดตามสถานะการกรอกข้อมูล Material Mapping ของแต่ละหน่วยงาน</p>
+  
+  <div class="flex gap-4 items-end mb-4">
+    <div class="flex-1">
+      <label class="block font-bold mb-1">ค้นหาหน่วยงาน</label>
+      <div class="relative">
+        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+          <i data-feather="search" class="w-5 h-5"></i>
+        </span>
+        <input type="text" name="department_search" class="input input-bordered w-full pl-10" id="department-search" placeholder="ค้นหาหน่วยงาน..." value="{{ request.args.get('department_search', '') }}">
+      </div>
+    </div>
     <div>
       <label class="block font-bold mb-1">เลือกวิทยาเขต</label>
-      <select name="campus_id" class="select select-bordered w-full" id="campus-select">
+      <select name="campus_id" class="select select-bordered w-full min-w-[200px]" id="campus-select">
         <option value="">ทุกวิทยาเขต</option>
         {% for campus in campuses %}
           <option value="{{ campus.id }}" {% if request.args.get('campus_id') == campus.id|string %}selected{% endif %}>{{ campus.name['0'] }}</option>
@@ -14,32 +26,51 @@
     </div>
     <div>
       <label class="block font-bold mb-1">เลือกปี</label>
-      <select name="year" class="select select-bordered w-full" id="year-select">
+      <select name="year" class="select select-bordered w-full min-w-[150px]" id="year-select">
         <option value="">ทุกปี</option>
         {% for year in years %}
           <option value="{{ year }}" {% if filter_year|string == year|string %}selected{% endif %}>{{ year }}</option>
         {% endfor %}
       </select>
     </div>
-  </form>
-  <script>
-    function updateTableRows() {
-      const campusId = document.getElementById('campus-select').value;
-      const year = document.getElementById('year-select').value;
-      const url = `{{ url_for('material_mapping_excel_management.material_mapping_excel_management_table_rows') }}?campus_id=${campusId}&year=${year}`;
-      htmx.ajax('GET', url, { target: '#table-rows', swap: 'innerHTML' });
-    }
-    document.getElementById('campus-select').addEventListener('change', updateTableRows);
-    document.getElementById('year-select').addEventListener('change', updateTableRows);
-  </script>
+  </div>
+  
+  <!-- Summary Stats -->
+  <div class="flex gap-4 text-sm">
+    <div class="flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg">
+      <i data-feather="layers" class="w-4 h-4 text-blue-600"></i>
+      <span class="text-blue-600">ทั้งหมด</span>
+      <span class="font-bold text-blue-600" id="total-count">{{ mappings|length }}</span>
+      <span class="text-blue-600">หน่วยงาน</span>
+    </div>
+    
+    <div class="flex items-center gap-2 bg-green-50 px-3 py-2 rounded-lg">
+      <i data-feather="check-circle" class="w-4 h-4 text-green-600"></i>
+      <span class="text-green-600">ข้อมูลครบถ้วน</span>
+      <span class="font-bold text-green-600" id="completed-count">0</span>
+      <span class="text-green-600">หน่วยงาน</span>
+    </div>
+    
+    <div class="flex items-center gap-2 bg-orange-50 px-3 py-2 rounded-lg">
+      <i data-feather="alert-circle" class="w-4 h-4 text-orange-600"></i>
+      <span class="text-orange-600">ไม่มีข้อมูล</span>
+      <span class="font-bold text-orange-600" id="pending-count">{{ mappings|length }}</span>
+      <span class="text-orange-600">หน่วยงาน</span>
+    </div>
+  </div>
+</div>
+
+<!-- Table Card -->
+<div class="card shadow-lg border border-gray-200 bg-base-200 rounded-lg">
   <div class="overflow-x-auto">
     <table class="table w-full">
       <thead>
-        <tr>
-          <th>Campus</th>
-          <th>Department</th>
-          <th>Year</th>
-          <th>Actions</th>
+        <tr class="bg-gray-50">
+          <th class="font-bold border-r border-gray-200">หน่วยงาน</th>
+          <th class="font-bold border-r border-gray-200">วิทยาเขต</th>
+          <th class="font-bold text-center border-r border-gray-200">ปี</th>
+          <th class="font-bold text-center border-r border-gray-200">การดำเนินการ</th>
+          <th class="font-bold text-center">ดาวน์โหลด</th>
         </tr>
       </thead>
       <tbody id="table-rows">
@@ -48,5 +79,68 @@
     </table>
   </div>
 </div>
+
+<script>
+  let searchTimeout;
+  
+  function updateTableRows() {
+    const campusId = document.getElementById('campus-select').value;
+    const departmentSearch = document.getElementById('department-search').value;
+    const year = document.getElementById('year-select').value;
+    const url = `{{ url_for('material_mapping_excel_management.material_mapping_excel_management_table_rows') }}?campus_id=${campusId}&department_search=${encodeURIComponent(departmentSearch)}&year=${year}`;
+    htmx.ajax('GET', url, { target: '#table-rows', swap: 'innerHTML' });
+  }
+  
+  function updateStats() {
+    const rows = document.querySelectorAll('#table-rows tr');
+    const total = rows.length;
+    let completed = 0;
+    let pending = 0;
+    
+    rows.forEach(row => {
+      const cells = row.querySelectorAll('td');
+      if (cells.length > 0) {
+        const downloadCell = cells[cells.length - 1]; // Last column (download)
+        const downloadLink = downloadCell.querySelector('a[download]');
+        const noDataText = downloadCell.querySelector('span.text-gray-500');
+        
+        if (downloadLink) {
+          completed++;
+        } else if (noDataText) {
+          pending++;
+        }
+      }
+    });
+    
+    document.getElementById('total-count').textContent = total;
+    document.getElementById('completed-count').textContent = completed;
+    document.getElementById('pending-count').textContent = pending;
+  }
+  
+  // Event listeners
+  document.getElementById('campus-select').addEventListener('change', updateTableRows);
+  document.getElementById('year-select').addEventListener('change', updateTableRows);
+  
+  // Debounce search input to avoid too many requests
+  document.getElementById('department-search').addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(updateTableRows, 500);
+  });
+  
+  // Update stats on page load and after table update
+  document.addEventListener('DOMContentLoaded', function() {
+    updateStats();
+    feather.replace();
+  });
+  
+  // Listen for htmx afterSwap to update stats
+  document.body.addEventListener('htmx:afterSwap', function(event) {
+    if (event.detail.target.id === 'table-rows') {
+      updateStats();
+      feather.replace();
+    }
+  });
+</script>
+
 <div id="modal-content"></div>
 {% endblock content %}
