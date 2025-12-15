@@ -4,22 +4,30 @@
       {% set year = filter_year|int if filter_year else None %}
       {% if not filter_year or dept_key and year %}
         {% set mapping = mappings|selectattr('campus_id', 'equalto', campus.id|string)|selectattr('department_key', 'equalto', dept_key)|selectattr('year', 'equalto', year if year else mappings[0].year if mappings else None)|list|first %}
-        <tr id="row-{{ campus.id }}-{{ dept_key }}">
-          <td>{{ campus.name['0'] }}</td>
-          <td>{{ dept_name }}</td>
-          <td>{{ year if year else mappings[0].year if mappings else '' }}</td>
-          <td>
+        <tr id="row-{{ campus.id }}-{{ dept_key }}" class="even:bg-white odd:bg-blue-50">
+          <td class="border-r border-gray-200">{{ dept_name }}</td>
+          <td class="border-r border-gray-200">{{ campus.name['0'] }}</td>
+          <td class="text-center border-r border-gray-200">{{ year if year else mappings[0].year if mappings else '' }}</td>
+          <td class="text-center border-r border-gray-200">
             <a 
               href="{{ url_for('material_mapping_excel.mapping_excel_view') }}?campus_id={{ campus.id }}&department_key={{ dept_key }}&year={{ year }}" 
-              class="btn btn-primary btn-sm"
-            >ดูและแก้ไข</a>
+              class="btn btn-success btn-sm text-white"
+            >
+              <i data-feather="edit-2" class="w-4 h-4 mr-1"></i>
+              แก้ไข
+            </a>
+          </td>
+          <td class="text-center">
             {% if mapping %}
               <a 
                 href="{{ url_for('material_mapping_excel.export_excel') }}?campus_id={{ campus.id }}&department_key={{ dept_key }}&year={{ year }}" 
-                class="btn btn-success btn-sm" download
-              >ดาวน์โหลด</a>
+                class="btn btn-info btn-sm text-white" download
+              >
+                <i data-feather="download" class="w-4 h-4 mr-1"></i>
+                ดาวน์โหลด
+              </a>
             {% else %}
-              <span class="text-gray-400">ยังไม่มีข้อมูล</span>
+              <span class="text-gray-500">ไม่มีข้อมูล</span>
             {% endif %}
           </td>
         </tr>
