@@ -111,8 +111,18 @@ def load_edit_user_role():
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    roles = Role.objects()
-    roles_dict = {role.name: role for role in roles}
+    # หา rank ที่ต่ำที่สุด (ยศสูงสุด) ของ current_user
+    user_roles = getattr(current_user, "roles", [])
+    all_roles = list(Role.objects())
+    if user_roles:
+        my_ranks = [role.rank for role in all_roles if role.name in user_roles]
+        my_min_rank = min(my_ranks) if my_ranks else 1
+    else:
+        my_min_rank = 1
+
+    # filter roles ที่ current_user สามารถ assign ได้ (rank >= ของตัวเอง)
+    roles = [role for role in all_roles if role.rank >= my_min_rank]
+    roles_dict = {role.name: role for role in all_roles}
     form = EditUserForm()
     if request.method == "POST":
         form.username.data = user.username
