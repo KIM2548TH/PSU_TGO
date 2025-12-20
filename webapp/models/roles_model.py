@@ -10,6 +10,9 @@ class Role(me.Document, UserMixin):
         required=False, unique=False, null=True, default="don't know"
     )
     rank = me.IntField(required=True, default=1)  # ยศ/ลำดับขั้น (ยิ่งมากยิ่งสูง)
+    scope_type = me.StringField(
+        required=False, default="global", choices=["global", "campus", "department"]
+    )
 
     created_date = me.DateTimeField(required=True, default=datetime.datetime.now)
 
