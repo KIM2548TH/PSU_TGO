@@ -64,11 +64,16 @@ def users_management():
     campuses = CampusAndDepartment.objects()
     for campus in campuses:
         campus.name = campus.name.get("0", "Unknown Campus")
+
+    roles = Role.objects()
+    roles_dict = {role.name: role for role in roles}
     return render_template(
         "/users-management/users-management.html",
         users=users,
         campuses=campus,
         departments=get_all_unique_departments(),
+        roles=roles,
+        roles_dict=roles_dict,
     )
 
 
@@ -88,6 +93,7 @@ def load_edit_user_role():
         return jsonify({"error": "User not found"}), 404
 
     roles = Role.objects()
+    roles_dict = {role.name: role for role in roles}
     form = EditUserForm()
     if request.method == "POST":
         form.username.data = user.username
@@ -103,6 +109,7 @@ def load_edit_user_role():
                 campuses=get_campuses(),
                 departments=get_all_unique_departments(),
                 roles=roles,
+                roles_dict=roles_dict,
                 form=form,
                 error_msg=edit_result["error_msg"],
             )
@@ -123,6 +130,8 @@ def load_edit_user_role():
             )
 
         if request.headers.get("HX-Request"):
+            roles = Role.objects()
+            roles_dict = {role.name: role for role in roles}
             return render_template(
                 "/users-management/users-table.html",
                 users=users,
@@ -133,6 +142,8 @@ def load_edit_user_role():
                 selected_campus=selected_campus,
                 selected_department=selected_department,
                 search_query=search_query,  # ส่ง search กลับไปด้วย
+                roles=roles,
+                roles_dict=roles_dict,
             )
         else:
             return redirect(url_for("users_management.users_management"))
@@ -162,6 +173,7 @@ def load_edit_user_role():
         campuses=campuses,  # ส่ง object เต็ม
         departments=get_all_unique_departments(),
         roles=roles,
+        roles_dict=roles_dict,
         form=form,
         page=page,
         selected_campus=selected_campus,
@@ -202,6 +214,8 @@ def load_users_table():
     for campus in campuses:
         campus.name = campus.name.get("0", "Unknown Campus")
 
+    roles = Role.objects()
+    roles_dict = {role.name: role for role in roles}
     return render_template(
         "/users-management/users-table.html",
         users=users,
@@ -212,6 +226,8 @@ def load_users_table():
         selected_campus=selected_campus,
         selected_department=selected_department,
         search_query=search_query,
+        roles=roles,
+        roles_dict=roles_dict,
     )
 
 

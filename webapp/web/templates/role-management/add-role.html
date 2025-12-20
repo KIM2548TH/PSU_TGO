@@ -7,6 +7,7 @@
 </div>
 
 <form method="POST" action="{{ url_for('role_management.add_role') }}">
+
   <div class="mb-4">
     <label class="block text-sm font-medium">{{ t.role_name }}</label>
     <input type="text" name="name" class="input input-bordered w-full" placeholder="{{ t.enter_role_name }}" required>
@@ -15,6 +16,11 @@
   <div class="mb-4">
     <label class="block text-sm font-medium">{{ t.role_description }}</label>
     <textarea name="description" class="textarea textarea-bordered w-full" placeholder="{{ t.enter_role_description }}"></textarea>
+  </div>
+
+  <div class="mb-4">
+    <label class="block text-sm font-medium">ลำดับขั้น/ยศ (เลขน้อย = ยศสูง)</label>
+    <input type="number" name="rank" class="input input-bordered w-full" min="1" value="1" required>
   </div>
 
   <div class="mb-4">
