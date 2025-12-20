@@ -9,6 +9,7 @@
 <form hx-post="{{ url_for('role_management.edit_role', role_id=role.id) }}"
       hx-target="#modal-content"
       hx-swap="innerHTML">
+
   <div class="mb-2">
     <label class="block text-sm font-medium">{{ t.name }}</label>
     <input type="text" name="name" value="{{ role.name }}" class="input input-bordered w-full" required>
@@ -17,6 +18,18 @@
     <label class="block text-sm font-medium">{{ t.description }}</label>
     <textarea name="description" class="textarea textarea-bordered w-full">{{ role.description }}</textarea>
   </div>
+  <div class="mb-2">
+    <label class="block text-sm font-medium">ลำดับขั้น/ยศ (เลขน้อย = ยศสูง)</label>
+    <input type="number" name="rank" class="input input-bordered w-full" min="1" value="{{ role.rank or 1 }}" required>
+  </div>
+    <div class="mb-2">
+      <label class="block text-sm font-medium">Scope Type (ขอบเขตการมองเห็น)</label>
+      <select name="scope_type" class="select select-bordered w-full">
+        <option value="global" {% if role.scope_type == 'global' %}selected{% endif %}>Global (เห็นทุกคน)</option>
+        <option value="campus" {% if role.scope_type == 'campus' %}selected{% endif %}>Campus (เห็นเฉพาะวิทยาเขตเดียวกัน)</option>
+        <option value="department" {% if role.scope_type == 'department' %}selected{% endif %}>Department (เห็นเฉพาะคณะเดียวกัน)</option>
+      </select>
+    </div>
 
   <div class="mb-4">
     <label class="block text-sm font-medium mb-1">{{ t.permissions }}</label>

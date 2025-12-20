@@ -6,9 +6,17 @@
     </button>
 </div>
 
+{% set can_edit = False %}
+{% set current_role = current_user.roles[0] if current_user.roles else None %}
+{% set target_role = user.roles[0] if user.roles else None %}
+{% set current_role_obj = roles_dict.get(current_role) if roles_dict else None %}
+{% set target_role_obj = roles_dict.get(target_role) if roles_dict else None %}
+{% if current_role_obj and target_role_obj and current_role_obj.rank <= target_role_obj.rank %}
+    {% set can_edit = True %}
+{% endif %}
 <form hx-post="{{ url_for('users_management.load_edit_user_role', user_id=user.id, page=page, campus=selected_campus, department=selected_department, search=search_query) }}"
-      hx-target="#users-table-container"
-      hx-swap="innerHTML">
+    hx-target="#users-table-container"
+    hx-swap="innerHTML">
     <div class="mb-2">
         <label class="block text-sm font-medium">Username</label>
         <input type="text" name="username" class="input input-bordered w-full" value="{{ form.username.data }}" readonly disabled>
@@ -51,7 +59,7 @@
     </div>
     <div class="mb-2">
         <label class="block text-sm font-medium">{{ t.role }}</label>
-        <select name="roles" class="select select-bordered w-full">
+        <select name="roles" class="select select-bordered w-full" {% if not can_edit %}disabled{% endif %}>
             {% for role in roles %}
             <option value="{{ role.name }}" {% if role in form.roles.data.split(',') %}selected{% endif %}>
                 {{ role.name }}
@@ -64,7 +72,7 @@
                 hx-on="click: document.getElementById('modal').classList.remove('modal-open')">
             Cancel
         </button>
-        <button type="submit" class="btn btn-primary" hx-on="click: document.getElementById('modal').classList.remove('modal-open')">
+        <button type="submit" class="btn btn-primary" hx-on="click: document.getElementById('modal').classList.remove('modal-open')" {% if not can_edit %}disabled{% endif %}>
             Update
         </button>
     </div>

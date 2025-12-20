@@ -54,7 +54,25 @@ def get_user_department_for_campus(department_key, campus_obj_id):
 @permissions_required_all(["เข้าถึงหน้าจัดการผู้ใช้"])
 # @permissions_required_all(['edit_management', 'view_management'])
 def users_management():
-    users = User.objects()
+
+    # ดึง role หลักของ current_user
+    current_role_name = current_user.roles[0] if current_user.roles else None
+    current_role = (
+        Role.objects(name=current_role_name).first() if current_role_name else None
+    )
+
+    # Filter users ตาม scope_type
+    if current_role and current_role.scope_type == "campus":
+        users = User.objects(campus_id=current_user.campus_id)
+
+    elif current_role and current_role.scope_type == "department":
+        users = User.objects(
+            campus_id=current_user.campus_id, department_key=current_user.department_key
+        )
+
+    else:
+        users = User.objects()
+
     for user in users:
         user.campus = CampusAndDepartment.get_campus_name(user.campus_id)
         user.department = CampusAndDepartment.get_department_name(
@@ -64,11 +82,17 @@ def users_management():
     campuses = CampusAndDepartment.objects()
     for campus in campuses:
         campus.name = campus.name.get("0", "Unknown Campus")
+
+    roles = Role.objects()
+    roles_dict = {role.name: role for role in roles}
+    print(users.count(), "users.count()", users.first().department_key)
     return render_template(
         "/users-management/users-management.html",
         users=users,
         campuses=campus,
         departments=get_all_unique_departments(),
+        roles=roles,
+        roles_dict=roles_dict,
     )
 
 
@@ -88,6 +112,7 @@ def load_edit_user_role():
         return jsonify({"error": "User not found"}), 404
 
     roles = Role.objects()
+    roles_dict = {role.name: role for role in roles}
     form = EditUserForm()
     if request.method == "POST":
         form.username.data = user.username
@@ -103,6 +128,7 @@ def load_edit_user_role():
                 campuses=get_campuses(),
                 departments=get_all_unique_departments(),
                 roles=roles,
+                roles_dict=roles_dict,
                 form=form,
                 error_msg=edit_result["error_msg"],
             )
@@ -123,6 +149,8 @@ def load_edit_user_role():
             )
 
         if request.headers.get("HX-Request"):
+            roles = Role.objects()
+            roles_dict = {role.name: role for role in roles}
             return render_template(
                 "/users-management/users-table.html",
                 users=users,
@@ -133,6 +161,8 @@ def load_edit_user_role():
                 selected_campus=selected_campus,
                 selected_department=selected_department,
                 search_query=search_query,  # ส่ง search กลับไปด้วย
+                roles=roles,
+                roles_dict=roles_dict,
             )
         else:
             return redirect(url_for("users_management.users_management"))
@@ -162,6 +192,7 @@ def load_edit_user_role():
         campuses=campuses,  # ส่ง object เต็ม
         departments=get_all_unique_departments(),
         roles=roles,
+        roles_dict=roles_dict,
         form=form,
         page=page,
         selected_campus=selected_campus,
@@ -181,17 +212,41 @@ def load_users_table():
     selected_department = request.args.get("department", None)
     search_query = request.args.get("search", "").strip()
 
-    query = {}
-    if selected_campus and selected_campus != "All Campuses":
-        query["campus"] = selected_campus
-    if selected_department and selected_department != "All Faculties":
-        query["department"] = selected_department
-    if search_query:
-        query["username__icontains"] = search_query
+    # --- Filter users ตาม scope_type ของ current_user ---
+    from ...models.roles_model import Role
 
-    total_users = User.objects(**query).count()
+    user_roles = getattr(current_user, "roles", [])
+    scope_types = set()
+    if user_roles:
+        for r in user_roles:
+            role_obj = Role.objects(name=r).first()
+            if role_obj and role_obj.scope_type:
+                scope_types.add(role_obj.scope_type)
+
+    # ถ้ามี global เห็นทุกคน
+    if "global" in scope_types or not scope_types:
+        base_query = {}
+    elif "campus" in scope_types:
+        base_query = {"campus_id": current_user.campus_id}
+    elif "department" in scope_types:
+        base_query = {
+            "campus_id": current_user.campus_id,
+            "department_key": current_user.department_key,
+        }
+    else:
+        base_query = {}
+
+    # รวม filter อื่น ๆ
+    if selected_campus and selected_campus != "All Campuses":
+        base_query["campus_id"] = selected_campus
+    if selected_department and selected_department != "All Faculties":
+        base_query["department_key"] = selected_department
+    if search_query:
+        base_query["username__icontains"] = search_query
+
+    total_users = User.objects(**base_query).count()
     total_pages = (total_users + per_page - 1) // per_page
-    users = User.objects(**query).skip((page - 1) * per_page).limit(per_page)
+    users = User.objects(**base_query).skip((page - 1) * per_page).limit(per_page)
     for user in users:
         user.campus = CampusAndDepartment.get_campus_name(user.campus_id)
         user.department = CampusAndDepartment.get_department_name(
@@ -202,6 +257,8 @@ def load_users_table():
     for campus in campuses:
         campus.name = campus.name.get("0", "Unknown Campus")
 
+    roles = Role.objects()
+    roles_dict = {role.name: role for role in roles}
     return render_template(
         "/users-management/users-table.html",
         users=users,
@@ -212,6 +269,8 @@ def load_users_table():
         selected_campus=selected_campus,
         selected_department=selected_department,
         search_query=search_query,
+        roles=roles,
+        roles_dict=roles_dict,
     )
 
 

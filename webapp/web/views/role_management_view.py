@@ -12,7 +12,7 @@ module = Blueprint("role_management", __name__, url_prefix="/role-management")
 @permissions_required_all(["เข้าถึงหน้าจัดการสิทธิ์"])
 @login_required
 def role_management():
-    roles = Role.objects()
+    roles = Role.objects().order_by("rank")
     return render_template("/role-management/role-management.html", roles=roles)
 
 
@@ -32,7 +32,10 @@ def load_add_role():
 def add_role():
     name = request.form.get("name")
     description = request.form.get("description")
+
     permissions = request.form.getlist("permissions")
+    rank = request.form.get("rank", type=int) or 1
+    scope_type = request.form.get("scope_type", "global")
 
     existing_role = Role.objects(name=name).first()
     if existing_role:
@@ -44,7 +47,13 @@ def add_role():
         )
 
     try:
-        role = Role(name=name, description=description, permission=permissions)
+        role = Role(
+            name=name,
+            description=description,
+            permission=permissions,
+            rank=rank,
+            scope_type=scope_type,
+        )
         role.save()
     except Exception as e:
         permissions_list = Permission.objects()
@@ -83,6 +92,8 @@ def edit_role(role_id):
     role = Role.objects(id=role_id).first()
     role.name = request.form.get("name")
     role.description = request.form.get("description")
+    rank = request.form.get("rank", type=int) or 1
+    scope_type = request.form.get("scope_type", "global")
 
     try:
         permission_ids = request.form.getlist("permissions")
@@ -90,12 +101,13 @@ def edit_role(role_id):
         # แปลง ID ให้เป็น Permission object
         permissions = []
         for pid in permission_ids:
-            print(pid)
             permission = Permission.objects(id=pid).first()
             if permission:
                 permissions.append(permission.name)
 
         role.permission = permissions
+        role.rank = rank
+        role.scope_type = scope_type
         role.save()
 
     except Exception as e:
