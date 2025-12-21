@@ -309,6 +309,14 @@ def load_departments():
     default_dept = request.headers.get("X-Default-Department")
     if default_dept:
         current_selected_department = default_dept
+    else:
+        # If user has department scope, set default to their department
+        user_roles = getattr(current_user, "roles", [])
+        if user_roles:
+            role_obj = Role.objects(name=user_roles[0]).first()
+            if role_obj and getattr(role_obj, "scope_type", None) == "department":
+                if getattr(current_user, "department_key", None):
+                    current_selected_department = current_user.department_key
 
     if not selected_campus or selected_campus == "All Campuses":
         departments_list = []
@@ -359,6 +367,17 @@ def load_campuses():
     default_campus = request.headers.get("X-Default-Campus")
     if default_campus:
         selected_campus = default_campus
+    else:
+        # If user has campus or department scope, set default to their campus
+        user_roles = getattr(current_user, "roles", [])
+        if user_roles:
+            role_obj = Role.objects(name=user_roles[0]).first()
+            if role_obj and getattr(role_obj, "scope_type", None) in [
+                "campus",
+                "department",
+            ]:
+                if getattr(current_user, "campus_id", None):
+                    selected_campus = current_user.campus_id
     campuses_obj = get_campuses()
     campuses = []
     for campus in campuses_obj:
