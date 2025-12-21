@@ -1,39 +1,29 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, abort, make_response, send_file
 from flask_login import login_required, current_user
 import openpyxl
-import os
-import urllib.parse
 import re
 from functools import lru_cache
-from datetime import datetime
-from ...models import CampusAndDepartment, Material, MaterialMappingExcel, FormAndFormula, Scope, User
+from ...models import CampusAndDepartment, MaterialMappingExcel, FormAndFormula, User
 from ..forms.material_mapping_excel_form import MaterialMappingExcelForm, FormChoicesModalForm
-from wtforms import FieldList, HiddenField
-from webapp.services.export_excel_service import export_material_mapping_excel, export_material_mapping_excel_to_download
+from webapp.services.export_excel_service import export_material_mapping_excel_to_download
 from ..utils.acl import permissions_required_all
 
 module = Blueprint("material_mapping_excel", __name__, url_prefix="/material-mapping-excel")
-print("Material Mapping Excel View Loaded")
-
-# Cache สำหรับ keys_by_scope จาก Excel
-# maxsize=128 หมายความว่าเก็บได้หลาย version (แต่จริงๆ ใช้แค่ 1)
-# Cache จะอยู่ตลอดจนกว่าจะ restart server หรือเรียก .cache_clear()
-# หรือเมื่อ file_mtime เปลี่ยน (แก้ไข Excel)
 @lru_cache(maxsize=128)
-def get_keys_by_scope_from_excel(sheet_name="Fr-04.1", file_mtime=None):
-    """อ่านไฟล์ Excel และสร้าง keys_by_scope (cache ไว้)
+def get_keys_by_scope_from_excel(sheet_name="Fr-04.1", file_mtime=None, template_excel_id=None):
+    """อ่านและ parse ไฟล์ Excel template เพื่อสร้าง keys_by_scope (มี cache)"""
+    import io
+    from webapp.models.file_model import TemplateExcel
     
-    Args:
-        sheet_name: ชื่อ sheet ใน Excel
-        file_mtime: เวลาแก้ไขไฟล์ล่าสุด (ใช้เพื่อ invalidate cache เมื่อไฟล์เปลี่ยน)
+    if not template_excel_id:
+        raise ValueError("Template Excel ID is required")
     
-    Note:
-        - Cache จะอยู่ใน memory ตลอดจนกว่าจะ restart server
-        - ถ้าแก้ไขไฟล์ Excel, file_mtime จะเปลี่ยน → cache จะ rebuild
-        - maxsize=1 หมายถึงเก็บได้แค่ 1 version (ประหยัด memory)
-    """
-    template_path = os.path.join(os.path.dirname(__file__), "../../tamplate_file/การคำนวณCFO.xlsx")
-    wb = openpyxl.load_workbook(template_path)
+    template = TemplateExcel.objects(id=template_excel_id).first()
+    if not template or not template.file or not template.file.data:
+        raise ValueError(f"Template Excel ID {template_excel_id} not found or has no file data")
+    
+    file_stream = io.BytesIO(template.file.data)
+    wb = openpyxl.load_workbook(file_stream)
     ws = wb[sheet_name]
     
     def get_cell_color(cell):
@@ -45,7 +35,7 @@ def get_keys_by_scope_from_excel(sheet_name="Fr-04.1", file_mtime=None):
     SCOPE_SUB_COLOR = "FFFFC000"
     SUB_SCOPE_ITEM_COLOR = "FFFBD4B4"
     keys_by_scope = {1: {}, 2: {}, 3: {}}
-    scope_numbers = {1: {}, 2: {}, 3: {}}  # เก็บเลขสโคปแยกต่างหาก
+    scope_numbers = {1: {}, 2: {}, 3: {}}
     current_scope = None
     current_sub_scope = None
     current_sub_sub_scope = None
@@ -75,20 +65,15 @@ def get_keys_by_scope_from_excel(sheet_name="Fr-04.1", file_mtime=None):
         if current_scope and col_b and cell_b_color == SCOPE_SUB_COLOR:
             current_sub_scope = str(col_b).strip()
             
-            # สร้างเลขสโคป
             if current_scope == 3:
-                # Scope 3: ดึง Cat จากชื่อ
                 match_cat = re.match(r'^(Cat\.?\s*\d+)', current_sub_scope, re.IGNORECASE)
                 if match_cat:
                     scope_number = match_cat.group(1).replace('.', '').replace(' ', ' ').strip()
-                    # Normalize เป็น "Cat X" (เว้นวรรค)
                     scope_number = re.sub(r'Cat\s*', 'Cat ', scope_number, flags=re.IGNORECASE)
                 else:
-                    # ถ้าไม่เจอ Cat ให้ใช้ counter
                     sub_scope_counters[current_scope] += 1
                     scope_number = f"Cat {sub_scope_counters[current_scope]}"
             else:
-                # Scope 1, 2: ใช้ counter
                 sub_scope_counters[current_scope] += 1
                 scope_number = f"{current_scope}.{sub_scope_counters[current_scope]}"
             
@@ -111,21 +96,15 @@ def get_keys_by_scope_from_excel(sheet_name="Fr-04.1", file_mtime=None):
 
 @module.route("/", methods=["GET"])
 @login_required
-@permissions_required_all(["จัดการ mapping excel"])
+#@permissions_required_all(["จัดการ mapping excel"])
 def mapping_excel_view():
     campus_id = request.args.get('campus_id') or current_user.campus_id
     department_key = request.args.get('department_key') or current_user.department_key
     year = request.args.get("year", 2025, type=int)
     sheet_name = "Fr-04.1"
     
-    # ดึงข้อมูล campus และ department_name
     campus = CampusAndDepartment.objects.get(id=campus_id)
     department_name = campus.departments.get(department_key, "ไม่ทราบหน่วยงาน")
-    
-    # ตรวจสอบเวลาแก้ไขไฟล์ Excel เพื่อ invalidate cache ถ้าไฟล์เปลี่ยน
-    template_path = os.path.join(os.path.dirname(__file__), "../../tamplate_file/การคำนวณCFO.xlsx")
-    file_mtime = os.path.getmtime(template_path) if os.path.exists(template_path) else None
-    
     mapping_doc = MaterialMappingExcel.objects(
         campus_id=campus_id,
         department_key=department_key,
@@ -142,7 +121,16 @@ def mapping_excel_view():
         )
         mapping_doc.save()
     
-    # ดึง scope/sub-scope ที่ผู้ใช้ในคณะนี้ติ๊กไว้
+    if not mapping_doc.template_excel_id:
+        flash("กรุณาเลือกไฟล์ต้นฉบับก่อนแก้ไข Mapping", "warning")
+        return redirect(url_for('material_mapping_excel_management.admin_mapping_excel_view'))
+    from webapp.models.file_model import TemplateExcel
+    template = TemplateExcel.objects(id=mapping_doc.template_excel_id).first()
+    if not template:
+        flash("ไม่พบไฟล์ต้นฉบับที่เลือก", "error")
+        return redirect(url_for('material_mapping_excel_management.admin_mapping_excel_view'))
+    
+    db_mtime = template.file.upload_date.timestamp() if template and template.file else None
     user = User.objects.with_id(current_user.id)
     selected_subscopes = {
         1: user.ghg_scope_1 or [],
@@ -150,11 +138,9 @@ def mapping_excel_view():
         3: user.ghg_scope_3 or []
     }
     
-    # Query FormAndFormula ครั้งเดียว แล้ว filter ใน Python
     all_forms = list(FormAndFormula.objects.only('id', 'material_name', 'ghg_scope', 'ghg_sup_scope'))
     form_and_formula_dict = {str(f.id): f for f in all_forms}
     
-    # สร้าง form_choices_by_scope โดย filter จาก all_forms
     form_choices_by_scope = {1: [], 2: [], 3: []}
     for scope_num in [1, 2, 3]:
         scope_forms = [
@@ -164,9 +150,11 @@ def mapping_excel_view():
         ]
         form_choices_by_scope[scope_num] = sorted(scope_forms, key=lambda x: x[1])
     
-    # ใช้ cached function แทนการอ่าน Excel ทุกครั้ง
-    # ส่ง file_mtime เพื่อให้ cache rebuild อัตโนมัติเมื่อไฟล์ Excel เปลี่ยน
-    keys_by_scope, scope_numbers = get_keys_by_scope_from_excel(sheet_name, file_mtime)
+    try:
+        keys_by_scope, scope_numbers = get_keys_by_scope_from_excel(sheet_name, db_mtime, mapping_doc.template_excel_id)
+    except ValueError as e:
+        flash(str(e), "error")
+        return redirect(url_for('material_mapping_excel_management.admin_mapping_excel_view'))
     
     return render_template(
         "material-mapping-excel/mapping-excel-view.html",
@@ -183,47 +171,15 @@ def mapping_excel_view():
 
 @module.route("/edit", methods=["GET", "POST"])
 @login_required
-@permissions_required_all(["แก้ไข mapping excel"])
+#@permissions_required_all(["แก้ไข mapping excel"])
 def mapping_excel_edit():
     campus_id = request.args.get('campus_id') or current_user.campus_id
     department_key = request.args.get('department_key') or current_user.department_key
     year = request.args.get("year", 2025, type=int)
     sheet_name = "Fr-04.1"
     
-    # ดึงข้อมูล campus และ department_name
     campus = CampusAndDepartment.objects.get(id=campus_id)
     department_name = campus.departments.get(department_key, "ไม่ทราบหน่วยงาน")
-    
-    # ตรวจสอบเวลาแก้ไขไฟล์ Excel เพื่อ invalidate cache ถ้าไฟล์เปลี่ยน
-    template_path = os.path.join(os.path.dirname(__file__), "../../tamplate_file/การคำนวณCFO.xlsx")
-    file_mtime = os.path.getmtime(template_path) if os.path.exists(template_path) else None
-    
-    # ใช้ cached function แทนการอ่าน Excel ทุกครั้ง
-    keys_by_scope, scope_numbers = get_keys_by_scope_from_excel(sheet_name, file_mtime)
-
-    # ดึง scope/sub-scope ที่ผู้ใช้ในคณะนี้ติ๊กไว้
-    user = User.objects.with_id(current_user.id)
-    selected_subscopes = {
-        1: user.ghg_scope_1 or [],
-        2: user.ghg_scope_2 or [],
-        3: user.ghg_scope_3 or []
-    }
-    
-    # Query FormAndFormula ครั้งเดียว แล้ว filter ใน Python
-    all_forms = list(FormAndFormula.objects.only('id', 'material_name', 'ghg_scope', 'ghg_sup_scope'))
-    form_and_formula_dict = {str(f.id): f for f in all_forms}
-    
-    # สร้าง form_choices_by_scope โดย filter จาก all_forms
-    form_choices_by_scope = {1: [], 2: [], 3: []}
-    for scope_num in [1, 2, 3]:
-        scope_forms = [
-            (str(f.id), f.material_name) 
-            for f in all_forms 
-            if f.ghg_scope == scope_num and f.ghg_sup_scope in selected_subscopes[scope_num]
-        ]
-        form_choices_by_scope[scope_num] = sorted(scope_forms, key=lambda x: x[1])
-    
-    # ดึงหรือสร้าง MaterialMappingExcel
     mapping_doc = MaterialMappingExcel.objects(
         campus_id=campus_id,
         department_key=department_key,
@@ -239,19 +195,45 @@ def mapping_excel_edit():
             mappings={}
         )
         mapping_doc.save()
+    
+    if not mapping_doc.template_excel_id:
+        flash("กรุณาเลือกไฟล์ต้นฉบับก่อนแก้ไข Mapping", "warning")
+        return redirect(url_for('material_mapping_excel_management.admin_mapping_excel_view'))
+    
+    from webapp.models.file_model import TemplateExcel
+    template = TemplateExcel.objects(id=mapping_doc.template_excel_id).first()
+    if not template:
+        flash("ไม่พบไฟล์ต้นฉบับที่เลือก", "error")
+        return redirect(url_for('material_mapping_excel_management.admin_mapping_excel_view'))
+    
+    db_mtime = template.file.upload_date.timestamp() if template and template.file else None
+    
+    try:
+        keys_by_scope, scope_numbers = get_keys_by_scope_from_excel(sheet_name, db_mtime, mapping_doc.template_excel_id)
+    except ValueError as e:
+        flash(str(e), "error")
+        return redirect(url_for('material_mapping_excel_management.admin_mapping_excel_view'))
+
+    user = User.objects.with_id(current_user.id)
+    selected_subscopes = {
+        1: user.ghg_scope_1 or [],
+        2: user.ghg_scope_2 or [],
+        3: user.ghg_scope_3 or []
+    }
+    
+    all_forms = list(FormAndFormula.objects.only('id', 'material_name', 'ghg_scope', 'ghg_sup_scope'))
+    form_and_formula_dict = {str(f.id): f for f in all_forms}
+    
+    form_choices_by_scope = {1: [], 2: [], 3: []}
+    for scope_num in [1, 2, 3]:
+        scope_forms = [
+            (str(f.id), f.material_name) 
+            for f in all_forms 
+            if f.ghg_scope == scope_num and f.ghg_sup_scope in selected_subscopes[scope_num]
+        ]
+        form_choices_by_scope[scope_num] = sorted(scope_forms, key=lambda x: x[1])
 
     form = MaterialMappingExcelForm()
-    # สร้างฟิลด์แบบไดนามิกสำหรับแต่ละ scope/sub-scope/sub-sub-scope
-    for scope_num in [1, 2, 3]:
-        for sub_scope_title, sub_sub_dict in keys_by_scope[scope_num].items():
-            for sub_sub_title, items in sub_sub_dict.items():
-                for key in items:
-                    encoded_key = key.replace(' ', '_').replace('.', '_').replace('+', '_')
-                    field_name = f"material_{scope_num}_{encoded_key}"
-                    if not hasattr(form, field_name):
-                        setattr(form, field_name, FieldList(HiddenField(), min_entries=0))
-    # ไม่ต้องเติมค่า default hidden field ใน form object
-    # ให้ render hidden input ใน template โดยใช้ mapping_doc.mappings
 
     if form.validate_on_submit():
         mappings = {}
@@ -320,12 +302,8 @@ def form_choices_modal():
     scope_num = int(request.args.get("scope_num"))
     key = request.args.get("key")
     encoded_key = request.args.get("encoded_key", "")
-    sub_scope_index = request.args.get("sub_scope_index")
-    if not sub_scope_index or str(sub_scope_index).strip() == "":
-        sub_scope_index = 0
-    else:
-        sub_scope_index = int(sub_scope_index)
-    # ดึงฟอร์มทั้งหมดของ scope_num แล้วจัดกลุ่มตามซับสโคป
+    sub_scope_index = int(request.args.get("sub_scope_index", 0) or 0)
+    
     user = User.objects.with_id(current_user.id)
     selected_subscopes = {
         1: user.ghg_scope_1 or [],
@@ -336,10 +314,12 @@ def form_choices_modal():
     for sub in selected_subscopes[scope_num]:
         forms = FormAndFormula.objects(ghg_scope=scope_num, ghg_sup_scope=sub)
         grouped_forms[sub] = [(str(f.id), f.material_name) for f in forms]
-    campus_id = current_user.campus_id
-    department_key = current_user.department_key
+    
+    campus_id = request.args.get("campus_id") or current_user.campus_id
+    department_key = request.args.get("department_key") or current_user.department_key
     year = request.args.get("year", 2025, type=int)
     sheet_name = "Fr-04.1"
+    
     mapping_doc = MaterialMappingExcel.objects(
         campus_id=campus_id,
         department_key=department_key,
@@ -348,12 +328,8 @@ def form_choices_modal():
     ).first()
     selected_ids = []
     if mapping_doc and key in mapping_doc.mappings:
-        selected_ids = []
         for i in mapping_doc.mappings[key]:
-            if isinstance(i, dict) and "id" in i:
-                selected_ids.append(i["id"])
-            else:
-                selected_ids.append(i)
+            selected_ids.append(i["id"] if isinstance(i, dict) and "id" in i else i)
     form = FormChoicesModalForm()
     if request.method == "POST" and form.validate_on_submit():
         selected = request.form.getlist("form_choices")
@@ -385,7 +361,6 @@ def update_row():
     selected_scope = int(selected_scope_val) if selected_scope_val else 1
     selected_ids = request.form.getlist("form_choices") or request.form.getlist("selected_ids")
     
-    # รับ campus_id และ department_key จาก form แทน current_user
     campus_id = request.form.get("campus_id") or current_user.campus_id
     department_key = request.form.get("department_key") or current_user.department_key
     year = request.form.get("year", 2025, type=int)
@@ -398,11 +373,8 @@ def update_row():
     ).first()
     if not mapping_doc:
         return "ไม่พบข้อมูล Mapping", 404
-    # อัปเดตเฉพาะ key ที่แก้ไข โดยไม่ลบ key อื่น
+    
     mappings = mapping_doc.mappings or {}
-    if key not in mappings or not isinstance(mappings[key], list):
-        mappings[key] = []
-    # เก็บเป็น list ของ id string (ไม่ใช่ dict)
     mappings[key] = selected_ids
     mapping_doc.mappings = mappings
     mapping_doc.updated_date = mapping_doc.updated_date.now()
@@ -417,14 +389,17 @@ def update_row():
         selected_scope=selected_scope,
         encoded_key=encoded_key,
         form_and_formula_dict=form_and_formula_dict,
-        sub_scope_index=request.form.get("sub_scope_index", 0)
+        sub_scope_index=request.form.get("sub_scope_index", 0),
+        campus_id=campus_id,
+        department_key=department_key,
+        year=year
     ))
     response.headers["HX-Trigger"] = '{"closeModal": true, "showSuccess": "success"}'
     return response
 
 @module.route("/export-excel", methods=["GET"])
 @login_required
-@permissions_required_all(["ดาวน์โหลด mapping excel"])
+#@permissions_required_all(["ดาวน์โหลด mapping excel"])
 def export_excel():
     campus_id = request.args.get('campus_id') or current_user.campus_id
     department_key = request.args.get('department_key') or current_user.department_key

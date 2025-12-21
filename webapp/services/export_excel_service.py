@@ -14,8 +14,17 @@ def export_material_mapping_excel(campus_id, department_key, year, sheet_name, i
     if not mapping_doc:
         raise Exception("ไม่พบข้อมูล Mapping")
 
-    # โหลดไฟล์ Excel
-    wb = openpyxl.load_workbook(input_excel_path)
+    # โหลดไฟล์ Excel จาก DB หรือ path
+    from webapp.models.file_model import TemplateExcel
+    template = TemplateExcel.objects(year=year, campus_id=campus_id).order_by('display_name').first()
+    if template and template.file and template.file.data:
+        # โหลดจาก DB
+        file_stream = io.BytesIO(template.file.data)
+        wb = openpyxl.load_workbook(file_stream)
+    else:
+        # Fallback: ใช้ไฟล์ที่ระบุ
+        wb = openpyxl.load_workbook(input_excel_path)
+    
     ws = wb[sheet_name]
 
     # วนแต่ละ key ที่ mapping ไว้
@@ -56,7 +65,17 @@ def export_material_mapping_excel_to_download(campus_id, department_key, year, s
     if not mapping_doc:
         raise Exception("ไม่พบข้อมูล Mapping")
 
-    wb = openpyxl.load_workbook(input_excel_path)
+    # โหลดไฟล์ Excel จาก DB หรือ path
+    from webapp.models.file_model import TemplateExcel
+    template = TemplateExcel.objects(year=year, campus_id=campus_id).order_by('display_name').first()
+    if template and template.file and template.file.data:
+        # โหลดจาก DB
+        file_stream = io.BytesIO(template.file.data)
+        wb = openpyxl.load_workbook(file_stream)
+    else:
+        # Fallback: ใช้ไฟล์ที่ระบุ
+        wb = openpyxl.load_workbook(input_excel_path)
+    
     ws = wb[sheet_name]
 
     for key, selected_list in mapping_doc.mappings.items():

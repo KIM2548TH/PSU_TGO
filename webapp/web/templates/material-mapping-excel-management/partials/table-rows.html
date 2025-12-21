@@ -1,24 +1,47 @@
 {% for campus in campuses %}
   {% if not filter_campus_id or filter_campus_id == campus.id|string %}
     {% for dept_key, dept_name in campus.departments.items() %}
-      {% set year = filter_year|int if filter_year else None %}
-      {% if not filter_year or dept_key and year %}
-        {% set mapping = mappings|selectattr('campus_id', 'equalto', campus.id|string)|selectattr('department_key', 'equalto', dept_key)|selectattr('year', 'equalto', year if year else mappings[0].year if mappings else None)|list|first %}
+      {% if not filter_department_search or filter_department_search.lower() in dept_name.lower() %}
+        {% set year = filter_year|int if filter_year and filter_year != '' else 2025 %}
+        {% set mapping = mappings|selectattr('campus_id', 'equalto', campus.id|string)|selectattr('department_key', 'equalto', dept_key)|selectattr('year', 'equalto', year)|list|first %}
         <tr id="row-{{ campus.id }}-{{ dept_key }}" class="even:bg-white odd:bg-blue-50">
           <td class="border-r border-gray-200">{{ dept_name }}</td>
           <td class="border-r border-gray-200">{{ campus.name['0'] }}</td>
-          <td class="text-center border-r border-gray-200">{{ year if year else mappings[0].year if mappings else '' }}</td>
-          <td class="text-center border-r border-gray-200">
-            <a 
-              href="{{ url_for('material_mapping_excel.mapping_excel_view') }}?campus_id={{ campus.id }}&department_key={{ dept_key }}&year={{ year }}" 
-              class="btn btn-success btn-sm text-white"
+          <td class="text-center border-r border-gray-200">{{ year }}</td>
+          <td class="border-r border-gray-200">
+            <select 
+              class="select select-sm select-bordered w-full"
+              onchange="selectTemplate('{{ campus.id }}', '{{ dept_key }}', {{ year }}, this.value)"
+              data-mapping-id="{% if mapping %}{{ mapping.id }}{% endif %}"
             >
-              <i data-feather="edit-2" class="w-4 h-4 mr-1"></i>
-              แก้ไข
-            </a>
+              <option value="">-- เลือกไฟล์ต้นฉบับ --</option>
+              {% for template in templates %}
+                {% if template.campus_id == campus.id|string and template.year|int == year|int %}
+                  <option value="{{ template.id }}" {% if mapping and mapping.template_excel_id == template.id|string %}selected{% endif %}>
+                    {{ template.display_name }}
+                  </option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </td>
+          <td class="text-center border-r border-gray-200">
+            {% if mapping and mapping.template_excel_id %}
+              <a 
+                href="{{ url_for('material_mapping_excel.mapping_excel_view') }}?campus_id={{ campus.id }}&department_key={{ dept_key }}&year={{ year }}" 
+                class="btn btn-success btn-sm text-white"
+              >
+                <i data-feather="edit-2" class="w-4 h-4 mr-1"></i>
+                แก้ไข
+              </a>
+            {% else %}
+              <button class="btn btn-sm btn-disabled" disabled title="กรุณาเลือกไฟล์ต้นฉบับก่อน">
+                <i data-feather="edit-2" class="w-4 h-4 mr-1"></i>
+                แก้ไข
+              </button>
+            {% endif %}
           </td>
           <td class="text-center">
-            {% if mapping %}
+            {% if mapping and mapping.template_excel_id %}
               <a 
                 href="{{ url_for('material_mapping_excel.export_excel') }}?campus_id={{ campus.id }}&department_key={{ dept_key }}&year={{ year }}" 
                 class="btn btn-info btn-sm text-white" download

@@ -2,10 +2,18 @@
 {% block content %}
 <!-- Filter Card -->
 <div class="card shadow-lg border border-orange-200 bg-base-100 p-6 rounded-lg mb-4">
-  <h2 class="text-2xl font-bold mb-2">จัดการ Material Mapping (Admin)</h2>
-  <p class="text-gray-600 text-sm mb-4">จัดการและติดตามสถานะการกรอกข้อมูล Material Mapping ของแต่ละหน่วยงาน</p>
+  <div class="flex justify-between items-start mb-2">
+    <div class="flex-1">
+      <h2 class="text-2xl font-bold">จัดการ Material Mapping (Admin)</h2>
+      <p class="text-gray-600 text-sm mt-1">จัดการและติดตามสถานะการกรอกข้อมูล Material Mapping ของแต่ละหน่วยงาน</p>
+    </div>
+    <a href="{{ url_for('template_excel.template_excel_list') }}" class="btn btn-sm btn-primary gap-2">
+      <i data-feather="file-text" class="w-4 h-4"></i>
+      จัดการไฟล์ต้นฉบับ
+    </a>
+  </div>
   
-  <div class="flex gap-4 items-end mb-4">
+  <div class="flex gap-4 items-end mb-4 mt-4">
     <div class="flex-1">
       <label class="block font-bold mb-1">ค้นหาหน่วยงาน</label>
       <div class="relative">
@@ -69,6 +77,7 @@
           <th class="font-bold border-r border-gray-200">หน่วยงาน</th>
           <th class="font-bold border-r border-gray-200">วิทยาเขต</th>
           <th class="font-bold text-center border-r border-gray-200">ปี</th>
+          <th class="font-bold border-r border-gray-200">ไฟล์ต้นฉบับ</th>
           <th class="font-bold text-center border-r border-gray-200">การดำเนินการ</th>
           <th class="font-bold text-center">ดาวน์โหลด</th>
         </tr>
@@ -140,6 +149,37 @@
       feather.replace();
     }
   });
+  
+  // Function to select template
+  function selectTemplate(campusId, departmentKey, year, templateExcelId) {
+    if (!templateExcelId) {
+      return;
+    }
+    
+    const formData = new FormData();
+    formData.append('campus_id', campusId);
+    formData.append('department_key', departmentKey);
+    formData.append('year', year);
+    formData.append('template_excel_id', templateExcelId);
+    
+    fetch("{{ url_for('material_mapping_excel_management.select_template') }}", {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showSuccess('เลือกไฟล์ต้นฉบับสำเร็จ');
+        // Reload table to update edit button state
+        updateTableRows();
+      } else {
+        showError('เกิดข้อผิดพลาด: ' + data.message);
+      }
+    })
+    .catch(error => {
+      showError('เกิดข้อผิดพลาด: ' + error);
+    });
+  }
 </script>
 
 <div id="modal-content"></div>

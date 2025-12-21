@@ -1,0 +1,82 @@
+{% if templates %}
+  {% for template in templates %}
+    <tr class="hover">
+      <!-- ชื่อไฟล์แสดง -->
+      <td class="border-r border-gray-200">
+        <div class="flex items-center gap-2">
+          <i data-feather="file-text" class="w-4 h-4 text-blue-600"></i>
+          <span class="font-medium">{{ template.display_name }}</span>
+        </div>
+      </td>
+
+      <!-- วิทยาเขต -->
+      <td class="border-r border-gray-200">
+        {% for campus in campuses %}
+          {% if campus.id|string == template.campus_id %}
+            {{ campus.name.get('0', 'Unknown Campus') }}
+          {% endif %}
+        {% endfor %}
+      </td>
+
+      <!-- ปี -->
+      <td class="text-center border-r border-gray-200">
+        <span class="badge badge-primary">{{ template.year }}</span>
+      </td>
+
+      <!-- ชื่อไฟล์ต้นฉบับ -->
+      <td class="border-r border-gray-200">
+        <span class="text-sm text-gray-600">{{ template.file.filename }}</span>
+      </td>
+
+      <!-- ขนาดไฟล์ -->
+      <td class="text-center border-r border-gray-200">
+        <span class="text-sm">{{ (template.file.data|length / 1024)|round(2) }} KB</span>
+      </td>
+
+      <!-- วันที่อัพโหลด -->
+      <td class="text-center border-r border-gray-200">
+        <span class="text-sm text-gray-600">{{ template.file.upload_date.strftime('%d/%m/%Y %H:%M') }}</span>
+      </td>
+
+      <!-- การดำเนินการ -->
+      <td class="text-center">
+        <div class="flex gap-2 justify-center">
+          <!-- Edit -->
+          <button hx-get="{{ url_for('template_excel.edit_modal', template_id=template.id) }}" 
+                  hx-target="#modal-content" 
+                  hx-swap="innerHTML"
+                  class="btn btn-sm btn-warning gap-1"
+                  title="แก้ไข">
+            <i data-feather="edit" class="w-4 h-4"></i>
+          </button>
+          
+          <!-- Download -->
+          <a href="{{ url_for('template_excel.download_template_excel', template_id=template.id) }}" 
+             class="btn btn-sm btn-info gap-1"
+             title="ดาวน์โหลด">
+            <i data-feather="download" class="w-4 h-4"></i>
+          </a>
+
+          <!-- Delete -->
+          <button hx-delete="{{ url_for('template_excel.delete_template_excel', template_id=template.id) }}" 
+                  hx-target="#table-rows"
+                  hx-swap="innerHTML"
+                  hx-confirm="คุณต้องการลบไฟล์ '{{ template.display_name }}' ใช่หรือไม่?"
+                  class="btn btn-sm btn-error gap-1"
+                  title="ลบ">
+            <i data-feather="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  {% endfor %}
+{% else %}
+  <tr>
+    <td colspan="7" class="text-center text-gray-500 py-8">
+      <div class="flex flex-col items-center gap-2">
+        <i data-feather="inbox" class="w-12 h-12 text-gray-400"></i>
+        <p>ไม่พบไฟล์ตามเงื่อนไขที่เลือก</p>
+      </div>
+    </td>
+  </tr>
+{% endif %}
