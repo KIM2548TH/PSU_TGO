@@ -87,6 +87,16 @@ document.addEventListener('DOMContentLoaded', function() {
 document.body.addEventListener('htmx:afterSwap', function(event) {
     feather.replace();
     
+    // If users table was updated (after edit), reload dropdowns
+    if (event.detail.target.id === 'users-table-container') {
+        setTimeout(() => {
+            loadCampuses();
+            setTimeout(() => {
+                loadDepartments();
+            }, 50);
+        }, 50);
+    }
+    
     // If campus dropdown was updated, also update departments
     if (event.detail.target.id === 'campus-dropdown') {
         setTimeout(() => {
