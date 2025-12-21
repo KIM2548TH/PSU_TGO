@@ -122,20 +122,12 @@ function loadDepartments() {
     const deptSelect = document.getElementById('department-dropdown');
     if (campusSelect) {
         const selectedCampus = campusSelect.value;
-        // Reset department dropdown to default ("ทุกหน่วยงาน") and set value to empty so query uses default
-        if (deptSelect) {
-            deptSelect.value = "";
-            // Also trigger change event so form state updates before user table reload
-            const event = new Event('change', { bubbles: true });
-            deptSelect.dispatchEvent(event);
-        }
         htmx.ajax('GET', '{{ url_for("users_management.load_departments") }}', {
             values: { campus: selectedCampus },
             target: '#department-dropdown',
             swap: 'innerHTML',
             headers: { 'X-Default-Department': '' }
         });
-        // User table will reload from department change event
     } else {
         htmx.ajax('GET', '{{ url_for("users_management.load_departments") }}', {
             target: '#department-dropdown',
