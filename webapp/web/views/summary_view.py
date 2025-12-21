@@ -8,6 +8,7 @@ from ..utils.acl import permissions_required_all
 import urllib.parse
 import json
 import base64
+from collections import defaultdict
 
 module = Blueprint("summary", __name__, url_prefix="/summary")
 
@@ -638,7 +639,7 @@ def top_sub_scope_partial():
         top_materials = agg_list
 
     elif selected_scope and str(selected_scope).isdigit():
-        # Get top materials from specific scope using result2
+        # Aggregate result2 by material name within the selected scope
         materials = Material.objects(
             campus=user.campus_id,
             department=user.department_key,
@@ -646,35 +647,44 @@ def top_sub_scope_partial():
             year=int(selected_year),
             result2__exists=True,
             result2__ne=0,
-        ).order_by("-result2")[:3]
+        )
 
-        for material in materials:
-            # Get scope information for each material
-            scope_obj = None
-            try:
-                scope_obj = Scope.objects(
-                    campus=user.campus_id,
-                    department=user.department_key,
-                    ghg_scope=material.scope,
-                    ghg_sup_scope=material.sub_scope,
-                ).first()
-            except:
-                pass
+        agg = defaultdict(lambda: {"result2": 0, "scopes": set(), "sub_scopes": set()})
+        for m in materials:
+            agg[m.name]["result2"] += m.result2 or 0
+            agg[m.name]["scopes"].add(m.scope)
+            agg[m.name]["sub_scopes"].add(m.sub_scope)
 
-            scope_name = f"Scope {material.scope}.{material.sub_scope}"
-            if scope_obj and scope_obj.ghg_name:
-                scope_name = scope_obj.ghg_name
-
-            result2_value = material.result2 or 0
-            total_emissions += result2_value
-
-            top_materials.append(
+        # Get scope name (ใช้ชื่อ scope หลัก ถ้ามีหลาย sub_scope ให้รวมชื่อ)
+        agg_list = []
+        for name, data in agg.items():
+            scope_names = []
+            for sub_scope in sorted(data["sub_scopes"]):
+                scope_obj = None
+                try:
+                    scope_obj = Scope.objects(
+                        campus=user.campus_id,
+                        department=user.department_key,
+                        ghg_scope=int(selected_scope),
+                        ghg_sup_scope=sub_scope,
+                    ).first()
+                except:
+                    pass
+                if scope_obj and scope_obj.ghg_name:
+                    scope_names.append(scope_obj.ghg_name)
+                else:
+                    scope_names.append(f"Scope {selected_scope}.{sub_scope}")
+            agg_list.append(
                 {
-                    "head": material.name,
-                    "result2": result2_value,
-                    "scope_name": scope_name,
+                    "head": name,
+                    "result2": data["result2"],
+                    "scope_name": ", ".join(scope_names),
                 }
             )
+
+        agg_list = sorted(agg_list, key=lambda x: x["result2"], reverse=True)[:3]
+        total_emissions = sum(x["result2"] for x in agg_list)
+        top_materials = agg_list
 
     return render_template(
         "/summary/partials/top_sub_scope.html",
@@ -1749,23 +1759,28 @@ def download_pdf():
             )
         )
         from reportlab.platypus import KeepTogether
-        story.append(KeepTogether([
-            Paragraph(
-                "ตารางเปรียบเทียบค่า tCO₂e รายเดือน ({} vs {})".format(
-                    int(selected_year) - 1, selected_year
-                ),
-                ParagraphStyle(
-                    "CompareTitle",
-                    fontName=thai_font_bold,
-                    fontSize=13,
-                    textColor=colors.HexColor("#F54900"),
-                    spaceAfter=9,
-                    alignment=0,
-                ),
-            ),
-            compare_table,
-            Spacer(1, 16)
-        ]))
+
+        story.append(
+            KeepTogether(
+                [
+                    Paragraph(
+                        "ตารางเปรียบเทียบค่า tCO₂e รายเดือน ({} vs {})".format(
+                            int(selected_year) - 1, selected_year
+                        ),
+                        ParagraphStyle(
+                            "CompareTitle",
+                            fontName=thai_font_bold,
+                            fontSize=13,
+                            textColor=colors.HexColor("#F54900"),
+                            spaceAfter=9,
+                            alignment=0,
+                        ),
+                    ),
+                    compare_table,
+                    Spacer(1, 16),
+                ]
+            )
+        )
         # Charts (bar, pie)
 
         temp_image_paths = []
@@ -1928,10 +1943,8 @@ def download_pdf():
                 ),
             )
             from reportlab.platypus import KeepTogether
-            story.append(KeepTogether([
-                notes_header,
-                notes_para
-            ]))
+
+            story.append(KeepTogether([notes_header, notes_para]))
 
         doc.build(story)
         pdf_buffer.seek(0)
