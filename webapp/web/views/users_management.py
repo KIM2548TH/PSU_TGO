@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, request, jsonify
 from flask_login import login_required, logout_user, current_user
+from mongoengine import Q
 from ..forms.user_form import LoginForm, RegisterForm, EditUserForm, EditprofileForm
 from ...services.user_service import UserService
 from ...models import User, Role, Permission, CampusAndDepartment
@@ -134,7 +135,7 @@ def load_edit_user_role():
     form = EditUserForm()
     if request.method == "POST":
         form.username.data = user.username
-        form.campus.data = str(user.campus_id) if user.campus_id else "none"
+        form.campus.data = request.form.get("campus")
         form.department.data = request.form.get("department")
         form.roles.data = request.form.get("roles")
 
@@ -151,15 +152,71 @@ def load_edit_user_role():
                 error_msg=edit_result["error_msg"],
             )
 
-        query = {}
-        if selected_campus and selected_campus != "All Campuses":
-            query["campus"] = selected_campus
-        if selected_department and selected_department != "All Faculties":
-            query["department"] = selected_department
-        if search_query:  # ใช้ search ในการคิวรี่
-            query["username__icontains"] = search_query
+        # ตรวจสอบว่าแก้ไข current_user หรือไม่
+        is_editing_self = str(user_id) == str(current_user.id)
 
-        users = User.objects(**query).skip((page - 1) * 10).limit(10)
+        # Build query ตาม scope_type ของ current_user
+        current_role_name = current_user.roles[0] if current_user.roles else None
+        current_role = (
+            Role.objects(name=current_role_name).first() if current_role_name else None
+        )
+
+        query = {}
+        # ถ้าแก้ไขตัวเองและมี scope จำกัด ให้ reload current_user
+        if is_editing_self and current_role:
+            # Reload current_user เพื่อดึงข้อมูลใหม่
+            from flask_login import login_user
+
+            updated_user = User.objects.with_id(current_user.id)
+            if updated_user:
+                login_user(updated_user)
+
+            # Update current_role ตาม role ใหม่
+            current_role_name = updated_user.roles[0] if updated_user.roles else None
+            current_role = (
+                Role.objects(name=current_role_name).first()
+                if current_role_name
+                else None
+            )
+
+        # Apply scope filter
+        if current_role and current_role.scope_type == "campus":
+            query["campus_id"] = current_user.campus_id
+        elif current_role and current_role.scope_type == "department":
+            query["campus_id"] = current_user.campus_id
+            query["department_key"] = current_user.department_key
+
+        # Apply dropdown filters (เฉพาะ global scope หรือถ้าไม่ได้แก้ไขตัวเอง)
+        if not is_editing_self:
+            if not current_role or current_role.scope_type == "global":
+                if selected_campus and selected_campus not in ["", "All Campuses"]:
+                    query["campus_id"] = selected_campus
+                if selected_department and selected_department not in [
+                    "",
+                    "All Faculties",
+                ]:
+                    query["department_key"] = selected_department
+
+        # Search across multiple fields
+        if search_query:
+            search_filter = (
+                Q(username__icontains=search_query)
+                | Q(name__icontains=search_query)
+                | Q(email__icontains=search_query)
+            )
+            if query:
+                users = (
+                    User.objects(**query)
+                    .filter(search_filter)
+                    .skip((page - 1) * 10)
+                    .limit(10)
+                )
+            else:
+                users = (
+                    User.objects.filter(search_filter).skip((page - 1) * 10).limit(10)
+                )
+        else:
+            users = User.objects(**query).skip((page - 1) * 10).limit(10)
         for user in users:
             user.campus = CampusAndDepartment.get_campus_name(user.campus_id)
             user.department = CampusAndDepartment.get_department_name(
@@ -167,6 +224,15 @@ def load_edit_user_role():
             )
 
         if request.headers.get("HX-Request"):
+            # Calculate default values based on current_user scope
+            default_campus = None
+            default_department = None
+            if current_role and current_role.scope_type == "campus":
+                default_campus = current_user.campus_id
+            elif current_role and current_role.scope_type == "department":
+                default_campus = current_user.campus_id
+                default_department = current_user.department_key
+
             roles = Role.objects()
             roles_dict = {role.name: role for role in roles}
             return render_template(
@@ -176,11 +242,16 @@ def load_edit_user_role():
                 total_pages=(User.objects(**query).count() + 9) // 10,
                 campuses=get_campuses(),
                 departments=get_all_unique_departments(),
-                selected_campus=selected_campus,
-                selected_department=selected_department,
-                search_query=search_query,  # ส่ง search กลับไปด้วย
+                selected_campus=default_campus if is_editing_self else selected_campus,
+                selected_department=(
+                    default_department if is_editing_self else selected_department
+                ),
+                search_query=search_query,
                 roles=roles,
                 roles_dict=roles_dict,
+                default_campus=default_campus,
+                default_department=default_department,
+                scope_type=current_role.scope_type if current_role else "global",
             )
         else:
             return redirect(url_for("users_management.users_management"))
@@ -259,12 +330,25 @@ def load_users_table():
         base_query["campus_id"] = selected_campus
     if selected_department and selected_department != "All Faculties":
         base_query["department_key"] = selected_department
-    if search_query:
-        base_query["username__icontains"] = search_query
 
-    total_users = User.objects(**base_query).count()
+    # Search across multiple fields
+    if search_query:
+        search_filter = (
+            Q(username__icontains=search_query)
+            | Q(name__icontains=search_query)
+            | Q(email__icontains=search_query)
+        )
+        # Combine with base_query
+        if base_query:
+            users_query = User.objects(**base_query).filter(search_filter)
+        else:
+            users_query = User.objects.filter(search_filter)
+    else:
+        users_query = User.objects(**base_query)
+
+    total_users = users_query.count()
     total_pages = (total_users + per_page - 1) // per_page
-    users = User.objects(**base_query).skip((page - 1) * per_page).limit(per_page)
+    users = users_query.skip((page - 1) * per_page).limit(per_page)
     for user in users:
         user.campus = CampusAndDepartment.get_campus_name(user.campus_id)
         user.department = CampusAndDepartment.get_department_name(
