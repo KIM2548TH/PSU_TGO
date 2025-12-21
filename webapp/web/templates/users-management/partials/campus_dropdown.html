@@ -1,6 +1,6 @@
-<option {% if selected_campus == "All Campuses" or not selected_campus %}selected{% endif %}>All Campuses</option>
+<option value="" {% if selected_campus == "All Campuses" or not selected_campus %}selected{% endif %}>ทุกวิทยาเขต</option>
 {% for campus in campuses %}
-  <option value="{{ campus }}" {% if selected_campus == campus %}selected{% endif %}>
-    {{ campus | capitalize }}
+  <option value="{{ campus.id }}" {% if selected_campus == campus.id %}selected{% endif %}>
+    {{ campus.name | capitalize }}
   </option>
 {% endfor %}

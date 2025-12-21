@@ -1,6 +1,6 @@
-<option {% if selected_department == "All Faculties" or not selected_department %}selected{% endif %}>All Faculties</option>
+<option value="" {% if selected_department == "All Faculties" or not selected_department %}selected{% endif %}>ทุกหน่วยงาน</option>
 {% for department in departments %}
-  <option value="{{ department }}" {% if selected_department == department %}selected{% endif %}>
-    {{ department }}
+  <option value="{{ department.key }}" {% if selected_department == department.key %}selected{% endif %}>
+    {{ department.name }}
   </option>
 {% endfor %}
