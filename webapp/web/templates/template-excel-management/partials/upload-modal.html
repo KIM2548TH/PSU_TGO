@@ -1,0 +1,58 @@
+<h3 class="font-bold text-lg mb-4">อัพโหลดไฟล์ Excel ต้นฉบับ</h3>
+<form hx-post="{{ url_for('template_excel.upload_template_excel') }}"
+      hx-encoding="multipart/form-data"
+      hx-target="#table-rows"
+      hx-swap="innerHTML"
+      class="space-y-4">
+  
+  <!-- วิทยาเขต -->
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text">วิทยาเขต <span class="text-error">*</span></span>
+    </label>
+    <select name="campus_id" required class="select select-bordered w-full">
+      <option value="">-- เลือกวิทยาเขต --</option>
+      {% for campus in campuses %}
+      <option value="{{ campus.id }}">{{ campus.name.get('0', 'Unknown Campus') }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  
+  <!-- ปี -->
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text">ปี <span class="text-error">*</span></span>
+    </label>
+    <select name="year" required class="select select-bordered w-full">
+      <option value="">-- เลือกปี --</option>
+      {% for year in years %}
+      <option value="{{ year }}">{{ year }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  
+  <!-- ชื่อแสดง -->
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text">ชื่อแสดง <span class="text-error">*</span></span>
+    </label>
+    <input type="text" name="display_name" required placeholder="เช่น ต้นฉบับ 2024 รอบ 1" class="input input-bordered w-full" />
+  </div>
+  
+  <!-- ไฟล์ -->
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text">ไฟล์ Excel <span class="text-error">*</span></span>
+    </label>
+    <input type="file" name="file" accept=".xlsx,.xls" required class="file-input file-input-bordered w-full" />
+    <label class="label">
+      <span class="label-text-alt text-warning">ขนาดไฟล์สูงสุด 16 MB</span>
+    </label>
+  </div>
+  
+  <!-- ปุ่ม -->
+  <div class="modal-action">
+    <button type="button" class="btn" hx-on:click="document.getElementById('modal').classList.remove('modal-open')">ยกเลิก</button>
+    <button type="submit" class="btn btn-primary">อัพโหลด</button>
+  </div>
+</form>

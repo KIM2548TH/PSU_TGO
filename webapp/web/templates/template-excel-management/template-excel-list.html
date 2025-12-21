@@ -1,0 +1,128 @@
+{% extends "/base/default_page.html" %}
+{% block content %}
+
+<!-- Filter Card -->
+<div class="card shadow-lg border border-blue-200 bg-base-100 p-6 rounded-lg mb-4">
+  <div class="flex justify-between items-start mb-2">
+    <div class="flex-1">
+      <h2 class="text-2xl font-bold">จัดการไฟล์ Excel ต้นฉบับ</h2>
+      <p class="text-gray-600 text-sm mt-1">อัพโหลดและจัดการไฟล์ Excel ต้นฉบับสำหรับแต่ละปีและวิทยาเขต</p>
+    </div>
+    <div class="flex gap-2">
+      <button hx-get="{{ url_for('template_excel.upload_modal') }}" 
+              hx-target="#modal-content" 
+              hx-swap="innerHTML" 
+              class="btn btn-sm btn-success gap-2">
+        <i data-feather="upload" class="w-4 h-4"></i>
+        อัพโหลดไฟล์ใหม่
+      </button>
+      <a href="{{ url_for('material_mapping_excel_management.admin_mapping_excel_view') }}" class="btn btn-sm btn-ghost gap-2">
+        <i data-feather="arrow-left" class="w-4 h-4"></i>
+        กลับ
+      </a>
+    </div>
+  </div>
+
+  <div class="flex gap-4 items-end mb-4 mt-4">
+    <div class="flex-1">
+      <label class="block font-bold mb-1">ค้นหาชื่อไฟล์</label>
+      <div class="relative">
+        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+          <i data-feather="search" class="w-5 h-5"></i>
+        </span>
+        <input type="text" 
+               name="search" 
+               class="input input-bordered w-full pl-10" 
+               placeholder="ค้นหาชื่อไฟล์..." 
+               value="{{ filter_search }}"
+               hx-get="{{ url_for('template_excel.template_excel_table_rows') }}"
+               hx-trigger="keyup changed delay:500ms"
+               hx-target="#table-rows"
+               hx-swap="innerHTML"
+               hx-include="[name='campus_id'],[name='year']">
+      </div>
+    </div>
+    <div>
+      <label class="block font-bold mb-1">เลือกวิทยาเขต</label>
+      <select name="campus_id" 
+              class="select select-bordered w-full min-w-[200px]"
+              hx-get="{{ url_for('template_excel.template_excel_table_rows') }}"
+              hx-trigger="change"
+              hx-target="#table-rows"
+              hx-swap="innerHTML"
+              hx-include="[name='year'],[name='search']">
+        <option value="">ทุกวิทยาเขต</option>
+        {% for campus in campuses %}
+          <option value="{{ campus.id }}" {% if filter_campus_id == campus.id|string %}selected{% endif %}>
+            {{ campus.name['0'] }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block font-bold mb-1">เลือกปี</label>
+      <select name="year" 
+              class="select select-bordered w-full min-w-[150px]"
+              hx-get="{{ url_for('template_excel.template_excel_table_rows') }}"
+              hx-trigger="change"
+              hx-target="#table-rows"
+              hx-swap="innerHTML"
+              hx-include="[name='campus_id'],[name='search']">
+        <option value="">ทุกปี</option>
+        {% for year in years %}
+          <option value="{{ year }}" {% if filter_year|string == year|string %}selected{% endif %}>{{ year }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="flex gap-4 text-sm">
+    <div class="flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg">
+      <i data-feather="file" class="w-4 h-4 text-blue-600"></i>
+      <span class="text-blue-600">ไฟล์ทั้งหมด</span>
+      <span class="font-bold text-blue-600" id="total-count">{{ templates|length }}</span>
+      <span class="text-blue-600">ไฟล์</span>
+    </div>
+    
+    {% set campus_count = templates|map(attribute='campus_id')|unique|list|length %}
+    <div class="flex items-center gap-2 bg-green-50 px-3 py-2 rounded-lg">
+      <i data-feather="layers" class="w-4 h-4 text-green-600"></i>
+      <span class="text-green-600">วิทยาเขต</span>
+      <span class="font-bold text-green-600">{{ campus_count }}</span>
+      <span class="text-green-600">แห่ง</span>
+    </div>
+    
+    {% set year_count = templates|map(attribute='year')|unique|list|length %}
+    <div class="flex items-center gap-2 bg-orange-50 px-3 py-2 rounded-lg">
+      <i data-feather="calendar" class="w-4 h-4 text-orange-600"></i>
+      <span class="text-orange-600">จำนวนปี</span>
+      <span class="font-bold text-orange-600">{{ year_count }}</span>
+      <span class="text-orange-600">ปี</span>
+    </div>
+  </div>
+</div>
+
+<!-- Table Card -->
+<div class="card shadow-lg border border-gray-200 bg-base-200 rounded-lg">
+  <div class="overflow-x-auto">
+    <table class="table w-full">
+      <thead>
+        <tr class="bg-gray-50">
+          <th class="font-bold border-r border-gray-200">ชื่อไฟล์</th>
+          <th class="font-bold border-r border-gray-200">วิทยาเขต</th>
+          <th class="font-bold text-center border-r border-gray-200">ปี</th>
+          <th class="font-bold border-r border-gray-200">ชื่อไฟล์ต้นฉบับ</th>
+          <th class="font-bold text-center border-r border-gray-200">ขนาด</th>
+          <th class="font-bold text-center border-r border-gray-200">วันที่อัพโหลด</th>
+          <th class="font-bold text-center">การดำเนินการ</th>
+        </tr>
+      </thead>
+      <tbody id="table-rows">
+        {% include 'template-excel-management/partials/table-rows.html' %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

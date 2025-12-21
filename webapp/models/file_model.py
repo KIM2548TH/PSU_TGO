@@ -31,3 +31,17 @@ class ReferenceDocument(me.Document):
             "department",
         ],
     }
+
+
+class TemplateExcel(me.Document):
+    campus_id = me.StringField(required=True)  # วิทยาเขต
+    year = me.IntField(required=True)  # ปี (ไม่ unique เพราะ 1 ปีมีได้หลายไฟล์)
+    display_name = me.StringField(required=True)  # ชื่อแสดง (แก้ไขได้)
+    file = me.EmbeddedDocumentField(UploadedFile, required=True)
+    sheet_name = me.StringField(default="Fr-04.1")  # ชื่อ sheet ที่จะใช้งาน
+    uploaded_by = me.StringField(required=True)
+
+    meta = {
+        "collection": "template_excel",
+        "indexes": ["year", "campus_id", "display_name"],
+    }

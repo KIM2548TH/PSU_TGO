@@ -1,0 +1,18 @@
+<h3 class="font-bold text-lg mb-4">แก้ไขชื่อแสดง</h3>
+<form hx-post="{{ url_for('template_excel.update_template_name', template_id=template.id) }}"
+      hx-target="#table-rows"
+      hx-swap="innerHTML"
+      class="space-y-4">
+  
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text">ชื่อแสดง <span class="text-error">*</span></span>
+    </label>
+    <input type="text" name="display_name" value="{{ template.display_name }}" required placeholder="ชื่อแสดง" class="input input-bordered w-full" />
+  </div>
+  
+  <div class="modal-action">
+    <button type="button" class="btn" hx-on:click="document.getElementById('modal').classList.remove('modal-open')">ยกเลิก</button>
+    <button type="submit" class="btn btn-primary">บันทึก</button>
+  </div>
+</form>

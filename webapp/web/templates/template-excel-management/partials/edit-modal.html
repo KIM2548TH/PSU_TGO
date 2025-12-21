@@ -1,0 +1,54 @@
+<h3 class="font-bold text-lg mb-4">แก้ไขข้อมูลไฟล์</h3>
+<form hx-post="{{ url_for('template_excel.update_template', template_id=template.id) }}"
+      hx-target="#table-rows"
+      hx-swap="innerHTML"
+      class="space-y-4">
+  
+  <!-- วิทยาเขต -->
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text">วิทยาเขต <span class="text-error">*</span></span>
+    </label>
+    <select name="campus_id" required class="select select-bordered w-full">
+      <option value="">-- เลือกวิทยาเขต --</option>
+      {% for campus in campuses %}
+      <option value="{{ campus.id }}" {% if template.campus_id == campus.id|string %}selected{% endif %}>
+        {{ campus.name.get('0', 'Unknown Campus') }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+  
+  <!-- ปี -->
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text">ปี <span class="text-error">*</span></span>
+    </label>
+    <select name="year" required class="select select-bordered w-full">
+      <option value="">-- เลือกปี --</option>
+      {% for year in years %}
+      <option value="{{ year }}" {% if template.year == year %}selected{% endif %}>{{ year }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  
+  <!-- ชื่อแสดง -->
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text">ชื่อแสดง <span class="text-error">*</span></span>
+    </label>
+    <input type="text" name="display_name" value="{{ template.display_name }}" required placeholder="ชื่อแสดง" class="input input-bordered w-full" />
+  </div>
+  
+  <!-- ข้อมูลไฟล์ปัจจุบัน -->
+  <div class="bg-base-200 p-3 rounded-lg">
+    <p class="text-sm font-medium mb-1">ไฟล์ปัจจุบัน:</p>
+    <p class="text-sm text-gray-600">{{ template.file.filename }}</p>
+    <p class="text-xs text-gray-500">{{ (template.file.data|length / 1024)|round(2) }} KB</p>
+  </div>
+  
+  <div class="modal-action">
+    <button type="button" class="btn" hx-on:click="document.getElementById('modal').classList.remove('modal-open')">ยกเลิก</button>
+    <button type="submit" class="btn btn-primary">บันทึก</button>
+  </div>
+</form>
