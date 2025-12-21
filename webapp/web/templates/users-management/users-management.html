@@ -19,29 +19,36 @@
         />
       </div>
       <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                <div class="relative">
+                    <select 
+                        class="select select-bordered pr-10 w-full md:w-auto appearance-none"
+                        hx-get="{{ url_for('users_management.load_users_table') }}"
+                        hx-target="#users-table-container"
+                        hx-swap="innerHTML"
+                        hx-trigger="change"
+                        hx-include="[name=campus],[name=department],[name=search]"
+                        name="campus"
+                        id="campus-dropdown"
+                        {% if scope_type != 'global' %}disabled{% endif %}
+                        data-default-campus="{{ default_campus }}">
+                        <!-- Campus options will be loaded via HTMX -->
+                    </select>
+                    <i data-feather="chevron-down" class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-500 w-4 h-4"></i>
+                </div>
         <div class="relative">
-          <select 
-            class="select select-bordered pr-10 w-full md:w-auto appearance-none"
-            hx-trigger="change"  
-            hx-include="[name=department],[name=search]"
-            name="campus"
-            id="campus-dropdown">
-            <!-- Campus options will be loaded via HTMX -->
-          </select>
-          <i data-feather="chevron-down" class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-500 w-4 h-4"></i>
-        </div>
-        <div class="relative">
-          <select 
-            class="select select-bordered pr-10 w-full md:w-auto appearance-none"
-            hx-get="{{ url_for('users_management.load_users_table') }}" 
-            hx-target="#users-table-container" 
-            hx-swap="innerHTML"
-            hx-trigger="change"  
-            hx-include="[name=campus],[name=search]" 
-            name="department"
-            id="department-dropdown">
-            <option value="">All Faculties</option>
-          </select>
+                    <select 
+                        class="select select-bordered pr-10 w-full md:w-auto appearance-none"
+                        hx-get="{{ url_for('users_management.load_users_table') }}" 
+                        hx-target="#users-table-container" 
+                        hx-swap="innerHTML"
+                        hx-trigger="change"  
+                        hx-include="[name=campus],[name=search]" 
+                        name="department"
+                        id="department-dropdown"
+                        {% if scope_type == 'department' %}disabled{% endif %}
+                        data-default-department="{{ default_department }}">
+                        <option value="">All Faculties</option>
+                    </select>
           <i data-feather="chevron-down" class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-500 w-4 h-4"></i>
         </div>
         <button class="btn btn-primary gap-2"
@@ -80,6 +87,16 @@ document.addEventListener('DOMContentLoaded', function() {
 document.body.addEventListener('htmx:afterSwap', function(event) {
     feather.replace();
     
+    // If users table was updated (after edit), reload dropdowns
+    if (event.detail.target.id === 'users-table-container') {
+        setTimeout(() => {
+            loadCampuses();
+            setTimeout(() => {
+                loadDepartments();
+            }, 50);
+        }, 50);
+    }
+    
     // If campus dropdown was updated, also update departments
     if (event.detail.target.id === 'campus-dropdown') {
         setTimeout(() => {
@@ -88,15 +105,11 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
     }
 });
 
-// Listen for campus change to reload departments and users table
+// Listen for campus change to reload departments only
 document.body.addEventListener('change', function(event) {
     if (event.target.name === 'campus') {
         loadDepartments();
-        setTimeout(() => {
-            loadUsersTable();
-        }, 100);
     }
-    
     if (event.target.name === 'department') {
         loadUsersTable();
     }
@@ -104,28 +117,32 @@ document.body.addEventListener('change', function(event) {
 
 // Function to load campuses
 function loadCampuses() {
+    const campusSelect = document.getElementById('campus-dropdown');
+    const defaultCampus = campusSelect ? campusSelect.getAttribute('data-default-campus') : null;
     htmx.ajax('GET', '{{ url_for("users_management.load_campuses") }}', {
         target: '#campus-dropdown',
-        swap: 'innerHTML'
+        swap: 'innerHTML',
+        headers: { 'X-Default-Campus': defaultCampus || '' }
     });
 }
 
 // Function to load departments based on current campus selection
 function loadDepartments() {
     const campusSelect = document.querySelector('select[name="campus"]');
-    
+    const deptSelect = document.getElementById('department-dropdown');
     if (campusSelect) {
         const selectedCampus = campusSelect.value;
-        
         htmx.ajax('GET', '{{ url_for("users_management.load_departments") }}', {
             values: { campus: selectedCampus },
             target: '#department-dropdown',
-            swap: 'innerHTML'
+            swap: 'innerHTML',
+            headers: { 'X-Default-Department': '' }
         });
     } else {
         htmx.ajax('GET', '{{ url_for("users_management.load_departments") }}', {
             target: '#department-dropdown',
-            swap: 'innerHTML'
+            swap: 'innerHTML',
+            headers: { 'X-Default-Department': '' }
         });
     }
 }
