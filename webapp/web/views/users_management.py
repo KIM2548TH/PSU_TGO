@@ -61,15 +61,20 @@ def users_management():
         Role.objects(name=current_role_name).first() if current_role_name else None
     )
 
+    # Default filter values
+    default_campus = None
+    default_department = None
+
     # Filter users ตาม scope_type
     if current_role and current_role.scope_type == "campus":
         users = User.objects(campus_id=current_user.campus_id)
-
+        default_campus = current_user.campus_id
     elif current_role and current_role.scope_type == "department":
         users = User.objects(
             campus_id=current_user.campus_id, department_key=current_user.department_key
         )
-
+        default_campus = current_user.campus_id
+        default_department = current_user.department_key
     else:
         users = User.objects()
 
@@ -93,6 +98,9 @@ def users_management():
         departments=get_all_unique_departments(),
         roles=roles,
         roles_dict=roles_dict,
+        default_campus=default_campus,
+        default_department=default_department,
+        scope_type=current_role.scope_type if current_role else "global",
     )
 
 
@@ -289,6 +297,7 @@ def load_users_table():
 # @permissions_required_all(['view_users_management'])
 def load_departments():
     """Load department dropdown based on selected campus"""
+
     if request.method == "POST":
         selected_campus = request.form.get("campus", "")
         current_selected_department = request.form.get("department", "")
@@ -296,10 +305,21 @@ def load_departments():
         selected_campus = request.args.get("campus", "")
         current_selected_department = request.args.get("department", "")
 
+    # Allow override from header (for default)
+    default_dept = request.headers.get("X-Default-Department")
+    if default_dept:
+        current_selected_department = default_dept
+
     if not selected_campus or selected_campus == "All Campuses":
-        departments_list = get_all_unique_departments()
+        departments_list = []
     else:
-        departments_list = get_departments(selected_campus)
+        campus_obj = CampusAndDepartment.objects.with_id(selected_campus)
+        if campus_obj:
+            departments_list = [
+                {"key": k, "name": v} for k, v in campus_obj.departments.items()
+            ]
+        else:
+            departments_list = []
 
     return render_template(
         "/users-management/partials/department_dropdown.html",
@@ -335,10 +355,16 @@ def load_departments_edit():
 def load_campuses():
     """Load campus dropdown"""
     selected_campus = request.args.get("campus", "")
+    # Allow override from header (for default)
+    default_campus = request.headers.get("X-Default-Campus")
+    if default_campus:
+        selected_campus = default_campus
     campuses_obj = get_campuses()
     campuses = []
     for campus in campuses_obj:
-        campuses.append(CampusAndDepartment.get_campus_name(campus.id))
+        campuses.append(
+            {"id": str(campus.id), "name": campus.name.get("0", "Unknown Campus")}
+        )
     print(campuses)
 
     return render_template(
