@@ -5,7 +5,7 @@
            name="selected_year" 
            value="{{ year }}" 
            class="radio radio-primary radio-sm mr-2"
-           {% if loop.first %}checked{% endif %}
+           {% if year == selected_year %}checked{% endif %}
            hx-post="/summary/stats" 
            hx-target="#stats-container" 
            hx-include="[name='time_period']:checked, [name='selected_year']:checked"

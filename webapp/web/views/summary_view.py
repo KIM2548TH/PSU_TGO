@@ -22,7 +22,9 @@ def summary():
     user.department = CampusAndDepartment.get_department_name(
         user.campus_id, user.department_key
     )
-    return render_template("/summary/summary.html", user=user)
+    # Get selected_year from session or default to current year
+    selected_year = session.get("selected_year", datetime.now().year)
+    return render_template("/summary/summary.html", user=user, selected_year=selected_year)
 
 
 @module.route("/scopes", methods=["GET"])
@@ -192,17 +194,21 @@ def get_stats():
 
     form_selected_scopes = request.form.getlist("selected_scopes")
     form_selected_sub_scopes = request.form.getlist("selected_sub_scopes")
+    form_selected_year = request.form.get("selected_year")
+    
     if form_selected_scopes:
         session["selected_scopes"] = form_selected_scopes
     if form_selected_sub_scopes:
         session["selected_sub_scopes"] = form_selected_sub_scopes
+    if form_selected_year:
+        session["selected_year"] = int(form_selected_year)
 
     selected_scopes = form_selected_scopes or session.get("selected_scopes", [])
     selected_sub_scopes = form_selected_sub_scopes or session.get(
         "selected_sub_scopes", []
     )
     time_period = request.form.get("time_period", "week")
-    selected_year = request.form.get("selected_year", datetime.now().year)
+    selected_year = session.get("selected_year", datetime.now().year)
 
     if not selected_sub_scopes:
         return """
@@ -267,17 +273,22 @@ def get_charts():
 
     form_selected_scopes = request.form.getlist("selected_scopes")
     form_selected_sub_scopes = request.form.getlist("selected_sub_scopes")
+    form_selected_year = request.form.get("selected_year")
+    
     if form_selected_scopes:
         session["selected_scopes"] = form_selected_scopes
     if form_selected_sub_scopes:
         session["selected_sub_scopes"] = form_selected_sub_scopes
+    if form_selected_year:
+        session["selected_year"] = int(form_selected_year)
 
     selected_scopes = form_selected_scopes or session.get("selected_scopes", [])
     selected_sub_scopes = form_selected_sub_scopes or session.get(
         "selected_sub_scopes", []
     )
     time_period = request.form.get("time_period", "week")
-    selected_year = int(request.form.get("selected_year", datetime.now().year))
+    selected_year = session.get("selected_year", datetime.now().year)
+    chart_time_range = request.form.get("chart_time_range", "1Y")
 
     if not selected_sub_scopes:
         return """
@@ -317,19 +328,71 @@ def get_charts():
     <script>if (window.feather) feather.replace();</script>
     """
 
-    current_year_data = calculate_emissions_data(
-        user, valid_ids, time_period, selected_year
-    )
-    previous_year_data = calculate_emissions_data(
-        user, valid_ids, time_period, selected_year - 1
+    # Get multi-year data based on chart_time_range
+    chart_data = get_multi_year_chart_data(
+        user, valid_ids, time_period, selected_year, chart_time_range
     )
 
     return render_template(
         "/summary/charts_partial.html",
-        data=current_year_data,
-        previous_year_data=previous_year_data,
+        data=chart_data["current_year_data"],
+        previous_year_data=chart_data["previous_year_data"],
+        multi_year_data=chart_data.get("multi_year_data", {}),
         selected_year=selected_year,
+        chart_time_range=chart_time_range,
+        year_range=chart_data.get("year_range", []),
     )
+
+
+def get_multi_year_chart_data(user, sub_scopes, time_period, selected_year, chart_time_range):
+    """Get data for multi-year chart based on time range filter"""
+    # Determine year range based on filter
+    if chart_time_range == "1Y":
+        year_range = [selected_year]
+    elif chart_time_range == "5Y":
+        year_range = list(range(selected_year - 4, selected_year + 1))
+    elif chart_time_range == "10Y":
+        year_range = list(range(selected_year - 9, selected_year + 1))
+    elif chart_time_range == "ALL":
+        # Get all available years from materials
+        scope_object_ids = [ObjectId(scope_id) for scope_id in sub_scopes]
+        scopes = Scope.objects(
+            id__in=scope_object_ids, campus=user.campus_id, department=user.department_key
+        )
+        scope_pairs = list(
+            set([(scope.ghg_scope, scope.ghg_sup_scope) for scope in scopes])
+        )
+        
+        all_years = set()
+        for ghg_scope, ghg_sup_scope in scope_pairs:
+            materials = Material.objects(
+                campus=user.campus_id,
+                department=user.department_key,
+                scope=ghg_scope,
+                sub_scope=ghg_sup_scope,
+            ).only('year')
+            all_years.update([m.year for m in materials if m.year])
+        
+        year_range = sorted(list(all_years)) if all_years else [selected_year]
+    else:
+        year_range = [selected_year]
+    
+    # Get data for current year and previous year (for comparison)
+    current_year_data = calculate_emissions_data(user, sub_scopes, time_period, selected_year)
+    previous_year_data = calculate_emissions_data(user, sub_scopes, time_period, selected_year - 1)
+    
+    # Get data for all years in range for multi-year chart
+    multi_year_data = {}
+    for year in year_range:
+        year_data = calculate_emissions_data(user, sub_scopes, time_period, year)
+        multi_year_data[year] = year_data["daily_data"]
+    
+    return {
+        "current_year_data": current_year_data,
+        "previous_year_data": previous_year_data,
+        "multi_year_data": multi_year_data,
+        "year_range": year_range,
+    }
 
 
 def calculate_emissions_data(user, sub_scopes, time_period, selected_year=None):
@@ -597,7 +660,12 @@ def top_sub_scope_partial():
     )
 
     selected_scope = request.args.get("selected_scope", None)
-    selected_year = request.args.get("selected_year", datetime.now().year)
+    selected_year = request.args.get("selected_year")
+    if selected_year:
+        selected_year = int(selected_year)
+        session["selected_year"] = selected_year
+    else:
+        selected_year = session.get("selected_year", datetime.now().year)
 
     scopes = Scope.objects(campus=user.campus_id, department=user.department_key)
     unique_scopes = {scope.ghg_scope: scope for scope in scopes}.values()
@@ -846,7 +914,11 @@ def download_pdf_modal():
         user.campus_id, user.department_key
     )
 
-    selected_year = request.args.get("selected_year", datetime.now().year)
+    selected_year = request.args.get("selected_year")
+    if selected_year:
+        selected_year = int(selected_year)
+    else:
+        selected_year = session.get("selected_year", datetime.now().year)
 
     return render_template(
         "/summary/partials/download_pdf_modal.html",
@@ -867,7 +939,12 @@ def preview_pdf_modal():
     )
 
     # รับค่าฟิลเตอร์จาก request (query string)
-    selected_year = request.args.get("selected_year", datetime.now().year)
+    selected_year = request.args.get("selected_year")
+    if selected_year:
+        selected_year = int(selected_year)
+    else:
+        selected_year = session.get("selected_year", datetime.now().year)
+    
     time_period = request.args.get("time_period", "week")
     selected_scopes = request.args.getlist("selected_scopes")
     selected_sub_scopes = request.args.getlist("selected_sub_scopes")
@@ -1182,7 +1259,11 @@ def download_pdf():
         selected_sub_scopes = session.get(
             "selected_sub_scopes", []
         ) or request.form.getlist("selected_sub_scopes")
-        selected_year = request.form.get("selected_year", datetime.now().year)
+        selected_year = request.form.get("selected_year")
+        if selected_year:
+            selected_year = int(selected_year)
+        else:
+            selected_year = session.get("selected_year", datetime.now().year)
         time_period = request.form.get("time_period", "week")
 
         if not selected_sub_scopes:

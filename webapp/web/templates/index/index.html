@@ -88,16 +88,21 @@
     }
     
     .hero-content {
-      position: relative;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       z-index: 10;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
       text-align: center;
       color: white;
       padding: 1rem;
+      width: 100%;
+      height: 100%;
     }
     
     /* Content Area - ไม่หดขยายตาม sidebar */
@@ -146,6 +151,28 @@
         opacity: 1;
         transform: translateY(0);
       }
+    }
+    
+    /* Dashboard Card Dropdown */
+    .card-dropdown-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.3s ease;
+      opacity: 0;
+    }
+    
+    .card-dropdown-content.active {
+      max-height: 500px;
+      opacity: 1;
+      margin-top: 1.5rem;
+    }
+    
+    .chevron-icon {
+      transition: transform 0.3s ease;
+    }
+    
+    .chevron-icon.rotate {
+      transform: rotate(180deg);
     }
     
     /* Responsive Design */
@@ -350,6 +377,16 @@
     </div>
   </div>
 
+  <script>
+    function toggleDashboardCard(cardId) {
+      const content = document.getElementById(cardId);
+      const chevron = document.getElementById(cardId + '-chevron');
+      
+      content.classList.toggle('active');
+      chevron.classList.toggle('rotate');
+    }
+  </script>
+
   <!-- Navbar - โปร่งใส -->
   <nav class="navbar p-3 flex justify-between items-center">
     <!-- Sidebar Toggle Button -->
@@ -387,189 +424,508 @@
         Your browser does not support the video tag.
       </video>
       <div class="hero-content">
-        <h1 class="text-4xl md:text-6xl font-bold animate-fade-up">Understand Your Impact on the Planet</h1>
-        <p class="mt-4 text-lg md:text-xl animate-fade-up delay-100 max-w-4xl">ถ้าเปลี่ยนมาใช้ชีวิตอย่างใส่ใจ ยั่งยืนต่อสิ่งแวดล้อม เรื่องที่สอนคือ Basic Python</p>
-        <div class="mt-6 space-x-4 animate-fade-up delay-200">
-          <a href="/summary" class="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 transition-colors">Calculate My Footprint ➜</a>
-          <a href="#" class="border border-white text-white px-6 py-3 rounded-full hover:bg-white hover:text-green-600 transition-colors">Learn More</a>
+        <h1 class="text-4xl md:text-6xl font-bold animate-fade-up">{{ department_name }}</h1>
+        <p class="mt-4 text-lg md:text-xl animate-fade-up delay-100 max-w-4xl mx-auto">{{ campus_name }} | ระบบติดตามและจัดการก๊าซเรือนกระจก</p>
+        <div class="mt-6 flex justify-center gap-4 animate-fade-up delay-200">
+          <a href="/emissions-scope" class="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 transition-colors">เริ่มกรอกข้อมูล ➜</a>
+          <a href="/summary" class="border border-white text-white px-6 py-3 rounded-full hover:bg-white hover:text-green-600 transition-colors">ดูสรุปผล</a>
         </div>
       </div>
     </section>
 
     <!-- Content Area -->
-    <div class="content-area bg-gradient-to-b from-transparent to-white">
-      <!-- About Section -->
-      <section class="py-20 px-4 lg:px-8 max-w-6xl mx-auto">
-        <div class="text-center mb-16">
-          <h2 class="text-4xl font-bold text-gray-800 mb-4">{{ t.about_title or 'About PSU-CFO' }}</h2>
-          <p class="text-xl text-gray-600">{{ t.about_subtitle or 'Prince of Songkla University Greenhouse Gas Organization' }}</p>
+    <div class="content-area">
+      <!-- About Section - Dashboard Stats -->
+      <section class="py-32 bg-gradient-to-b from-gray-50 to-white relative">
+        <!-- Section Label -->
+        <div class="absolute top-8 right-8 text-right">
+          <div class="text-sm font-bold tracking-widest text-gray-400 mb-2">DASHBOARD</div>
+          <div class="w-48 h-0.5 bg-gray-300 ml-auto"></div>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
-              <i data-feather="leaf" class="w-8 h-8 text-green-600"></i>
+        <div class="px-4 lg:px-8 max-w-7xl mx-auto">
+          <div class="text-center mb-16">
+            <h2 class="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 bg-clip-text text-transparent mb-6">สถานะการกรอกข้อมูล</h2>
+            <p class="text-2xl text-gray-600 max-w-3xl mx-auto">ภาพรวมความคืบหน้าของ <span class="font-bold text-green-600">{{ department_name }}</span></p>
+          </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+          <!-- Card 1: Total Scopes with Gradient -->
+          <div onclick="toggleDashboardCard('card-1-details')" class="relative group overflow-hidden bg-gradient-to-br from-blue-500 to-blue-700 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all hover:scale-105 cursor-pointer">
+            <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
+            <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16"></div>
+            
+            <!-- Chevron Icon -->
+            <div class="absolute top-6 right-6">
+              <i data-feather="chevron-down" id="card-1-details-chevron" class="w-6 h-6 text-white chevron-icon"></i>
             </div>
-            <h3 class="text-xl font-bold text-gray-800 mb-4">Environmental Impact</h3>
-            <p class="text-gray-600">Monitor and reduce greenhouse gas emissions across the university campus with comprehensive tracking and analysis.</p>
+            
+            <div class="relative z-10">
+              <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <i data-feather="layers" class="w-10 h-10 text-white"></i>
+              </div>
+              <h3 class="text-5xl font-bold text-white mb-3">{{ total_scopes }}</h3>
+              <p class="text-blue-100 text-lg font-medium mb-6">แหล่งปล่อยทั้งหมด</p>
+              
+              <div class="bg-white/20 backdrop-blur-sm rounded-xl p-4">
+                <div class="flex justify-between mb-2 text-white">
+                  <span class="text-sm font-medium">ความคืบหน้า</span>
+                  <span class="text-lg font-bold">{{ progress_percentage }}%</span>
+                </div>
+                <div class="w-full bg-white/30 rounded-full h-3 overflow-hidden">
+                  <div class="bg-white h-3 rounded-full shadow-lg transition-all duration-500" style="width: {{ progress_percentage }}%"></div>
+                </div>
+              </div>
+              
+              <!-- Dropdown Details -->
+              <div id="card-1-details" class="card-dropdown-content">
+                <div class="bg-white/20 backdrop-blur-sm rounded-xl p-4 space-y-3">
+                  <div class="flex justify-between text-white">
+                    <span class="font-medium">Scope 1:</span>
+                    <span class="font-bold">{{ scope_1_count }} แหล่ง</span>
+                  </div>
+                  <div class="flex justify-between text-white">
+                    <span class="font-medium">Scope 2:</span>
+                    <span class="font-bold">{{ scope_2_count }} แหล่ง</span>
+                  </div>
+                  <div class="flex justify-between text-white">
+                    <span class="font-medium">Scope 3:</span>
+                    <span class="font-bold">{{ scope_3_count }} แหล่ง</span>
+                  </div>
+                  <div class="border-t border-white/30 pt-3 mt-3">
+                    <a href="/emissions-scope" class="block text-center bg-white text-blue-600 py-2 rounded-lg font-bold hover:bg-blue-50 transition-colors">
+                      ดูรายละเอียดทั้งหมด →
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           
-          <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
-              <i data-feather="bar-chart" class="w-8 h-8 text-blue-600"></i>
+          <!-- Card 2: Completed Scopes with Gradient -->
+          <div onclick="toggleDashboardCard('card-2-details')" class="relative group overflow-hidden bg-gradient-to-br from-green-500 to-emerald-700 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all hover:scale-105 cursor-pointer">
+            <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
+            <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16"></div>
+            
+            <!-- Chevron Icon -->
+            <div class="absolute top-6 right-6">
+              <i data-feather="chevron-down" id="card-2-details-chevron" class="w-6 h-6 text-white chevron-icon"></i>
             </div>
-            <h3 class="text-xl font-bold text-gray-800 mb-4">Data Analytics</h3>
-            <p class="text-gray-600">Advanced analytics and reporting tools to help visualize carbon footprint data and identify improvement opportunities.</p>
+            
+            <div class="relative z-10">
+              <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <i data-feather="check-circle" class="w-10 h-10 text-white"></i>
+              </div>
+              <h3 class="text-5xl font-bold text-white mb-3">{{ completed_scopes }}<span class="text-3xl text-green-100">/{{ total_scopes }}</span></h3>
+              <p class="text-green-100 text-lg font-medium mb-6">ข้อมูลครบถ้วน</p>
+              
+              <div class="space-y-3">
+                <div class="flex items-center justify-between bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                  <div class="flex items-center gap-2 text-white">
+                    <i data-feather="clock" class="w-5 h-5"></i>
+                    <span class="font-medium">กำลังดำเนินการ</span>
+                  </div>
+                  <span class="text-2xl font-bold text-white">{{ in_progress_scopes }}</span>
+                </div>
+                <div class="flex items-center justify-between bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                  <div class="flex items-center gap-2 text-white">
+                    <i data-feather="circle" class="w-5 h-5"></i>
+                    <span class="font-medium">ยังไม่เริ่ม</span>
+                  </div>
+                  <span class="text-2xl font-bold text-white">{{ not_started_scopes }}</span>
+                </div>
+              </div>
+              
+              <!-- Dropdown Details -->
+              <div id="card-2-details" class="card-dropdown-content">
+                <div class="bg-white/20 backdrop-blur-sm rounded-xl p-4 space-y-3">
+                  <div class="text-white text-center mb-3">
+                    <p class="text-sm font-medium mb-2">อัตราความสำเร็จ</p>
+                    <p class="text-4xl font-bold">{{ (completed_scopes / total_scopes * 100)|round|int if total_scopes > 0 else 0 }}%</p>
+                  </div>
+                  <div class="border-t border-white/30 pt-3">
+                    <div class="flex justify-between text-white text-sm mb-2">
+                      <span>เสร็จสมบูรณ์:</span>
+                      <span class="font-bold">{{ completed_scopes }} Scopes</span>
+                    </div>
+                    <div class="flex justify-between text-white text-sm mb-2">
+                      <span>กำลังดำเนินการ:</span>
+                      <span class="font-bold">{{ in_progress_scopes }} Scopes</span>
+                    </div>
+                    <div class="flex justify-between text-white text-sm">
+                      <span>ยังไม่เริ่ม:</span>
+                      <span class="font-bold">{{ not_started_scopes }} Scopes</span>
+                    </div>
+                  </div>
+                  <div class="border-t border-white/30 pt-3 mt-3">
+                    <a href="/scope-progress" class="block text-center bg-white text-green-600 py-2 rounded-lg font-bold hover:bg-green-50 transition-colors">
+                      ดูความคืบหน้า →
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           
-          <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-            <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6">
-              <i data-feather="users" class="w-8 h-8 text-purple-600"></i>
+          <!-- Card 3: Total Emissions with Gradient -->
+          <div onclick="toggleDashboardCard('card-3-details')" class="relative group overflow-hidden bg-gradient-to-br from-red-500 to-orange-600 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all hover:scale-105 cursor-pointer">
+            <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
+            <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16"></div>
+            
+            <!-- Chevron Icon -->
+            <div class="absolute top-6 right-6">
+              <i data-feather="chevron-down" id="card-3-details-chevron" class="w-6 h-6 text-white chevron-icon"></i>
             </div>
-            <h3 class="text-xl font-bold text-gray-800 mb-4">Community Engagement</h3>
-            <p class="text-gray-600">Engage students, faculty, and staff in sustainability initiatives and environmental awareness programs.</p>
+            
+            <div class="relative z-10">
+              <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <i data-feather="activity" class="w-10 h-10 text-white"></i>
+              </div>
+              <h3 class="text-4xl font-bold text-white mb-2">{{ total_emissions }}</h3>
+              <p class="text-red-100 text-lg font-medium mb-6">tCO2e รวมทั้งหมด</p>
+              
+              <div class="bg-white/20 backdrop-blur-sm rounded-xl p-4">
+                <div class="flex items-start gap-3 text-white">
+                  <i data-feather="trending-up" class="w-5 h-5 mt-1 flex-shrink-0"></i>
+                  <div>
+                    <p class="font-medium mb-1">อัปเดตล่าสุด</p>
+                    <p class="text-2xl font-bold">{{ recent_updates }}</p>
+                    <p class="text-sm text-red-100 mt-1">รายการใน 30 วันที่ผ่านมา</p>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Dropdown Details -->
+              <div id="card-3-details" class="card-dropdown-content">
+                <div class="bg-white/20 backdrop-blur-sm rounded-xl p-4 space-y-3">
+                  <div class="text-white">
+                    <p class="text-sm font-medium mb-3 text-center">การปล่อยแยกตาม Scope</p>
+                    <div class="space-y-2">
+                      <div class="flex justify-between items-center">
+                        <span class="text-sm">Scope 1:</span>
+                        <span class="font-bold text-lg">{{ scope_1_emissions }}</span>
+                      </div>
+                      <div class="flex justify-between items-center">
+                        <span class="text-sm">Scope 2:</span>
+                        <span class="font-bold text-lg">{{ scope_2_emissions }}</span>
+                      </div>
+                      <div class="flex justify-between items-center">
+                        <span class="text-sm">Scope 3:</span>
+                        <span class="font-bold text-lg">{{ scope_3_emissions }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="border-t border-white/30 pt-3 mt-3">
+                    <a href="/summary" class="block text-center bg-white text-red-600 py-2 rounded-lg font-bold hover:bg-red-50 transition-colors">
+                      ดูสรุปผลทั้งหมด →
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
         </div>
       </section>
 
-      <!-- Features Section -->
-      <section class="py-20 bg-gray-50">
-        <div class="px-4 lg:px-8 max-w-6xl mx-auto">
-          <div class="text-center mb-16">
-            <h2 class="text-4xl font-bold text-gray-800 mb-4">{{ t.key_features or 'Key Features' }}</h2>
-            <p class="text-xl text-gray-600">{{ t.key_features_subtitle or 'Comprehensive tools for environmental management' }}</p>
+      <!-- Features Section - Emissions by Scope -->
+      <section class="py-32 bg-white relative">
+        
+        <!-- Header with Image - 1/4 screen height -->
+        <div class="relative h-96 overflow-hidden mb-16">
+          <!-- Section Label -->
+          <div class="absolute top-8 right-8 text-right z-30">
+            <div class="font-bold tracking-widest text-white mb-2">EMISSIONS</div>
+            <div class="w-48 h-0.5 bg-white ml-auto"></div>
           </div>
           
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h3 class="text-2xl font-bold text-gray-800 mb-6">{{ t.emissions_tracking or 'Emissions Tracking' }}</h3>
-              <div class="space-y-4">
-                <div class="flex items-start gap-4">
-                  <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <i data-feather="check" class="w-4 h-4 text-white"></i>
-                  </div>
-                  <div>
-                    <h4 class="font-semibold text-gray-800">{{ t.scope_123 or 'Scope 1, 2, 3 Emissions' }}</h4>
-                    <p class="text-gray-600">{{ t.scope_123_desc or 'Track direct and indirect emissions across all university operations.' }}</p>
-                  </div>
+          <img src="/static/imagines/car_pollution2.png" alt="Emissions" class="w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent"></div>
+          
+          <div class="absolute inset-0 flex items-center z-20">
+            <div class="px-4 lg:px-8 max-w-6xl mx-auto w-full">
+              <h2 class="text-5xl md:text-6xl font-bold text-white mb-4">การปล่อยก๊าซเรือนกระจกแยกตาม Scope</h2>
+              <p class="text-2xl text-gray-200">ข้อมูลการปล่อย CO2 ของปี {{ current_year }}</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Content Area with Cards -->
+        <div class="px-4 lg:px-8 max-w-6xl mx-auto">
+          
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="bg-white p-8 rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-105 border-2 border-gray-100">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-3xl font-bold text-gray-900">Scope 1</h3>
+                <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center">
+                  <i data-feather="droplet" class="w-8 h-8 text-red-600"></i>
                 </div>
-                
-                <div class="flex items-start gap-4">
-                  <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <i data-feather="check" class="w-4 h-4 text-white"></i>
-                  </div>
-                  <div>
-                    <h4 class="font-semibold text-gray-800">{{ t.realtime_monitoring or 'Real-time Monitoring' }}</h4>
-                    <p class="text-gray-600">{{ t.realtime_monitoring_desc or 'Live data collection and analysis for immediate insights.' }}</p>
-                  </div>
-                </div>
-                
-                <div class="flex items-start gap-4">
-                  <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <i data-feather="check" class="w-4 h-4 text-white"></i>
-                  </div>
-                  <div>
-                    <h4 class="font-semibold text-gray-800">{{ t.automated_reporting or 'Automated Reporting' }}</h4>
-                    <p class="text-gray-600">{{ t.automated_reporting_desc or 'Generate comprehensive reports with just a few clicks.' }}</p>
-                  </div>
-                </div>
+              </div>
+              <div class="text-4xl font-bold text-red-600 mb-2">{{ scope_1_emissions }}</div>
+              <div class="text-gray-600 text-base font-medium">tCO2e</div>
+              <div class="mt-6 text-base text-gray-700">
+                <p class="font-semibold">การปล่อยโดยตรง</p>
+                <p class="text-sm mt-2 text-gray-500">จากแหล่งที่หน่วยงานควบคุม</p>
               </div>
             </div>
             
-            <div class="bg-white p-8 rounded-xl shadow-lg">
-              <div class="w-full h-64 bg-gradient-to-br from-green-400 to-blue-500 rounded-lg flex items-center justify-center">
-                <i data-feather="trending-down" class="w-24 h-24 text-white"></i>
+            <div class="bg-white p-8 rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-105 border-2 border-gray-100">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-3xl font-bold text-gray-900">Scope 2</h3>
+                <div class="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center">
+                  <i data-feather="zap" class="w-8 h-8 text-orange-600"></i>
+                </div>
+              </div>
+              <div class="text-4xl font-bold text-orange-600 mb-2">{{ scope_2_emissions }}</div>
+              <div class="text-gray-600 text-base font-medium">tCO2e</div>
+              <div class="mt-6 text-base text-gray-700">
+                <p class="font-semibold">การปล่อยทางอ้อม</p>
+                <p class="text-sm mt-2 text-gray-500">จากพลังงานที่ซื้อมา</p>
               </div>
             </div>
+            
+            <div class="bg-white p-8 rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-105 border-2 border-gray-100">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-3xl font-bold text-gray-900">Scope 3</h3>
+                <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center">
+                  <i data-feather="truck" class="w-8 h-8 text-blue-600"></i>
+                </div>
+              </div>
+              <div class="text-4xl font-bold text-blue-600 mb-2">{{ scope_3_emissions }}</div>
+              <div class="text-gray-600 text-base font-medium">tCO2e</div>
+              <div class="mt-6 text-base text-gray-700">
+                <p class="font-semibold">การปล่อยทางอ้อมอื่นๆ</p>
+                <p class="text-sm mt-2 text-gray-500">ตลอดห่วงโซ่คุณค่า</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-12 text-center">
+            <a href="/summary" class="inline-flex items-center gap-3 bg-green-600 text-white px-8 py-4 rounded-full hover:bg-green-700 transition-all font-bold text-lg shadow-xl hover:scale-105">
+              <span>ดูรายละเอียดเพิ่มเติม</span>
+              <i data-feather="arrow-right" class="w-5 h-5"></i>
+            </a>
           </div>
         </div>
       </section>
 
-      <!-- Statistics Section -->
-      <section class="py-20">
+      <!-- Statistics Section - Quick Actions -->
+      <section class="py-32 bg-gradient-to-b from-gray-50 to-gray-100 relative">
+        <!-- Section Label -->
+        <div class="absolute top-8 right-8 text-right">
+          <div class="text-sm font-bold tracking-widest text-gray-400 mb-2">QUICK ACCESS</div>
+          <div class="w-48 h-0.5 bg-gray-300 ml-auto"></div>
+        </div>
+        
         <div class="px-4 lg:px-8 max-w-6xl mx-auto">
-          <div class="text-center mb-16">
-            <h2 class="text-4xl font-bold text-gray-800 mb-4">{{ t.our_impact or 'Our Impact' }}</h2>
-            <p class="text-xl text-gray-600">{{ t.our_impact_subtitle or 'Making a difference through data-driven decisions' }}</p>
+          <div class="text-center mb-20">
+            <h2 class="text-5xl font-bold text-gray-900 mb-6">เข้าถึงระบบ</h2>
+            <p class="text-2xl text-gray-600">เลือกเมนูที่ต้องการเพื่อจัดการข้อมูล</p>
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div class="text-center">
-              <div class="text-4xl font-bold text-green-600 mb-2">25%</div>
-              <div class="text-gray-600">{{ t.co2_reduction or 'CO2 Reduction' }}</div>
+            <a href="/emissions-scope" class="bg-white p-8 rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-110 group border-2 border-transparent hover:border-green-500">
+              <div class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform shadow-lg">
+                <i data-feather="database" class="w-10 h-10 text-white"></i>
+              </div>
+              <div class="text-center">
+                <div class="text-xl font-bold text-gray-900 mb-2">กรอกข้อมูล</div>
+                <div class="text-base text-gray-600">Emissions Data</div>
+              </div>
+            </a>
+            
+            <a href="/summary" class="bg-white p-8 rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-110 group border-2 border-transparent hover:border-blue-500">
+              <div class="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform shadow-lg">
+                <i data-feather="bar-chart-2" class="w-10 h-10 text-white"></i>
+              </div>
+              <div class="text-center">
+                <div class="text-xl font-bold text-gray-900 mb-2">สรุปผล</div>
+                <div class="text-base text-gray-600">Summary Report</div>
+              </div>
+            </a>
+            
+            <a href="/proportions" class="bg-white p-8 rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-110 group border-2 border-transparent hover:border-purple-500">
+              <div class="w-20 h-20 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform shadow-lg">
+                <i data-feather="pie-chart" class="w-10 h-10 text-white"></i>
+              </div>
+              <div class="text-center">
+                <div class="text-xl font-bold text-gray-900 mb-2">สัดส่วน</div>
+                <div class="text-base text-gray-600">Proportions</div>
+              </div>
+            </a>
+            
+            <a href="/scope-progress" class="bg-white p-8 rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-110 group border-2 border-transparent hover:border-orange-500">
+              <div class="w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform shadow-lg">
+                <i data-feather="activity" class="w-10 h-10 text-white"></i>
+              </div>
+              <div class="text-center">
+                <div class="text-xl font-bold text-gray-900 mb-2">ความคืบหน้า</div>
+                <div class="text-base text-gray-600">Progress</div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Additional Content - About PSU-CFO -->
+      <section class="py-32 bg-white relative">
+        <!-- Section Label -->
+        <div class="absolute top-8 right-8 text-right z-20">
+          <div class="text-sm font-bold tracking-widest text-gray-400 mb-2">ABOUT</div>
+          <div class="w-48 h-0.5 bg-gray-300 ml-auto"></div>
+        </div>
+        
+        <div class="absolute inset-0 bg-gradient-to-b from-gray-100 to-white"></div>
+        <div class="px-4 lg:px-8 max-w-6xl mx-auto relative z-10">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+            <div>
+              <h3 class="text-4xl font-bold text-gray-900 mb-8">เกี่ยวกับ PSU-CFO</h3>
+              <p class="text-lg text-gray-700 mb-8 leading-relaxed">ระบบจัดการและติดตามข้อมูลการปล่อยก๊าซเรือนกระจกของมหาวิทยาลัยสงขลานครินทร์ (PSU Carbon Footprint Organization) ถูกพัฒนาขึ้นเพื่อช่วยในการรวบรวม วิเคราะห์ และรายงานข้อมูลการปล่อยก๊าซเรือนกระจกจากกิจกรรมต่างๆ ของมหาวิทยาลัย</p>
+              <ul class="space-y-3">
+                <li class="flex items-center gap-3">
+                  <i data-feather="check-circle" class="w-5 h-5 text-green-500 flex-shrink-0"></i>
+                  <span>ติดตามและจัดการข้อมูล Scope 1, 2, 3</span>
+                </li>
+                <li class="flex items-center gap-3">
+                  <i data-feather="check-circle" class="w-5 h-5 text-green-500 flex-shrink-0"></i>
+                  <span>รายงานและวิเคราะห์ข้อมูลแบบเรียลไทม์</span>
+                </li>
+                <li class="flex items-center gap-3">
+                  <i data-feather="check-circle" class="w-5 h-5 text-green-500 flex-shrink-0"></i>
+                  <span>สนับสนุนการตัดสินใจเพื่อความยั่งยืน</span>
+                </li>
+              </ul>
             </div>
             
-            <div class="text-center">
-              <div class="text-4xl font-bold text-blue-600 mb-2">150+</div>
-              <div class="text-gray-600">{{ t.data_points or 'Data Points' }}</div>
-            </div>
-            
-            <div class="text-center">
-              <div class="text-4xl font-bold text-purple-600 mb-2">500+</div>
-              <div class="text-gray-600">{{ t.active_users or 'Active Users' }}</div>
-            </div>
-            
-            <div class="text-center">
-              <div class="text-4xl font-bold text-orange-600 mb-2">99.9%</div>
-              <div class="text-gray-600">{{ t.uptime or 'Uptime' }}</div>
+            <div class="bg-gradient-to-br from-green-400 to-blue-500 p-8 rounded-xl text-white">
+              <h4 class="text-2xl font-bold mb-6">ข้อมูลหน่วยงานของคุณ</h4>
+              <div class="space-y-4">
+                <div class="bg-white/20 p-4 rounded-lg backdrop-blur-sm">
+                  <div class="flex items-center gap-3 mb-2">
+                    <i data-feather="map-pin" class="w-5 h-5"></i>
+                    <span class="font-semibold">วิทยาเขต</span>
+                  </div>
+                  <div class="text-lg pl-8">{{ campus_name }}</div>
+                </div>
+                
+                <div class="bg-white/20 p-4 rounded-lg backdrop-blur-sm">
+                  <div class="flex items-center gap-3 mb-2">
+                    <i data-feather="briefcase" class="w-5 h-5"></i>
+                    <span class="font-semibold">หน่วยงาน</span>
+                  </div>
+                  <div class="text-lg pl-8">{{ department_name }}</div>
+                </div>
+                
+                <div class="bg-white/20 p-4 rounded-lg backdrop-blur-sm">
+                  <div class="flex items-center gap-3 mb-2">
+                    <i data-feather="user" class="w-5 h-5"></i>
+                    <span class="font-semibold">ผู้ใช้งาน</span>
+                  </div>
+                  <div class="text-lg pl-8">{{ user.name or user.username }}</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       <!-- Contact Section -->
-      <section class="py-20 bg-gray-800 text-white">
-        <div class="px-4 lg:px-8 max-w-6xl mx-auto text-center">
-          <h2 class="text-4xl font-bold mb-4">{{ t.get_started or 'Get Started Today' }}</h2>
-          <p class="text-xl text-gray-300 mb-8">{{ t.get_started_subtitle or 'Join us in creating a more sustainable future for our university and community.' }}</p>
-          
-          <div class="space-x-4">
-            <a href="#" class="bg-green-600 text-white px-8 py-3 rounded-full hover:bg-green-700 transition-colors inline-block">{{ t.start_tracking or 'Start Tracking' }}</a>
-            <a href="#" class="border border-white text-white px-8 py-3 rounded-full hover:bg-white hover:text-gray-800 transition-colors inline-block">{{ t.learn_more or 'Learn More' }}</a>
-          </div>
+      <section class="py-16 bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white relative overflow-hidden">
+        <!-- Section Label -->
+        <div class="absolute top-8 right-8 text-right z-20">
+          <div class="text-sm font-bold tracking-widest text-gray-500 mb-2">CONTACT</div>
+          <div class="w-48 h-0.5 bg-gray-600 ml-auto"></div>
         </div>
-      </section>
-
-      <!-- Additional Content for Scrolling -->
-      <section class="py-20 bg-white">
-        <div class="px-4 lg:px-8 max-w-6xl mx-auto">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        
+        <div class="absolute inset-0 bg-gradient-to-t from-green-900/20 to-transparent"></div>
+        <div class="px-4 lg:px-8 max-w-6xl mx-auto relative z-10">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <!-- Contact Info -->
             <div>
-              <h3 class="text-3xl font-bold text-gray-800 mb-6">{{ t.sustainable_campus or 'Sustainable Campus Initiative' }}</h3>
-              <p class="text-gray-600 mb-6">{{ t.sustainable_campus_desc or 'Our comprehensive approach to campus sustainability includes energy management, waste reduction, transportation planning, and green building practices.' }}</p>
-              <ul class="space-y-3">
-                <li class="flex items-center gap-3">
-                  <i data-feather="check-circle" class="w-5 h-5 text-green-500"></i>
-                  <span>{{ t.carbon_neutral or 'Carbon neutral campus by 2030' }}</span>
-                </li>
-                <li class="flex items-center gap-3">
-                  <i data-feather="check-circle" class="w-5 h-5 text-green-500"></i>
-                  <span>{{ t.renewable_energy or '100% renewable energy sources' }}</span>
-                </li>
-                <li class="flex items-center gap-3">
-                  <i data-feather="check-circle" class="w-5 h-5 text-green-500"></i>
-                  <span>{{ t.zero_waste or 'Zero waste to landfill program' }}</span>
-                </li>
-              </ul>
-            </div>
-            
-            <div class="bg-gradient-to-br from-green-400 to-blue-500 p-8 rounded-xl text-white">
-              <h4 class="text-2xl font-bold mb-4">{{ t.environmental_dashboard or 'Environmental Dashboard' }}</h4>
-              <div class="space-y-4">
-                <div class="flex justify-between items-center">
-                  <span>{{ t.energy_efficiency or 'Energy Efficiency' }}</span>
-                  <span class="font-bold">87%</span>
+              <h2 class="text-5xl font-bold mb-8">ติดต่อเรา</h2>
+              <p class="text-2xl text-gray-300 mb-10 leading-relaxed">มีคำถามหรือต้องการความช่วยเหลือ? ติดต่อเราได้ตามช่องทางด้านล่าง</p>
+              
+              <div class="space-y-6">
+                <div class="flex items-start gap-4">
+                  <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i data-feather="mail" class="w-6 h-6"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-bold mb-1">อีเมล</h3>
+                    <a href="mailto:cfo@psu.ac.th" class="text-gray-300 hover:text-white">cfo@psu.ac.th</a>
+                  </div>
                 </div>
-                <div class="flex justify-between items-center">
-                  <span>{{ t.waste_reduction or 'Waste Reduction' }}</span>
-                  <span class="font-bold">72%</span>
+                
+                <div class="flex items-start gap-4">
+                  <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i data-feather="phone" class="w-6 h-6"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-bold mb-1">โทรศัพท์</h3>
+                    <a href="tel:+6674212000" class="text-gray-300 hover:text-white">074-212-000</a>
+                  </div>
                 </div>
-                <div class="flex justify-between items-center">
-                  <span>{{ t.water_conservation or 'Water Conservation' }}</span>
-                  <span class="font-bold">64%</span>
+                
+                <div class="flex items-start gap-4">
+                  <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i data-feather="map-pin" class="w-6 h-6"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-bold mb-1">ที่อยู่</h3>
+                    <p class="text-gray-300">มหาวิทยาลัยสงขลานครินทร์<br>วิทยาเขตหาดใหญ่<br>ตำบลคอหงส์ อำเภอหาดใหญ่<br>จังหวัดสงขลา 90110</p>
+                  </div>
+                </div>
+                
+                <div class="flex items-start gap-4">
+                  <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i data-feather="globe" class="w-6 h-6"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-bold mb-1">เว็บไซต์</h3>
+                    <a href="https://www.psu.ac.th" target="_blank" class="text-gray-300 hover:text-white">www.psu.ac.th</a>
+                  </div>
                 </div>
               </div>
             </div>
+            
+            <!-- Quick Links -->
+            <div>
+              <h2 class="text-4xl font-bold mb-6">ลิงก์ที่เป็นประโยชน์</h2>
+              <div class="grid grid-cols-2 gap-4">
+                <a href="/emissions-scope" class="bg-white/10 p-4 rounded-lg hover:bg-white/20 transition-colors">
+                  <i data-feather="arrow-right" class="w-5 h-5 mb-2"></i>
+                  <div class="font-bold">กรอกข้อมูล</div>
+                </a>
+                
+                <a href="/summary" class="bg-white/10 p-4 rounded-lg hover:bg-white/20 transition-colors">
+                  <i data-feather="arrow-right" class="w-5 h-5 mb-2"></i>
+                  <div class="font-bold">สรุปผล</div>
+                </a>
+                
+                <a href="/scope-progress" class="bg-white/10 p-4 rounded-lg hover:bg-white/20 transition-colors">
+                  <i data-feather="arrow-right" class="w-5 h-5 mb-2"></i>
+                  <div class="font-bold">ความคืบหน้า</div>
+                </a>
+                
+                <a href="/setting" class="bg-white/10 p-4 rounded-lg hover:bg-white/20 transition-colors">
+                  <i data-feather="arrow-right" class="w-5 h-5 mb-2"></i>
+                  <div class="font-bold">ตั้งค่า</div>
+                </a>
+              </div>
+              
+              <div class="mt-8">
+                <h3 class="text-xl font-bold mb-4">เวลาทำการ</h3>
+                <div class="space-y-2 text-gray-300">
+                  <p>จันทร์ - ศุกร์: 08:30 - 16:30</p>
+                  <p>เสาร์ - อาทิตย์: ปิดทำการ</p>
+                  <p class="text-sm mt-4">ระบบออนไลน์พร้อมให้บริการ 24/7</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-12 pt-8 border-t border-gray-700 text-center">
+            <p class="text-gray-400">&copy; 2025 PSU-CFO. All rights reserved. | มหาวิทยาลัยสงขลานครินทร์</p>
           </div>
         </div>
       </section>
