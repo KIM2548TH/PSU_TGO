@@ -7,17 +7,59 @@
     
     <!-- Emissions Over Time Card - ใช้ 2 columns -->
     <div class="dashboard-card flex flex-col p-6 bg-white shadow-lg rounded-xl overflow-hidden col-span-2">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4 flex-shrink-0">{{ t.emissions_over_time }}</h3>
-      <div class="relative flex-grow min-h-[300px] md:min-h-[350px] overflow-auto chart-wrapper">
-        <canvas id="emissionsOverTimeChart" style="max-width: 100% !important; max-height: 350px !important;"></canvas>
+      <div class="flex justify-between items-center mb-4 flex-shrink-0">
+        <h3 class="text-lg font-semibold text-gray-800">{{ t.emissions_over_time }}</h3>
+        
+        <!-- Time Range Filter Buttons -->
+        <div class="flex gap-1 bg-gray-100 rounded-lg p-1">
+          <button 
+            class="time-filter-btn px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 {% if chart_time_range == '1Y' or not chart_time_range %}active{% endif %}"
+            data-range="1Y"
+            hx-post="/summary/charts"
+            hx-target="#charts-container"
+            hx-swap="outerHTML"
+            hx-include="[name='selected_scopes'],[name='selected_sub_scopes'],[name='time_period'],[name='selected_year']"
+            hx-vals='{"chart_time_range": "1Y"}'
+          >1 Year</button>
+          <button 
+            class="time-filter-btn px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 {% if chart_time_range == '5Y' %}active{% endif %}"
+            data-range="5Y"
+            hx-post="/summary/charts"
+            hx-target="#charts-container"
+            hx-swap="outerHTML"
+            hx-include="[name='selected_scopes'],[name='selected_sub_scopes'],[name='time_period'],[name='selected_year']"
+            hx-vals='{"chart_time_range": "5Y"}'
+          >5 Years</button>
+          <button 
+            class="time-filter-btn px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 {% if chart_time_range == '10Y' %}active{% endif %}"
+            data-range="10Y"
+            hx-post="/summary/charts"
+            hx-target="#charts-container"
+            hx-swap="outerHTML"
+            hx-include="[name='selected_scopes'],[name='selected_sub_scopes'],[name='time_period'],[name='selected_year']"
+            hx-vals='{"chart_time_range": "10Y"}'
+          >10 Years</button>
+          <button 
+            class="time-filter-btn px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 {% if chart_time_range == 'ALL' %}active{% endif %}"
+            data-range="ALL"
+            hx-post="/summary/charts"
+            hx-target="#charts-container"
+            hx-swap="outerHTML"
+            hx-include="[name='selected_scopes'],[name='selected_sub_scopes'],[name='time_period'],[name='selected_year']"
+            hx-vals='{"chart_time_range": "ALL"}'
+          >All Years</button>
+        </div>
+      </div>
+      <div class="relative flex-grow chart-wrapper" style="height: 350px;">
+        <canvas id="emissionsOverTimeChart"></canvas>
       </div>
     </div>
 
     <!-- Category Breakdown Card - ใช้ 1 column -->
     <div class="dashboard-card flex flex-col p-6 bg-white shadow-lg rounded-xl overflow-hidden col-span-1">
       <h3 class="text-lg font-semibold text-gray-800 mb-4 flex-shrink-0">{{ t.category_breakdown }}</h3>
-      <div class="relative w-full max-w-[220px] mx-auto my-4 flex-shrink-0 chart-wrapper">
-        <canvas id="categoryBreakdownChart" style="max-width: 220px !important; max-height: 220px !important;"></canvas>
+      <div class="relative w-full mx-auto my-4 flex-shrink-0 chart-wrapper" style="height: 220px; max-width: 220px;">
+        <canvas id="categoryBreakdownChart"></canvas>
       </div>
       <div id="category-legend" class="flex-grow overflow-y-auto min-h-0 space-y-4 pr-2 max-h-[200px]"></div>
     </div>
@@ -25,31 +67,42 @@
   </div>
 
   <style>
-    /* Force canvas reset styles */
+    /* Chart wrapper styles */
+    .chart-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    
     .chart-wrapper canvas {
-      position: relative !important;
+      display: block;
       width: 100% !important;
-      height: auto !important;
-      display: block !important;
+      height: 100% !important;
     }
     
-    /* Prevent canvas from stretching beyond container */
-    #emissionsOverTimeChart {
-      max-width: 100% !important;
-      max-height: 350px !important;
-    }
-    
+    /* Remove any transform or positioning that might affect Chart.js event handling */
+    #emissionsOverTimeChart,
     #categoryBreakdownChart {
-      max-width: 220px !important;
-      max-height: 220px !important;
+      position: relative;
+    }
+
+    /* Time Filter Button Styles */
+    .time-filter-btn {
+      color: #6b7280;
+      background: transparent;
+      cursor: pointer;
+      border: none;
+      outline: none;
     }
     
-    /* Reset any absolute positioning that might cause issues */
-    .dashboard-card canvas {
-      position: relative !important;
-      left: auto !important;
-      top: auto !important;
-      transform: none !important;
+    .time-filter-btn:hover {
+      color: #374151;
+      background: rgba(0, 0, 0, 0.05);
+    }
+    
+    .time-filter-btn.active {
+      color: white;
+      background: #3b82f6;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     }
   </style>
 
@@ -72,18 +125,27 @@
     }
 
     // HTMX Event Listeners
-    // document.addEventListener('htmx:beforeRequest', function(evt) {
-    //   if (evt.detail.target && (
-    //       evt.detail.target.id === 'charts-container' || 
-    //       evt.detail.target.closest('#charts-container')
-    //     )) {
-    //     destroyAllChartsAggressively();
-    //   }
-    // });
-
     document.addEventListener('htmx:beforeSwap', function(evt) {
       if (evt.detail.target && evt.detail.target.id === 'charts-container') {
         destroyAllChartsAggressively();
+      }
+    });
+
+    // Ensure canvas is properly sized after HTMX swap
+    document.addEventListener('htmx:afterSettle', function(evt) {
+      if (evt.detail.target && evt.detail.target.id === 'charts-container') {
+        // Force canvas to redraw with correct dimensions
+        setTimeout(() => {
+          ['emissionsOverTimeChart', 'categoryBreakdownChart'].forEach(chartName => {
+            if (window[chartName]) {
+              try {
+                window[chartName].resize();
+              } catch (e) {
+                console.warn(`Error resizing ${chartName}:`, e);
+              }
+            }
+          });
+        }, 100);
       }
     });
 
@@ -155,87 +217,6 @@
         el.appendChild(frag);
       }
 
-      function renderEmissionsOverTimeChart(labels, curVals, prevVals, curYear, prevYear){
-        console.log('📊 Creating Emissions Over Time Chart...');
-        
-        // Wait for canvas to be ready
-        setTimeout(() => {
-          const canvas = document.getElementById('emissionsOverTimeChart');
-          if (!canvas) {
-            console.error('Canvas not found!');
-            return;
-          }
-          
-          const ctx = canvas.getContext('2d');
-          if (!ctx) {
-            console.error('Context not available!');
-            return;
-          }
-          
-          try {
-            window.emissionsOverTimeChart = new Chart(ctx, {
-              type: 'bar',
-              data: {
-                labels,
-                datasets: [
-                  {
-                    label: `Previous Year (${prevYear})`,
-                    data: prevVals,
-                    backgroundColor: 'rgba(59,130,246,0.3)',
-                    hoverBackgroundColor: 'rgba(20,184,166,0.3)',
-                    borderRadius: 6,
-                    borderSkipped: false,
-                    barPercentage: 0.6,
-                    categoryPercentage: 0.7
-                  },
-                  {
-                    label: `Selected Year (${curYear})`,
-                    data: curVals,
-                    backgroundColor: '#3b82f6',
-                    hoverBackgroundColor: '#14b8a6',
-                    borderRadius: 6,
-                    borderSkipped: false,
-                    barPercentage: 0.6,
-                    categoryPercentage: 0.7
-                  }
-                ]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: {
-                  duration: 900,
-                  easing: 'easeOutQuart'
-                },
-                plugins: {
-                  legend: { display: true },
-                  tooltip: {
-                    callbacks: {
-                      title: (c) => {
-                        const m = labels[c[0].dataIndex];
-                        const y = c[0].dataset.label.includes('Selected') ? curYear : prevYear;
-                        return `${m} (${y})`;
-                      },
-                      label: (c) => ` ${c.raw.toFixed(1)} tonCO2`
-                    },
-                    displayColors: false,
-                    padding: 10,
-                    backgroundColor: '#1f2937'
-                  }
-                },
-                scales: {
-                  x: { grid: { display: false }, ticks: { color: '#6b7280' } },
-                  y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false }, ticks: { color: '#6b7280' } }
-                }
-              }
-            });
-            console.log('✅ Emissions chart created successfully');
-          } catch (e) {
-            console.error('❌ Error creating emissions chart:', e);
-          }
-        }, 200);
-      }
-
       function renderCategoryBreakdownChart(labels, values, colors){
         console.log('🍩 Creating Category Breakdown Chart...');
         
@@ -271,7 +252,7 @@
               },
               options: {
                 responsive: true,
-                maintainAspectRatio: true,
+                maintainAspectRatio: false,
                 animation: {
                   duration: 900,
                   easing: 'easeOutQuart'
@@ -302,31 +283,153 @@
             });
             renderCustomLegend(labels, values, colors);
             console.log('✅ Category chart created successfully');
+            
+            // Force resize to ensure correct dimensions
+            setTimeout(() => {
+              if (window.categoryBreakdownChart) {
+                window.categoryBreakdownChart.resize();
+              }
+            }, 50);
           } catch (e) {
             console.error('❌ Error creating category chart:', e);
           }
-        }, 300);
+        }, 150);
       }
 
       function init(){
         console.log('🚀 Initializing charts...');
   var selectedYear = {{ selected_year | tojson | safe }}
-  var rawDailyData = {{ data.daily_data | tojson | safe }}
-  var previousYearData = {{ previous_year_data.daily_data | tojson | safe }}
+  var chartTimeRange = {{ chart_time_range | tojson | safe }}
+  var multiYearData = {{ multi_year_data | tojson | safe }}
+  var yearRange = {{ year_range | tojson | safe }}
   var categoryLabels = {{ data.category_data.keys() | list | tojson | safe }}
   var categoryValues = {{ data.category_data.values() | list | tojson | safe }}
-        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-        const curVals = months.map(m=>rawDailyData[m]||0);
-        const prevVals = months.map(m=>previousYearData[m]||0);
-        const labels = months.map(m=>m.substring(0,3));
-        const colors = ['#4f46e5','#10b981','#f97316','#3b82f6','#ec4899','#8b5cf6'];
         
-        renderEmissionsOverTimeChart(labels, curVals, prevVals, selectedYear, selectedYear-1);
+        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const shortMonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const colors = ['#4f46e5','#10b981','#f97316','#3b82f6','#ec4899','#8b5cf6','#f59e0b','#ef4444'];
+        
+        // Prepare chart data based on time range
+        let labels, datasets;
+        
+        if (chartTimeRange === '1Y') {
+          // Show single year with 12 months
+          const currentYearData = multiYearData[selectedYear] || {};
+          const prevYearData = multiYearData[selectedYear - 1] || {};
+          
+          labels = shortMonths;
+          datasets = [
+            {
+              label: `${selectedYear - 1}`,
+              data: months.map(m => prevYearData[m] || 0),
+              backgroundColor: 'rgba(59,130,246,0.3)',
+              hoverBackgroundColor: 'rgba(20,184,166,0.3)',
+              borderRadius: 6,
+              borderSkipped: false,
+              barPercentage: 0.6,
+              categoryPercentage: 0.7
+            },
+            {
+              label: `${selectedYear}`,
+              data: months.map(m => currentYearData[m] || 0),
+              backgroundColor: '#3b82f6',
+              hoverBackgroundColor: '#14b8a6',
+              borderRadius: 6,
+              borderSkipped: false,
+              barPercentage: 0.6,
+              categoryPercentage: 0.7
+            }
+          ];
+        } else {
+          // Show multiple years (aggregate by year)
+          labels = yearRange.map(y => y.toString());
+          const yearlyTotals = yearRange.map(year => {
+            const yearData = multiYearData[year] || {};
+            return months.reduce((sum, month) => sum + (yearData[month] || 0), 0);
+          });
+          
+          datasets = [
+            {
+              label: 'Total Emissions (tonCO₂e)',
+              data: yearlyTotals,
+              backgroundColor: colors.slice(0, yearRange.length),
+              hoverBackgroundColor: colors.slice(0, yearRange.length).map(c => c + 'CC'),
+              borderRadius: 6,
+              borderSkipped: false,
+              barPercentage: 0.7,
+              categoryPercentage: 0.8
+            }
+          ];
+        }
+        
+        renderEmissionsOverTimeChartNew(labels, datasets, selectedYear);
         renderCategoryBreakdownChart(categoryLabels, categoryValues, colors);
       }
       
-      // Wait longer for DOM to be completely ready
-  setTimeout(init, 900);
+      function renderEmissionsOverTimeChartNew(labels, datasets, selectedYear) {
+        console.log('📊 Creating Emissions Over Time Chart (Multi-year support)...');
+        
+        setTimeout(() => {
+          const canvas = document.getElementById('emissionsOverTimeChart');
+          if (!canvas) {
+            console.error('Canvas not found!');
+            return;
+          }
+          
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            console.error('Context not available!');
+            return;
+          }
+          
+          try {
+            window.emissionsOverTimeChart = new Chart(ctx, {
+              type: 'bar',
+              data: { labels, datasets },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                  duration: 900,
+                  easing: 'easeOutQuart'
+                },
+                plugins: {
+                  legend: { display: true },
+                  tooltip: {
+                    callbacks: {
+                      label: (c) => ` ${c.dataset.label}: ${c.raw.toFixed(1)} tonCO₂e`
+                    },
+                    displayColors: true,
+                    padding: 10,
+                    backgroundColor: '#1f2937'
+                  }
+                },
+                scales: {
+                  x: { grid: { display: false }, ticks: { color: '#6b7280' } },
+                  y: { 
+                    beginAtZero: true, 
+                    grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false }, 
+                    ticks: { color: '#6b7280' }
+                  }
+                }
+              }
+            });
+            console.log('✅ Emissions chart created successfully');
+            
+            // Force resize to ensure correct dimensions
+            setTimeout(() => {
+              if (window.emissionsOverTimeChart) {
+                window.emissionsOverTimeChart.resize();
+              }
+            }, 50);
+          } catch (e) {
+            console.error('❌ Error creating emissions chart:', e);
+          }
+        }, 100);
+      }
+      
+      // Wait for DOM to be completely ready
+      setTimeout(init, 500);
     })();
   </script>
 </div>
