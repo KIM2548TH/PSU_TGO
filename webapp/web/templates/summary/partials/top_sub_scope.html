@@ -1,4 +1,5 @@
 <div id="top-sub-scope-content" class="space-y-1">
+  <input type="hidden" name="selected_scope" value="{{ selected_scope if selected_scope is defined else 'all' }}">
   {% if top_materials and top_materials|length > 0 %}
     {% set total_emissions = top_materials|sum(attribute='result2') %}
     {% set safe_total = total_emissions if total_emissions > 0 else 1 %}
