@@ -1,0 +1,79 @@
+{# 
+  Unified Formula Input Template
+  Parameters:
+  - input_type: 'formula', 'gas', 'conversion', 'conversion2'
+  - formula_value: current formula value
+  - formula_field: name attribute (default based on type)
+  - input_id: id attribute (default based on type)
+  - gas_type: for gas formulas (co2, ch4, n2o, etc.)
+  - readonly: true/false
+  - placeholder: custom placeholder
+#}
+
+{% set input_config = {
+  'formula': {
+    'name': 'formula',
+    'id': 'formula',
+    'placeholder': 'e.g. diesel * 2.68',
+    'readonly': false,
+    'class': 'input input-bordered w-full'
+  },
+  'gas': {
+    'name': formula_field or 'formula_' ~ (gas_type or 'co2'),
+    'id': 'gas-' ~ (gas_type or 'co2') ~ '-formula',
+    'placeholder': 'เช่น result * 0.8',
+    'readonly': true,
+    'class': 'input input-bordered flex-1 bg-gray-50'
+  },
+  'conversion': {
+    'name': 'formula',
+    'id': 'conversion-formula',
+    'placeholder': 'เช่น diesel * 2.68',
+    'readonly': true,
+    'class': 'input input-bordered w-full'
+  },
+  'conversion2': {
+    'name': formula_field or 'formula2',
+    'id': 'conversion2-formula-input',
+    'placeholder': 'เช่น result * 0.001',
+    'readonly': true,
+    'class': 'input input-bordered w-full'
+  }
+} %}
+
+{% set config = input_config.get(input_type, input_config['formula']) %}
+{# กำหนด wrapper_id สำหรับ gas, conversion, conversion2 เพื่อให้ HTMX swap outerHTML ได้ #}
+{% if input_type == 'gas' and gas_type %}
+  {% set wrapper_id = 'gas-' ~ gas_type ~ '-formula-input' %}
+{% elif input_type == 'conversion' %}
+  {% set wrapper_id = 'conversion-formula-wrapper' %}
+{% elif input_type == 'conversion2' %}
+  {% set wrapper_id = 'conversion2-formula-wrapper' %}
+{% else %}
+  {% set wrapper_id = None %}
+{% endif %}
+
+{# กำหนด default values สำหรับกรณีที่ไม่มี config #}
+{% set field_name = formula_field or config.name %}
+{% set field_id = input_id or (formula_field if formula_field else config.id) %}
+{% set field_class = config.class if config else 'input input-bordered w-full' %}
+{% set field_placeholder = placeholder or (config.placeholder if config else 'กรอกสูตร') %}
+{% set is_readonly = readonly or (config.readonly if config else false) %}
+
+{% if wrapper_id %}
+<div id="{{ wrapper_id }}">
+{% endif %}
+
+<input type="text" 
+       name="{{ field_name }}" 
+       id="{{ field_id }}"
+       class="{{ field_class }}" 
+       placeholder="{{ field_placeholder }}"
+       value="{{ formula_value or '' }}"
+       {% if is_readonly %}data-readonly="true"{% endif %}
+       {% if is_readonly %}title="กรุณาใช้เครื่องคิดเลขเพื่อแก้ไขสูตร"{% endif %}
+       {% if not is_readonly %}required{% endif %}>
+
+{% if wrapper_id %}
+</div>
+{% endif %}

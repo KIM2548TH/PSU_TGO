@@ -156,7 +156,7 @@ def calculator_show_conversion():
         variables = _get_calculator_variables(form_data, 'conversion')
         
         return render_template(
-            "form-management/partials/conversion-calculator-dropdown.html",
+            "form-management/partials/unified-calculator.html",
             variables=variables,
             calculator_type="conversion"
         )
@@ -173,7 +173,7 @@ def calculator_show_conversion2():
         variables = _get_calculator_variables(form_data, 'conversion2')
         
         return render_template(
-            "form-management/partials/conversion2-calculator-dropdown.html",
+            "form-management/partials/unified-calculator.html",
             variables=variables,
             calculator_type="conversion2"
         )
@@ -191,9 +191,10 @@ def calculator_show_gas():
         variables = _get_calculator_variables(form_data, gas_type)
         
         return render_template(
-            "form-management/partials/gas-calculator-dropdown.html",
+            "form-management/partials/unified-calculator.html",
             variables=variables,
-            calculator_type=gas_type
+            calculator_type="gas",
+            gas_type=gas_type
         )
     except Exception as e:
         return f'<div class="text-error">Error: {str(e)}</div>'
@@ -337,20 +338,13 @@ def calculator_add_value_conversion():
         updated_formula = current_formula + str(new_value)
         
         # ส่งคืน HTML template สำหรับ hx-swap="outerHTML"
-        if calculator_type == 'conversion2':
-            return render_template(
-                "form-management/partials/conversion2-formula-input.html",
-                formula_field=formula_field,
-                conversion_type=calculator_type,
-                formula_value=updated_formula
-            )
-        else:
-            return render_template(
-                "form-management/partials/conversion-formula-input.html",
-                formula_field=formula_field,
-                conversion_type=calculator_type,
-                formula_value=updated_formula
-            )
+        return render_template(
+            "form-management/partials/unified-formula-input.html",
+            input_type=calculator_type,
+            formula_field=formula_field,
+            conversion_type=calculator_type,
+            formula_value=updated_formula
+        )
     except Exception as e:
         return f'<div class="text-error">Error: {str(e)}</div>'
 
@@ -367,7 +361,8 @@ def calculator_add_value_conversion2():
         
         # ส่งคืน HTML สำหรับอัปเดตช่อง input โดยตรง
         return render_template(
-            "form-management/partials/conversion2-formula-input.html",
+            "form-management/partials/unified-formula-input.html",
+            input_type=calculator_type,
             formula_field='formula2',
             conversion_type=calculator_type,
             formula_value=updated_formula
@@ -394,20 +389,13 @@ def calculator_remove_last_conversion():
         updated_formula = current_formula[:-1] if current_formula else ''
         
         # ส่งคืน HTML template สำหรับ hx-swap="outerHTML"
-        if calculator_type == 'conversion2':
-            return render_template(
-                "form-management/partials/conversion2-formula-input.html",
-                formula_field=formula_field,
-                conversion_type=calculator_type,
-                formula_value=updated_formula
-            )
-        else:
-            return render_template(
-                "form-management/partials/conversion-formula-input.html",
-                formula_field=formula_field,
-                conversion_type=calculator_type,
-                formula_value=updated_formula
-            )
+        return render_template(
+            "form-management/partials/unified-formula-input.html",
+            input_type=calculator_type,
+            formula_field=formula_field,
+            conversion_type=calculator_type,
+            formula_value=updated_formula
+        )
     except Exception as e:
         return f'<div class="text-error">Error: {str(e)}</div>'
 
@@ -418,22 +406,16 @@ def calculator_clear_conversion():
     """ล้างสูตรแปลงหน่วยทั้งหมด"""
     try:
         calculator_type = request.form.get('calculator_type', 'conversion')
+        formula_field = 'formula2' if calculator_type == 'conversion2' else 'formula'
         
         # ส่งคืน HTML template สำหรับ hx-swap="outerHTML"
-        if calculator_type == 'conversion2':
-            return render_template(
-                "form-management/partials/conversion2-formula-input.html",
-                formula_field='formula2',
-                conversion_type=calculator_type,
-                formula_value=""
-            )
-        else:
-            return render_template(
-                "form-management/partials/conversion-formula-input.html",
-                formula_field='formula',
-                conversion_type=calculator_type,
-                formula_value=""
-            )
+        return render_template(
+            "form-management/partials/unified-formula-input.html",
+            input_type=calculator_type,
+            formula_field=formula_field,
+            conversion_type=calculator_type,
+            formula_value=""
+        )
     except Exception as e:
         return f'<div class="text-error">Error: {str(e)}</div>'
 
@@ -449,7 +431,8 @@ def calculator_remove_last_conversion2():
         
         # ส่งคืน HTML สำหรับอัปเดตช่อง input โดยตรง
         return render_template(
-            "form-management/partials/conversion2-formula-input.html",
+            "form-management/partials/unified-formula-input.html",
+            input_type=calculator_type,
             formula_field='formula2',
             conversion_type=calculator_type,
             formula_value=updated_formula
@@ -467,7 +450,8 @@ def calculator_clear_conversion2():
         
         # ส่งคืน HTML สำหรับอัปเดตช่อง input โดยตรง
         return render_template(
-            "form-management/partials/conversion2-formula-input.html",
+            "form-management/partials/unified-formula-input.html",
+            input_type=calculator_type,
             formula_field='formula2',
             conversion_type=calculator_type,
             formula_value=""
@@ -510,7 +494,8 @@ def calculator_add_value_gas():
         
         # ส่งคืน HTML template สำหรับ hx-swap="outerHTML"
         return render_template(
-            "form-management/partials/gas-formula-input.html",
+            "form-management/partials/unified-formula-input.html",
+            input_type="gas",
             formula_field=target_field,
             gas_type=gas_type,
             formula_value=updated_formula
@@ -531,7 +516,8 @@ def calculator_remove_last_gas():
         
         # ส่งคืน HTML template สำหรับ hx-swap="outerHTML"
         return render_template(
-            "form-management/partials/gas-formula-input.html",
+            "form-management/partials/unified-formula-input.html",
+            input_type="gas",
             formula_field=target_field,
             gas_type=gas_type,
             formula_value=updated_formula
@@ -550,7 +536,8 @@ def calculator_clear_gas():
         
         # ส่งคืน HTML template สำหรับ hx-swap="outerHTML"
         return render_template(
-            "form-management/partials/gas-formula-input.html",
+            "form-management/partials/unified-formula-input.html",
+            input_type="gas",
             formula_field=target_field,
             gas_type=gas_type,
             formula_value=""

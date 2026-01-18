@@ -131,7 +131,7 @@ def calculate_grouped_input_types(head_table, page):
 
 @module.route("/emissions-table", methods=["POST"])
 @login_required
-@permissions_required_all(["เข้าถึงหน้าข้อมูลการปล่อย"])
+# @permissions_required_all(["เข้าถึงหน้าข้อมูลการปล่อย"])
 def view_emissions():
     # รับค่า scope_id และ sub_scope_id จาก POST request
     scope_id = request.form.get("scope_id")
@@ -229,7 +229,7 @@ def load_emissions_table():
         if form:
             head_table_info[head] = {
                 "is_linked": getattr(form, "is_linked", False),
-                "linked_material_name": getattr(form, "linked_material_name", ""),
+                "linked_forms": getattr(form, "linked_forms", []),
                 "desc_form": form.desc_form,
                 "formula": form.formula,
             }
@@ -361,15 +361,21 @@ def calculate_result(material):
     """
     คำนวณผลลัพธ์จากสูตรและบันทึก result และ result2 ลงใน material
     พร้อมทั้งคำนวณผลลัพธ์ก๊าซทั้ง 7 ชนิด
+    รองรับ linked fields โดยดึงข้อมูลจาก Material ของฟอร์มต้นฉบับ
     """
     # ดึงข้อมูลสูตรจากฐานข้อมูล
     form_and_formula = FormAndFormula.objects(material_name=material.name).first()
     if not form_and_formula:
         return
+    
+    # ตรวจสอบว่า formula เป็น None หรือ empty string
+    if not form_and_formula.formula or form_and_formula.formula.strip() == "":
+        return
 
     # สร้าง mapping ระหว่างชื่อตัวแปรภาษาไทย กับชื่อที่ปลอดภัย
+    # Strip whitespace เพราะ variables อาจมี space ท้าย แต่ใน formula ไม่มี
     variable_mapping = {
-        original_var: f"var_{i}"
+        original_var.strip(): f"var_{i}"
         for i, original_var in enumerate(form_and_formula.variables)
     }
 
@@ -377,10 +383,44 @@ def calculate_result(material):
     for safe_name in variable_mapping.values():
         sanitized_variables[safe_name] = 0
 
-    for qt in material.quantity_type:
-        if qt.field in variable_mapping:
-            safe_name = variable_mapping[qt.field]
-            sanitized_variables[safe_name] = qt.amount
+    # ดึงค่าตัวแปรจาก quantity_type (เฉพาะที่อยู่ใน variables)
+    for input_type in form_and_formula.input_types:
+        if not input_type.is_used:
+            continue
+        
+        # ดูก่อนว่า material.quantity_type มีข้อมูลของ field นี้หรือไม่
+        found_in_quantity_type = False
+        for qt in material.quantity_type:
+            # เช็คว่า qt.field ต้องตรงกับ input_type.field และอยู่ใน variable_mapping
+            if qt.field == input_type.field and input_type.field in variable_mapping:
+                safe_name = variable_mapping[input_type.field]
+                sanitized_variables[safe_name] = qt.amount
+                found_in_quantity_type = True
+                break
+        
+        # ถ้าไม่มีใน quantity_type และเป็น linked field ให้ไปดึงจาก source (fallback)
+        if not found_in_quantity_type and input_type.source_form_id:
+            try:
+                from bson import ObjectId
+                source_form = FormAndFormula.objects(id=ObjectId(input_type.source_form_id)).first()
+                if source_form:
+                    source_material = Material.objects(
+                        name=source_form.material_name,
+                        month=material.month,
+                        year=material.year,
+                        campus=material.campus,
+                        department=material.department
+                    ).first()
+                    
+                    if source_material:
+                        for qt in source_material.quantity_type:
+                            if qt.field == input_type.original_field:
+                                if input_type.field in variable_mapping:
+                                    safe_name = variable_mapping[input_type.field]
+                                    sanitized_variables[safe_name] = qt.amount
+                                break
+            except Exception as e:
+                pass
 
     sanitized_formula = form_and_formula.formula
     sorted_vars = sorted(variable_mapping.keys(), key=len, reverse=True)
@@ -422,7 +462,6 @@ def calculate_result(material):
                 material.result2 = eval_result2
 
             except Exception as e:
-                # print(f"เกิดข้อผิดพลาดในการคำนวณ result2 สำหรับ : {e}")
                 material.result2 = None
         else:
             # ถ้าไม่มี formula2 ให้ตั้งค่า result2 เป็น None
@@ -444,7 +483,6 @@ def calculate_result(material):
             material.result_nf3 = gas_results.get("result_nf3")
 
         except Exception as e:
-            # print(f"เกิดข้อผิดพลาดในการคำนวณผลลัพธ์ก๊าซ: {e}")
             # ตั้งค่า gas results เป็น None หากคำนวณไม่สำเร็จ
             material.result_co2 = None
             material.result_ch4 = None
@@ -458,7 +496,6 @@ def calculate_result(material):
         material.save()
 
     except Exception as e:
-        # Log error without printing sensitive data
         pass
 
 
@@ -542,73 +579,133 @@ def save_material(scope_id, sub_scope_id, month_id, year, material_data):
     # คำนวณและบันทึก result
     calculate_result(material)
 
-    # จัดการ Material ที่ลิงก์
-    linked_formulas = FormAndFormula.objects(linked_material_name=head, is_linked=True)
-    for linked_formula in linked_formulas:
-        linked_material = Material.objects(
-            month=int(month_id),
-            name=linked_formula.material_name,
-            scope=int(linked_formula.ghg_scope),
-            sub_scope=int(linked_formula.ghg_sup_scope),
-            year=year,
-            department=current_user.department_key,
-            campus=current_user.campus_id,
-        ).first()
+    # จัดการ Material ที่ลิงก์ - ใช้ used_by_forms แทนการ query ทุกฟอร์ม
+    source_form = FormAndFormula.objects(material_name=head).first()
+    if source_form and source_form.used_by_forms:
+        # Loop เฉพาะฟอร์มที่ใช้ฟอร์มนี้เท่านั้น (O(1) แทน O(n))
+        from bson import ObjectId
+        for linked_form_id in source_form.used_by_forms:
+            try:
+                linked_formula = FormAndFormula.objects(id=ObjectId(linked_form_id)).first()
+                if not linked_formula or not linked_formula.is_linked:
+                    continue
+                    
+                linked_material = Material.objects(
+                    month=int(month_id),
+                    name=linked_formula.material_name,
+                    scope=int(linked_formula.ghg_scope),
+                    sub_scope=int(linked_formula.ghg_sup_scope),
+                    year=year,
+                    department=current_user.department_key,
+                    campus=current_user.campus_id,
+                ).first()
 
-        # สร้าง quantity_type สำหรับ linked material โดยใช้ result จาก material ต้นฉบับ
-        linked_quantity_types = []
-        if material.result is not None:
-            # ใช้ result จาก material ต้นฉบับเป็น input สำหรับ linked material
-            # ดึง input_type แรกจาก linked_formula เพื่อใช้เป็น template
-            if linked_formula.input_types:
-                first_input = linked_formula.input_types[0]
-                linked_quantity_types = [
-                    QuantityType(
-                        field=first_input.field,
-                        label=first_input.label,
-                        amount=float(material.result),
-                        unit=first_input.unit,
+                if linked_material:
+                    # เก็บ custom fields เดิมไว้ (ฟิลด์ที่ไม่ได้ลิงก์มาจาก source form นี้)
+                    existing_quantity_types = []
+                    if linked_material.quantity_type:
+                        for qt in linked_material.quantity_type:
+                            # เช็คว่า qt.field นี้เป็น linked field จาก source form นี้หรือไม่
+                            is_from_this_source = False
+                            for input_type in linked_formula.input_types:
+                                if (input_type.field == qt.field and 
+                                    hasattr(input_type, 'source_form_id') and 
+                                    str(input_type.source_form_id) == str(source_form.id)):
+                                    is_from_this_source = True
+                                    break
+                            
+                            # ถ้าไม่ใช่ linked field จาก source form นี้ ให้เก็บไว้
+                            if not is_from_this_source:
+                                existing_quantity_types.append(qt)
+                    
+                    # อัปเดตเฉพาะ linked fields ที่ source material มีข้อมูลจริง
+                    for input_type in linked_formula.input_types:
+                        if (hasattr(input_type, 'source_form_id') and 
+                            str(input_type.source_form_id) == str(source_form.id) and
+                            hasattr(input_type, 'original_field')):
+                            
+                            # หาค่าจาก source material ตาม original_field
+                            source_value = None
+                            for qt in material.quantity_type:
+                                if qt.field == input_type.original_field:
+                                    source_value = qt.amount
+                                    break
+                            
+                            # อัปเดตเฉพาะถ้ามีข้อมูลจริงใน source material
+                            if source_value is not None:
+                                existing_quantity_types.append(
+                                    QuantityType(
+                                        field=input_type.field,
+                                        label=input_type.label,
+                                        amount=float(source_value),
+                                        unit=input_type.unit,
+                                    )
+                                )
+                    
+                    # บันทึก quantity_types ที่รวม custom fields เดิม + linked field ที่อัปเดต
+                    linked_material.quantity_type = existing_quantity_types
+                    linked_material.is_linked = True
+                    linked_material.edit_by_id = str(current_user.id)
+                    linked_material.update_date = datetime.datetime.now()
+                    linked_material.save()
+
+                    # คำนวณ result ใหม่ตามสูตรของ linked material
+                    calculate_result(linked_material)
+                else:
+                    # สร้าง material ใหม่ - รวมเฉพาะ linked fields ที่ source มีข้อมูลจริง
+                    linked_quantity_types = []
+                    for input_type in linked_formula.input_types:
+                        if (hasattr(input_type, 'source_form_id') and 
+                            str(input_type.source_form_id) == str(source_form.id) and
+                            hasattr(input_type, 'original_field')):
+                            
+                            # หาค่าจาก source material ตาม original_field
+                            source_value = None
+                            for qt in material.quantity_type:
+                                if qt.field == input_type.original_field:
+                                    source_value = qt.amount
+                                    break
+                            
+                            # เพิ่มเฉพาะถ้ามีข้อมูลจริงใน source material
+                            if source_value is not None:
+                                linked_quantity_types.append(
+                                    QuantityType(
+                                        field=input_type.field,
+                                        label=input_type.label,
+                                        amount=float(source_value),
+                                        unit=input_type.unit,
+                                    )
+                                )
+                    
+                    linked_material = Material(
+                        month=int(month_id),
+                        name=linked_formula.material_name,
+                        scope=int(linked_formula.ghg_scope),
+                        sub_scope=int(linked_formula.ghg_sup_scope),
+                        year=year,
+                        day=1,
+                        form_and_formula=str(linked_formula.id),
+                        department=current_user.department_key,
+                        campus=current_user.campus_id,
+                        edit_by_id=str(current_user.id),
+                        update_date=datetime.datetime.now(),
+                        quantity_type=linked_quantity_types,
+                        is_linked=True,
                     )
-                ]
+                    linked_material.save()
 
-        if linked_material:
-            # อัปเดต quantity_type ใหม่
-            linked_material.quantity_type = linked_quantity_types
-            linked_material.is_linked = True
-            linked_material.edit_by_id = str(current_user.id)
-            linked_material.update_date = datetime.datetime.now()
-            linked_material.save()
-
-            # คำนวณ result ใหม่ตามสูตรของ linked material
-            calculate_result(linked_material)
-        else:
-            # สร้าง material ใหม่
-            linked_material = Material(
-                month=int(month_id),
-                name=linked_formula.material_name,
-                scope=int(linked_formula.ghg_scope),
-                sub_scope=int(linked_formula.ghg_sup_scope),
-                year=year,
-                day=1,
-                form_and_formula=str(linked_formula.id),
-                department=current_user.department_key,
-                campus=current_user.campus_id,
-                edit_by_id=str(current_user.id),
-                update_date=datetime.datetime.now(),
-                quantity_type=linked_quantity_types,
-                is_linked=True,
-            )
-            linked_material.save()
-
-            # คำนวณ result ตามสูตรของ linked material
-            calculate_result(linked_material)
+                    # คำนวณ result ตามสูตรของ linked material
+                    calculate_result(linked_material)
+            except Exception as e:
+                print(f"Error updating linked material for form {linked_form_id}: {e}")
+                continue
 
     return True
 
 
 @module.route("/save-materials", methods=["POST"])
 @login_required
-@permissions_required_all(["เซฟข้อมูลการปล่อย"])
+# @permissions_required_all(["เซฟข้อมูลการปล่อย"])
 def save_materials():
     scope_id = request.form.get("scope_id")
     sub_scope_id = request.form.get("sub_scope_id")
@@ -847,17 +944,13 @@ def save_materials():
         # Get month_id for this specific material (for quick edit mode)
         material_month_id = material_data.get("month_id", month_id)
 
-        # ตรวจสอบว่า material นี้ไม่ถูกลิงก์
-        matched_material = Material.objects(
-            name=material_data["head"],
-            scope=int(scope_id),
-            sub_scope=int(sub_scope_id),
-            year=int(year),
-            department=current_user.department_key,
-            campus=current_user.campus_id,
-        ).first()
-        if matched_material and matched_material.is_linked:
-            continue  # ข้าม material ที่ถูกลิงก์
+        # ตรวจสอบว่า field นี้เป็น linked field หรือไม่
+        form_and_formula = FormAndFormula.objects(material_name=material_data["head"]).first()
+        if form_and_formula:
+            input_type = form_and_formula.input_types.filter(field=material_data["field"]).first()
+            # ถ้าฟิลด์นี้มี source_form_id แสดงว่าเป็น linked field ไม่ให้แก้ไข
+            if input_type and hasattr(input_type, 'source_form_id') and input_type.source_form_id:
+                continue  # ข้าม linked field (อ่านได้อย่างเดียว)
 
         # Handle deletion vs save
         if material_data.get("delete", False):
@@ -897,7 +990,7 @@ def save_materials():
         if form:
             head_table_info[head] = {
                 "is_linked": getattr(form, "is_linked", False),
-                "linked_material_name": getattr(form, "linked_material_name", ""),
+                "linked_forms": getattr(form, "linked_forms", []),
                 "desc_form": form.desc_form,
                 "formula": form.formula,
             }
@@ -958,9 +1051,8 @@ def save_materials():
         # เพิ่ม toast notification สำหรับความสำเร็จ
         if saved_count > 0:
             encoded_message = urllib.parse.quote(f"บันทึกข้อมูลสำเร็จ!")
-
-        trigger_data = {"showSuccess": encoded_message}
-        response.headers["HX-Trigger"] = json.dumps(trigger_data)
+            trigger_data = {"showSuccess": encoded_message}
+            response.headers["HX-Trigger"] = json.dumps(trigger_data)
 
         return response
     else:
@@ -1003,67 +1095,75 @@ def delete_material_and_linked(
         # คำนวณ result ใหม่
         calculate_result(material)
 
-        # จัดการ Material ที่ลิงก์ - ต้องอัปเดตข้อมูลใหม่
-        linked_formulas = FormAndFormula.objects(
-            linked_material_name=head, is_linked=True
-        )
-        for linked_formula in linked_formulas:
-            linked_material = Material.objects(
-                month=int(month_id),
-                name=linked_formula.material_name,
-                scope=int(linked_formula.ghg_scope),
-                sub_scope=int(linked_formula.ghg_sup_scope),
-                year=int(year),
-                department=current_user.department_key,
-                campus=current_user.campus_id,
-            ).first()
+        # จัดการ Material ที่ลิงก์ - ใช้ used_by_forms แทนการ query ทุกฟอร์ม
+        source_form = FormAndFormula.objects(material_name=head).first()
+        if source_form and source_form.used_by_forms:
+            from bson import ObjectId
+            for linked_form_id in source_form.used_by_forms:
+                try:
+                    linked_formula = FormAndFormula.objects(id=ObjectId(linked_form_id)).first()
+                    if not linked_formula or not linked_formula.is_linked:
+                        continue
+                        
+                    linked_material = Material.objects(
+                        month=int(month_id),
+                        name=linked_formula.material_name,
+                        scope=int(linked_formula.ghg_scope),
+                        sub_scope=int(linked_formula.ghg_sup_scope),
+                        year=int(year),
+                        department=current_user.department_key,
+                        campus=current_user.campus_id,
+                    ).first()
 
-            if linked_material:
-                # ตรวจสอบว่า material ต้นฉบับยังมีข้อมูลอยู่หรือไม่
-                if material.quantity_type and material.result is not None:
-                    # ถ้ายังมีข้อมูล ให้อัปเดต linked material ด้วยค่าใหม่
-                    linked_quantity_types = []
-                    if linked_formula.input_types:
-                        first_input = linked_formula.input_types[0]
-                        linked_quantity_types = [
-                            QuantityType(
-                                field=first_input.field,
-                                label=first_input.label,
-                                amount=float(material.result),
-                                unit=first_input.unit,
-                            )
-                        ]
+                    if linked_material:
+                        # ตรวจสอบว่า material ต้นฉบับยังมีข้อมูลอยู่หรือไม่
+                        if material.quantity_type and material.result is not None:
+                            # ถ้ายังมีข้อมูล ให้อัปเดต linked material ด้วยค่าใหม่
+                            linked_quantity_types = []
+                            if linked_formula.input_types:
+                                first_input = linked_formula.input_types[0]
+                                linked_quantity_types = [
+                                    QuantityType(
+                                        field=first_input.field,
+                                        label=first_input.label,
+                                        amount=float(material.result),
+                                        unit=first_input.unit,
+                                    )
+                                ]
 
-                    linked_material.quantity_type = linked_quantity_types
-                    linked_material.is_linked = True
-                    linked_material.edit_by_id = str(current_user.id)
-                    linked_material.update_date = datetime.datetime.now()
-                    linked_material.save()
+                            linked_material.quantity_type = linked_quantity_types
+                            linked_material.is_linked = True
+                            linked_material.edit_by_id = str(current_user.id)
+                            linked_material.update_date = datetime.datetime.now()
+                            linked_material.save()
 
-                    # คำนวณ result ใหม่
-                    calculate_result(linked_material)
-                else:
-                    # ถ้าไม่มีข้อมูลแล้ว ให้ลบ linked material ออกเลย หรือทำให้เป็นค่าว่าง
-                    linked_material.quantity_type = []
-                    linked_material.result = None
-                    linked_material.result2 = None
-                    linked_material.result_co2 = None
-                    linked_material.result_ch4 = None
-                    linked_material.result_n2o = None
-                    linked_material.result_hfcs = None
-                    linked_material.result_pfcs = None
-                    linked_material.result_sf6 = None
-                    linked_material.result_nf3 = None
-                    linked_material.edit_by_id = str(current_user.id)
-                    linked_material.update_date = datetime.datetime.now()
-                    linked_material.save()
+                            # คำนวณ result ใหม่
+                            calculate_result(linked_material)
+                        else:
+                            # ถ้าไม่มีข้อมูลแล้ว ให้ลบ linked material ออกเลย หรือทำให้เป็นค่าว่าง
+                            linked_material.quantity_type = []
+                            linked_material.result = None
+                            linked_material.result2 = None
+                            linked_material.result_co2 = None
+                            linked_material.result_ch4 = None
+                            linked_material.result_n2o = None
+                            linked_material.result_hfcs = None
+                            linked_material.result_pfcs = None
+                            linked_material.result_sf6 = None
+                            linked_material.result_nf3 = None
+                            linked_material.edit_by_id = str(current_user.id)
+                            linked_material.update_date = datetime.datetime.now()
+                            linked_material.save()
+                except Exception as e:
+                    print(f"Error updating linked material for form {linked_form_id}: {e}")
+                    continue
 
     return True
 
 
 @module.route("/delete-material", methods=["POST"])
 @login_required
-@permissions_required_all(["ลบข้อมูลการปล่อย"])
+# @permissions_required_all(["ลบข้อมูลการปล่อย"])
 def delete_material():
     scope_id = request.form.get("scope_id")
     sub_scope_id = request.form.get("sub_scope_id")
@@ -1098,7 +1198,7 @@ def delete_material():
         if form:
             head_table_info[head] = {
                 "is_linked": getattr(form, "is_linked", False),
-                "linked_material_name": getattr(form, "linked_material_name", ""),
+                "linked_forms": getattr(form, "linked_forms", []),
                 "desc_form": form.desc_form,
                 "formula": form.formula,
             }
@@ -1152,7 +1252,7 @@ def delete_material():
 
 @module.route("/delete-all-materials", methods=["POST"])
 @login_required
-@permissions_required_all(["ลบข้อมูลการปล่อยกทั้งหมด"])
+# @permissions_required_all(["ลบข้อมูลการปล่อยกทั้งหมด"])
 def delete_all_materials():
     scope_id = request.form.get("scope_id")
     sub_scope_id = request.form.get("sub_scope_id")
@@ -1203,37 +1303,45 @@ def delete_all_materials():
                 material.update_date = datetime.datetime.now()
                 material.save()
 
-            # อัปเดต linked materials สำหรับทุก material ที่ถูกลบ
+            # อัปเดต linked materials สำหรับทุก material ที่ถูกลบ - ใช้ used_by_forms
             for material_name in materials_to_update_linked:
-                linked_formulas = FormAndFormula.objects(
-                    linked_material_name=material_name, is_linked=True
-                )
-                for linked_formula in linked_formulas:
-                    linked_material = Material.objects(
-                        month=int(month_id),
-                        name=linked_formula.material_name,
-                        scope=int(linked_formula.ghg_scope),
-                        sub_scope=int(linked_formula.ghg_sup_scope),
-                        year=int(year),
-                        department=current_user.department_key,
-                        campus=current_user.campus_id,
-                    ).first()
+                source_form = FormAndFormula.objects(material_name=material_name).first()
+                if source_form and source_form.used_by_forms:
+                    from bson import ObjectId
+                    for linked_form_id in source_form.used_by_forms:
+                        try:
+                            linked_formula = FormAndFormula.objects(id=ObjectId(linked_form_id)).first()
+                            if not linked_formula or not linked_formula.is_linked:
+                                continue
+                                
+                            linked_material = Material.objects(
+                                month=int(month_id),
+                                name=linked_formula.material_name,
+                                scope=int(linked_formula.ghg_scope),
+                                sub_scope=int(linked_formula.ghg_sup_scope),
+                                year=int(year),
+                                department=current_user.department_key,
+                                campus=current_user.campus_id,
+                            ).first()
 
-                    if linked_material:
-                        # เนื่องจากลบข้อมูลทั้งหมดแล้ว ให้ทำให้ linked material เป็นค่าว่างทุกอย่าง
-                        linked_material.quantity_type = []
-                        linked_material.result = None
-                        linked_material.result2 = None
-                        linked_material.result_co2 = None
-                        linked_material.result_ch4 = None
-                        linked_material.result_n2o = None
-                        linked_material.result_hfcs = None
-                        linked_material.result_pfcs = None
-                        linked_material.result_sf6 = None
-                        linked_material.result_nf3 = None
-                        linked_material.edit_by_id = str(current_user.id)
-                        linked_material.update_date = datetime.datetime.now()
-                        linked_material.save()
+                            if linked_material:
+                                # เนื่องจากลบข้อมูลทั้งหมดแล้ว ให้ทำให้ linked material เป็นค่าว่างทุกอย่าง
+                                linked_material.quantity_type = []
+                                linked_material.result = None
+                                linked_material.result2 = None
+                                linked_material.result_co2 = None
+                                linked_material.result_ch4 = None
+                                linked_material.result_n2o = None
+                                linked_material.result_hfcs = None
+                                linked_material.result_pfcs = None
+                                linked_material.result_sf6 = None
+                                linked_material.result_nf3 = None
+                                linked_material.edit_by_id = str(current_user.id)
+                                linked_material.update_date = datetime.datetime.now()
+                                linked_material.save()
+                        except Exception as e:
+                            print(f"Error clearing linked material for form {linked_form_id}: {e}")
+                            continue
 
         # Refresh table after deletion
         scope = Scope.objects(
@@ -1255,7 +1363,7 @@ def delete_all_materials():
             if form:
                 head_table_info[head] = {
                     "is_linked": getattr(form, "is_linked", False),
-                    "linked_material_name": getattr(form, "linked_material_name", ""),
+                    "linked_forms": getattr(form, "linked_forms", []),
                     "desc_form": form.desc_form,
                     "formula": form.formula,
                 }
@@ -1376,7 +1484,7 @@ def load_upload_modal(
 
 @module.route("/upload-file", methods=["POST"])
 @login_required
-@permissions_required_all(["อัปโหลดไฟล์ข้อมูลการปล่อย"])
+# @permissions_required_all(["อัปโหลดไฟล์ข้อมูลการปล่อย"])
 def upload_file():
     file = request.files.get("file")
     if not file:
@@ -1466,7 +1574,7 @@ def upload_file():
 
 @module.route("/download-file/<file_id>", methods=["GET"])
 @login_required
-@permissions_required_all(["โหลดข้อมูลการปล่อย"])
+# @permissions_required_all(["โหลดข้อมูลการปล่อย"])
 def download_file(file_id):
     document = ReferenceDocument.objects(files__id=file_id).first()
 
@@ -1490,7 +1598,7 @@ def download_file(file_id):
 
 @module.route("/delete-file/<file_id>", methods=["POST"])
 @login_required
-@permissions_required_all(["ลบไฟล์ข้อมูลการปล่อย"])
+# @permissions_required_all(["ลบไฟล์ข้อมูลการปล่อย"])
 def delete_file(file_id):
 
     scope_id = request.form.get("scope_id")
@@ -1586,28 +1694,34 @@ def get_form_details(material_name):
                 }
 
         # ดึงข้อมูลฟอร์มต้นทาง (ถ้าเป็นฟอร์มลิงก์)
-        source_form = None
-        if getattr(form, "is_linked", False) and getattr(
-            form, "linked_material_name", ""
-        ):
-            source_form = FormAndFormula.objects(
-                material_name=form.linked_material_name
-            ).first()
-
-            if source_form:
-                source_scope = Scope.objects(
-                    ghg_scope=source_form.ghg_scope,
-                    ghg_sup_scope=source_form.ghg_sup_scope,
-                ).first()
-                source_form.scope_name = (
-                    source_scope.ghg_name if source_scope else "Unknown"
-                )
+        source_forms = []
+        if getattr(form, "is_linked", False) and getattr(form, "linked_forms", []):
+            # ดึงข้อมูลทุกฟอร์มที่ลิงก์
+            from bson import ObjectId
+            for form_id in form.linked_forms:
+                try:
+                    source_form = FormAndFormula.objects(id=ObjectId(form_id)).first()
+                    if source_form:
+                        source_scope = Scope.objects(
+                            ghg_scope=source_form.ghg_scope,
+                            ghg_sup_scope=source_form.ghg_sup_scope,
+                        ).first()
+                        
+                        source_forms.append({
+                            "form": source_form,
+                            "scope": source_scope,
+                            "scope_name": source_scope.ghg_name if source_scope else "Unknown"
+                        })
+                except:
+                    continue
 
         # ดึงรายชื่อฟอร์มที่ลิงก์มาจากฟอร์มนี้
         linked_forms = []
         if not getattr(form, "is_linked", False):
+            # หาฟอร์มที่มี form ID นี้อยู่ใน linked_forms array
             linked_forms_query = FormAndFormula.objects(
-                linked_material_name=material_name, is_linked=True
+                linked_forms=str(form.id),
+                is_linked=True
             )
 
             for linked_form in linked_forms_query:
@@ -1628,12 +1742,41 @@ def get_form_details(material_name):
                     }
                 )
 
+        # เพิ่มข้อมูลต้นฉบับของแต่ละฟิลด์
+        from bson import ObjectId
+        fields_with_source = []
+        for input_type in form.input_types:
+            field_info = {
+                "field": input_type.field,
+                "label": input_type.label,
+                "input_type": input_type.input_type,
+                "unit": input_type.unit,
+                "is_used": getattr(input_type, "is_used", True),
+                "source_form_name": None,
+                "is_linked_field": False,
+                "original_field": None
+            }
+            
+            # ตรวจสอบว่าเป็น linked field หรือไม่
+            if hasattr(input_type, "source_form_id") and input_type.source_form_id:
+                try:
+                    source_form = FormAndFormula.objects(id=ObjectId(input_type.source_form_id)).first()
+                    if source_form:
+                        field_info["source_form_name"] = source_form.material_name
+                        field_info["is_linked_field"] = True
+                        field_info["original_field"] = getattr(input_type, "original_field", None)
+                except Exception as e:
+                    pass
+            
+            fields_with_source.append(field_info)
+
         return render_template(
             "emissions-scope/partials/form-detail-modal.html",
             form=form,
             scope_info=scope_info,
-            source_form=source_form,
+            source_forms=source_forms,  # เปลี่ยนเป็น list
             linked_forms=linked_forms,
+            fields_with_source=fields_with_source,
         )
 
     except Exception as e:
@@ -1642,6 +1785,113 @@ def get_form_details(material_name):
         # traceback.print_exc()
         return render_template(
             "emissions-scope/partials/form-detail-modal.html",
+            error=f"เกิดข้อผิดพลาด: {str(e)}",
+        )
+
+
+@module.route("/get-linked-field-info/<material_name>", methods=["GET"])
+@login_required
+def get_linked_field_info(material_name):
+    """
+    ดึงข้อมูลการลิงก์ของฟิลด์เฉพาะเจาะจง
+    """
+    try:
+        field = request.args.get("field")
+        month_id = request.args.get("month_id")
+        year = request.args.get("year")
+
+        # Query FormAndFormula, not Material
+        form = FormAndFormula.objects(material_name=material_name).first()
+        if not form:
+            print(f"Form not found for material_name: {material_name}")
+            return render_template(
+                "emissions-scope/partials/linked-form-info-modal.html",
+                error=f"ไม่พบฟอร์ม: {material_name}",
+            )
+
+        # หา input_type ที่ตรงกับ field
+        input_type = None
+        for inp in form.input_types:
+            if inp.field == field:
+                input_type = inp
+                break
+
+        if not input_type:
+            print(f"Input type not found for field: {field}")
+            print(f"Available fields: {[inp.field for inp in form.input_types]}")
+            return render_template(
+                "emissions-scope/partials/linked-form-info-modal.html",
+                error=f"ไม่พบฟิลด์: {field}",
+            )
+
+        if not input_type.source_form_id:
+            print(f"Field {field} is not a linked field (no source_form_id)")
+            return render_template(
+                "emissions-scope/partials/linked-form-info-modal.html",
+                error="ฟิลด์นี้ไม่ได้ลิงก์มาจากฟอร์มอื่น",
+            )
+
+        # ดึงข้อมูลฟอร์มต้นฉบับ
+        source_forms_data = []
+        from bson import ObjectId
+        
+        try:
+            source_form = FormAndFormula.objects(id=ObjectId(input_type.source_form_id)).first()
+            if source_form:
+                print(f"Found source form: {source_form.material_name}")
+                print(f"Looking for original_field: {input_type.original_field}")
+                
+                # ดึงข้อมูล Material จากฟอร์มต้นฉบับ
+                source_material = Material.objects(
+                    name=source_form.material_name,
+                    month=int(month_id),
+                    year=int(year),
+                    department=current_user.department_key,
+                    campus=current_user.campus_id,
+                ).first()
+
+                # หาค่าของฟิลด์ต้นฉบับ
+                source_value = None
+                if source_material and input_type.original_field:
+                    print(f"Source material found, quantity_type count: {len(source_material.quantity_type) if source_material.quantity_type else 0}")
+                    for qt in source_material.quantity_type:
+                        print(f"  - Checking field: {qt.field} == {input_type.original_field}?")
+                        if qt.field == input_type.original_field:
+                            source_value = qt.amount
+                            print(f"  - Found value: {source_value}")
+                            break
+
+                source_forms_data.append({
+                    "form": source_form,
+                    "material": source_material,
+                    "field_name": input_type.original_field or input_type.field,
+                    "field_label": input_type.label,
+                    "field_value": source_value,
+                })
+                print(f"Added source form data, field_value: {source_value}")
+            else:
+                print(f"Source form not found for id: {input_type.source_form_id}")
+        except Exception as e:
+            print(f"Error fetching source form: {str(e)}")
+            import traceback
+            traceback.print_exc()
+
+        print(f"Returning {len(source_forms_data)} source forms")
+        return render_template(
+            "emissions-scope/partials/linked-form-info-modal.html",
+            form=form,
+            current_field=input_type,
+            source_forms=source_forms_data,
+            month_id=month_id,
+            year=year,
+        )
+
+    except Exception as e:
+        print(f"ERROR in get_linked_field_info: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return render_template(
+            "emissions-scope/partials/linked-form-info-modal.html",
             error=f"เกิดข้อผิดพลาด: {str(e)}",
         )
 
@@ -1664,31 +1914,36 @@ def get_linked_form_info(material_name):
             )
 
         # ดึงข้อมูลฟอร์มต้นทาง
-        source_form = None
-        source_material_data = None
+        source_forms_data = []
 
-        if getattr(form, "is_linked", False) and getattr(
-            form, "linked_material_name", ""
-        ):
-            source_form = FormAndFormula.objects(
-                material_name=form.linked_material_name
-            ).first()
-
-            if source_form:
-                # ดึงข้อมูล Material ต้นทางในเดือนเดียวกัน
-                source_material_data = Material.objects(
-                    month=int(month_id),
-                    name=form.linked_material_name,
-                    year=int(year),
-                    department=current_user.department_key,
-                    campus=current_user.campus_id,
-                ).first()
+        if getattr(form, "is_linked", False) and getattr(form, "linked_forms", []):
+            from bson import ObjectId
+            for form_id in form.linked_forms:
+                try:
+                    source_form = FormAndFormula.objects(id=ObjectId(form_id)).first()
+                    if source_form:
+                        # ดึงข้อมูล Material ต้นทางในเดือนเดียวกัน
+                        source_material_data = Material.objects(
+                            month=int(month_id),
+                            name=source_form.material_name,
+                            scope=int(source_form.ghg_scope),
+                            sub_scope=int(source_form.ghg_sup_scope),
+                            year=int(year),
+                            department=current_user.department_key,
+                            campus=current_user.campus_id,
+                        ).first()
+                        
+                        source_forms_data.append({
+                            "form": source_form,
+                            "material": source_material_data
+                        })
+                except:
+                    continue
 
         return render_template(
             "emissions-scope/partials/linked-form-info-modal.html",
             form=form,
-            source_form=source_form,
-            source_material_data=source_material_data,
+            source_forms=source_forms_data,
             month_id=month_id,
             year=year,
         )

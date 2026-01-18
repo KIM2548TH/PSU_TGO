@@ -1,0 +1,36 @@
+<!-- Selected Material Display -->
+<div class="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+  <div class="flex items-center gap-2">
+    <i data-feather="check-circle" class="w-4 h-4 text-green-600"></i>
+    <div>
+      <p class="text-sm font-medium text-gray-900">{{ material_name }}</p>
+      <p class="text-xs text-gray-600">{{ scope }}</p>
+    </div>
+  </div>
+  <button type="button" 
+          class="btn btn-ghost btn-xs btn-circle"
+          hx-post="/form-management/form-builder/clear-material-selection"
+          hx-target="#selected-material-display"
+          hx-swap="innerHTML">
+    <i data-feather="x" class="w-4 h-4"></i>
+  </button>
+</div>
+
+<script>
+(function() {
+  // Update hidden input
+  document.getElementById('selected-material-value').value = '{{ material_name }}';
+
+  // Hide dropdown
+  document.getElementById('material-dropdown').classList.add('hidden');
+
+  // Clear search input
+  var searchField = document.querySelector('[name="material_search"]');
+  if (searchField) searchField.value = '';
+
+  // Initialize feather
+  if (typeof feather !== 'undefined') {
+    feather.replace();
+  }
+})();
+</script>

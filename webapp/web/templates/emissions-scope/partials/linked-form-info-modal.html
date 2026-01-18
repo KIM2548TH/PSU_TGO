@@ -14,12 +14,16 @@
         <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <i data-feather="link" class="w-5 h-5 text-blue-500"></i>
             ข้อมูลการลิงก์: {{ form.material_name }}
+            {% if current_field %}
+                <span class="text-sm font-normal text-gray-500">→ {{ current_field.label }}</span>
+            {% endif %}
         </h3>
         <p class="text-sm text-gray-500 mt-1">ข้อมูลสำหรับเดือน {{ month_id }} ปี {{ year }}</p>
     </div>
 
-    {% if form.is_linked and source_form %}
-    <div class="bg-blue-50 p-4 rounded-lg">
+    {% if source_forms and source_forms|length > 0 %}
+    {% for source_data in source_forms %}
+    <div class="bg-blue-50 p-4 rounded-lg mb-4">
         <h4 class="font-semibold text-blue-900 mb-3 flex items-center gap-2">
             <i data-feather="database" class="w-4 h-4"></i>
             ข้อมูลต้นทาง
@@ -28,30 +32,44 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
                 <label class="block text-sm font-medium text-blue-700">ฟอร์มต้นทาง</label>
-                <p class="text-sm text-blue-900">{{ source_form.material_name }}</p>
+                <p class="text-sm text-blue-900">{{ source_data.form.material_name }}</p>
             </div>
+            {% if source_data.field_name %}
+            <div>
+                <label class="block text-sm font-medium text-blue-700">ฟิลด์ที่ลิงก์</label>
+                <p class="text-sm text-blue-900">{{ source_data.field_name }} ({{ source_data.field_label }})</p>
+            </div>
+            {% endif %}
             <div>
                 <label class="block text-sm font-medium text-blue-700">สูตรคำนวณ</label>
-                <p class="text-sm text-blue-900 font-mono">{{ source_form.formula }}</p>
+                <p class="text-sm text-blue-900 font-mono">{{ source_data.form.formula }}</p>
             </div>
         </div>
 
-        {% if source_material_data %}
+        {% if source_data.material %}
         <div class="border-t border-blue-200 pt-3">
             <h5 class="font-medium text-blue-900 mb-2">ข้อมูลที่นำมาใช้:</h5>
+            
+            {% if source_data.field_value is not none %}
+            <div class="bg-white p-3 rounded border border-blue-200 mb-3">
+                <label class="block text-xs font-medium text-blue-600">{{ source_data.field_label }}</label>
+                <p class="text-lg font-semibold text-blue-900">{{ source_data.field_value }}</p>
+            </div>
+            {% else %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {% for qty in source_material_data.quantity_type %}
+                {% for qty in source_data.material.quantity_type %}
                 <div class="bg-white p-3 rounded border border-blue-200">
                     <label class="block text-xs font-medium text-blue-600">{{ qty.label }}</label>
                     <p class="text-sm text-blue-900">{{ qty.amount }} {{ qty.unit }}</p>
                 </div>
                 {% endfor %}
             </div>
+            {% endif %}
             
-            {% if source_material_data.result %}
+            {% if source_data.material.result %}
             <div class="mt-3 bg-green-100 p-3 rounded border border-green-200">
                 <label class="block text-sm font-medium text-green-700">ผลลัพธ์การคำนวณ</label>
-                <p class="text-lg font-semibold text-green-900">{{ source_material_data.result }} tCO2eq</p>
+                <p class="text-lg font-semibold text-green-900">{{ source_data.material.result }} tCO2eq</p>
             </div>
             {% endif %}
         </div>
@@ -75,8 +93,16 @@
         <ul class="text-sm text-gray-700 space-y-1">
             <li>• ข้อมูลในฟอร์มนี้จะอัปเดตอัตโนมัติเมื่อมีการเปลี่ยนแปลงข้อมูลในฟอร์มต้นทาง</li>
             <li>• ไม่สามารถแก้ไขข้อมูลในฟอร์มลิงก์ได้โดยตรง</li>
-            <li>• หากต้องการแก้ไขข้อมูล กรุณาแก้ไขที่ฟอร์มต้นทาง: <strong>{{ source_form.material_name }}</strong></li>
+            <li>• หากต้องการแก้ไขข้อมูล กรุณาแก้ไขที่ฟอร์มต้นทาง: <strong>{{ source_data.form.material_name }}</strong></li>
         </ul>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="bg-yellow-100 border border-yellow-300 rounded p-4">
+        <p class="text-sm text-yellow-800">
+            <i data-feather="alert-triangle" class="w-4 h-4 inline mr-1"></i>
+            ไม่พบข้อมูลการลิงก์
+        </p>
     </div>
     {% endif %}
 </div>

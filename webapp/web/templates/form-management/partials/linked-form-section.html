@@ -13,20 +13,55 @@
   </div>
 
   <div>
-    <label class="text-font">เลือก Material ที่ต้องการเชื่อมโยง</label>
-    <select name="linked_material_name" class="select select-bordered w-full mt-1"
-            hx-get="/form-management/form-builder/load-linked-fields"
-            hx-target="#linked-fields-preview"
-            hx-trigger="change"
-            hx-include="this"
-            required>
-      <option value="">เลือก Material</option>
-      {% for material in materials %}
-        <option value="{{ material.material_name }}">
-          {{ material.material_name }} (Scope {{ material.ghg_scope }}.{{ material.ghg_sup_scope }})
-        </option>
-      {% endfor %}
-    </select>
+    <label class="text-font">เลือก Material ที่ต้องการเชื่อมโยง (เลือกได้หลายตัว)</label>
+    
+    <!-- Material Selection -->
+    <div class="relative mt-2">
+      <input type="hidden" name="linked_forms" id="linked-forms-value">
+      
+      <!-- Search Input -->
+      <input type="text" 
+             name="material_search"
+             placeholder="🔍 ค้นหาและเลือก Material..."
+             class="input input-bordered w-full"
+             hx-get="/form-management/form-builder/search-materials"
+             hx-target="#material-dropdown-results"
+             hx-trigger="keyup changed delay:300ms, focus"
+             hx-include="[name='material_search']"
+             autocomplete="off"
+             onfocus="document.getElementById('material-dropdown').classList.remove('hidden')">
+      
+      <!-- Dropdown Results -->
+      <div id="material-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-96 overflow-hidden">
+        <!-- Header with counter and close button -->
+        <div class="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2.5 flex items-center justify-between z-20 shadow-md">
+          <div class="flex items-center gap-3">
+            <i data-feather="layers" class="w-5 h-5 text-white"></i>
+            <span class="text-sm font-bold text-white">เลือกแล้ว: <span id="selected-count" class="text-white font-black text-base">0</span> รายการ</span>
+          </div>
+          <button type="button" 
+                  onclick="document.getElementById('material-dropdown').classList.add('hidden'); return false;"
+                  class="btn btn-ghost btn-xs btn-circle text-white hover:bg-blue-800 hover:bg-opacity-50">
+            <i data-feather="x" class="w-5 h-5 stroke-2"></i>
+          </button>
+        </div>
+        
+        <!-- Scrollable Results -->
+        <div id="material-dropdown-results" class="overflow-y-auto" style="max-height: 350px;">
+          <!-- Results will be loaded here -->
+        </div>
+      </div>
+      
+      <!-- Selected Materials Display (Multiple) -->
+      <div id="selected-materials-container" class="mt-3 space-y-2">
+        <!-- Selected materials will appear here -->
+      </div>
+      
+      <div class="text-xs text-gray-500 mt-2 flex items-center gap-2">
+        <i data-feather="info" class="w-3 h-3"></i>
+        <span>เลือกได้หลาย Material - ฟิลด์จะถูกรวมจากทุก Material ที่เลือก</span>
+      </div>
+    </div>
   </div>
 
   <!-- แสดงฟิลด์ที่จะถูกสร้างอัตโนมัติ -->
@@ -36,14 +71,237 @@
       <div class="text-center text-gray-500">กรุณาเลือก Material</div>
     </div>
   </div>
+
+  <!-- ส่วนเพิ่มฟิลด์ของตัวเอง -->
+  <div class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <i data-feather="edit-3" class="w-4 h-4 text-amber-600"></i>
+        <h4 class="text-sm font-medium text-amber-800">ฟิลด์เพิ่มเติมที่กรอกได้</h4>
+      </div>
+      <span class="text-xs text-amber-600">ฟิลด์ที่ไม่ได้ลิงก์มา</span>
+    </div>
+    
+    <div id="custom-input-fields-container" class="space-y-3 mb-3">
+      <!-- Custom fields will be added here -->
+    </div>
+    
+    <!-- ปุ่มเพิ่มฟิลด์ของตัวเอง -->
+    <button type="button" class="btn btn-sm btn-outline btn-warning w-full"
+            hx-post="/form-management/form-builder/add-input-field"
+            hx-target="#custom-input-fields-container"
+            hx-swap="beforeend"
+            hx-vals='{"field_index": "0", "is_linked_form": "true"}'
+            onclick="updateCustomFieldCounter()">
+      <i data-feather="plus" class="w-4 h-4 mr-1"></i>
+      เพิ่มฟิลด์ที่กรอกได้
+    </button>
+    
+    <div class="text-xs text-amber-700 mt-2 flex items-center gap-2">
+      <i data-feather="info" class="w-3 h-3"></i>
+      <span>ฟิลด์เหล่านี้สามารถกรอกข้อมูลได้โดยตรง ไม่ได้ดึงมาจาก Material อื่น</span>
+    </div>
+  </div>
 </div>
 
 <script>
-// อัปเดต hidden field เมื่อเปลี่ยน form type
-document.addEventListener('DOMContentLoaded', function() {
-  const isLinkedInput = document.querySelector('input[name="is_linked"]');
-  if (isLinkedInput) {
-    isLinkedInput.value = 'true';
+// Initialize feather icons
+if (typeof feather !== 'undefined') {
+  feather.replace();
+}
+
+// เก็บ list ของ selected materials (array of {id, name, scope})
+var selectedMaterials = [];
+
+// Listen for HTMX trigger to add material to selection
+document.body.addEventListener('loadLinkedFields', function(evt) {
+  // Load all linked fields from all selected materials
+  updateLinkedFieldsPreview();
+});
+
+function updateLinkedFieldsPreview() {
+  if (selectedMaterials.length === 0) {
+    document.getElementById('linked-fields-preview').innerHTML = '<div class="text-center text-gray-500">กรุณาเลือก Material</div>';
+    return;
+  }
+  
+  // Get all form IDs
+  var formIds = selectedMaterials.map(function(m) { return m.id; });
+  
+  // Call backend to load combined fields
+  htmx.ajax('GET', '/form-management/form-builder/load-multiple-linked-fields?form_ids=' + formIds.join(','), {
+    target: '#linked-fields-preview',
+    swap: 'innerHTML'
+  });
+}
+
+// Toggle linked field selection - ไม่ต้องทำอะไร เพราะ HTMX จะส่ง checkbox ที่ checked ให้อัตโนมัติ
+function toggleLinkedField(checkbox) {
+  // Do nothing - HTMX handles form submission
+}
+
+// Update hidden inputs for linked fields - ไม่ต้องใช้แล้ว เพราะ HTMX ส่ง checkbox ที่ checked อัตโนมัติ
+// ฟังก์ชันนี้เก็บไว้เผื่อต้องใช้ในอนาคต
+function updateLinkedFieldsUsedInputs() {
+  console.log('HTMX will handle checkbox submission automatically');
+}
+
+// Make function global (แต่ไม่จำเป็นต้องใช้แล้ว)
+window.updateLinkedFieldsUsedInputs = updateLinkedFieldsUsedInputs;
+
+function addSelectedMaterial(materialId, materialName, scope) {
+  // Check if already selected
+  var exists = selectedMaterials.some(function(m) { return m.id === materialId; });
+  if (exists) {
+    return; // Already added
+  }
+  
+  // Add to array
+  selectedMaterials.push({
+    id: materialId,
+    name: materialName,
+    scope: scope
+  });
+  
+  // Update hidden input (JSON array of IDs)
+  document.getElementById('linked-forms-value').value = JSON.stringify(selectedMaterials.map(function(m) { return m.id; }));
+  
+  // Update counter
+  updateCounter();
+  
+  // Update UI
+  updateSelectedMaterialsUI();
+  
+  // Update dropdown items to show checkmark
+  markSelectedInDropdown(materialId, true);
+  
+  // Load fields
+  updateLinkedFieldsPreview();
+}
+
+function removeSelectedMaterial(materialId) {
+  selectedMaterials = selectedMaterials.filter(function(m) { return m.id !== materialId; });
+  
+  // Update hidden input
+  document.getElementById('linked-forms-value').value = JSON.stringify(selectedMaterials.map(function(m) { return m.id; }));
+  
+  // Update counter
+  updateCounter();
+  
+  // Update UI
+  updateSelectedMaterialsUI();
+  
+  // Update dropdown items to remove checkmark
+  markSelectedInDropdown(materialId, false);
+  
+  // Update preview
+  updateLinkedFieldsPreview();
+}
+
+function updateSelectedMaterialsUI() {
+  var container = document.getElementById('selected-materials-container');
+  
+  if (selectedMaterials.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+  
+  var html = selectedMaterials.map(function(material) {
+    return `
+      <div class="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+        <div class="flex items-center gap-2">
+          <i data-feather="check-circle" class="w-4 h-4 text-green-600"></i>
+          <div>
+            <p class="text-sm font-medium text-gray-900">${material.name}</p>
+            <p class="text-xs text-gray-600">${material.scope}</p>
+          </div>
+        </div>
+        <button type="button" 
+                class="btn btn-ghost btn-xs btn-circle"
+                onclick="removeSelectedMaterial('${material.id}'); return false;">
+          <i data-feather="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+    `;
+  }).join('');
+  
+  container.innerHTML = html;
+  
+  // Re-init feather
+  if (typeof feather !== 'undefined') {
+    feather.replace();
+  }
+}
+
+// Update custom field counter
+function updateCustomFieldCounter() {
+  setTimeout(function() {
+    var container = document.getElementById('custom-input-fields-container');
+    var addButton = document.querySelector('button[hx-post*="add-input-field"]');
+    
+    if (container && addButton) {
+      var fieldCount = container.querySelectorAll('[data-index^="input-"]').length;
+      addButton.setAttribute('hx-vals', JSON.stringify({field_index: fieldCount, is_linked_form: 'true'}));
+    }
+    
+    // Re-init feather icons
+    if (typeof feather !== 'undefined') {
+      feather.replace();
+    }
+  }, 100);
+}
+
+// Update counter display
+function updateCounter() {
+  var counterEl = document.getElementById('selected-count');
+  if (counterEl) {
+    counterEl.textContent = selectedMaterials.length;
+  }
+}
+
+// Mark/unmark items in dropdown
+function markSelectedInDropdown(materialId, isSelected) {
+  var item = document.querySelector('[data-material-id="' + materialId + '"]');
+  if (item) {
+    var icon = item.querySelector('.material-select-icon');
+    if (isSelected) {
+      item.classList.add('bg-green-50', 'border-l-4', 'border-green-500');
+      if (icon) {
+        icon.innerHTML = '<i data-feather="check-circle" class="w-4 h-4 text-green-600"></i>';
+        feather.replace();
+      }
+    } else {
+      item.classList.remove('bg-green-50', 'border-l-4', 'border-green-500');
+      if (icon) {
+        icon.innerHTML = '<i data-feather="plus-circle" class="w-4 h-4 text-blue-600"></i>';
+        feather.replace();
+      }
+    }
+  }
+}
+
+// Check and mark already selected items after dropdown loads
+function markAllSelectedItems() {
+  selectedMaterials.forEach(function(material) {
+    markSelectedInDropdown(material.id, true);
+  });
+  updateCounter();
+}
+
+// Listen for HTMX after swap to mark selected items
+document.body.addEventListener('htmx:afterSwap', function(evt) {
+  if (evt.detail.target.id === 'material-dropdown-results') {
+    markAllSelectedItems();
+  }
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  var dropdown = document.getElementById('material-dropdown');
+  var searchField = document.querySelector('[name="material_search"]');
+  
+  if (dropdown && searchField && !dropdown.contains(e.target) && !searchField.contains(e.target)) {
+    dropdown.classList.add('hidden');
   }
 });
 </script>
