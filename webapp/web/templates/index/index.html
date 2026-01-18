@@ -1,21 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
-
+<html lang="th" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PSU-CFO</title>
+  <title>PSU-CFO - หน้าหลัก</title>
   <link rel="stylesheet" href="{{ 'css/app.css' | static_url }}">
   <script src="https://unpkg.com/feather-icons"></script>
   <script src="{{ 'node_modules/htmx.org/dist/htmx.min.js' | static_url }}"></script>
-  <script src="{{ 'node_modules/cally/dist/cally.js' | static_url }}"></script>
-  <script src="{{ 'js/date-picker.js' | static_url }}"></script>
-  <script src="{{ 'js/auto-refresh.js' | static_url }}"></script>
-  <script src="{{ 'js/scope-navigation.js' | static_url }}"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <style>
-    /* Sidebar Transition */
+    /* Sidebar Styles */
     .sidebar {
       position: fixed;
       top: 0;
@@ -31,7 +25,7 @@
       transform: translateX(0);
     }
     
-    /* Navbar - โปร่งใสและเปลี่ยนตอน scroll */
+    /* Navbar Styles */
     .navbar {
       position: fixed;
       top: 0;
@@ -45,7 +39,6 @@
     
     .navbar.scrolled {
       background-color: rgba(255, 255, 255, 0.95) !important;
-      backdrop-filter: blur(10px);
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
     
@@ -62,63 +55,10 @@
       border-color: #3b82f6 !important;
     }
     
-    /* Main Content - ไม่หดขยายตาม sidebar */
-    #main-content {
-      margin-top: 0;
-      position: relative;
-      width: 100%;
-    }
-    
-    /* Hero Video Section - เต็มจอ */
-    .hero-video-section {
-      position: relative;
-      width: 100%;
-      height: 100vh;
-      z-index: 1;
-    }
-    
-    .hero-video-section video {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: 0;
-    }
-    
-    .hero-content {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 10;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: white;
-      padding: 1rem;
-      width: 100%;
-      height: 100%;
-    }
-    
-    /* Content Area - ไม่หดขยายตาม sidebar */
-    .content-area {
-      position: relative;
-      z-index: 10;
-      width: 100%;
-    }
-    
     /* Overlay */
     #sidebar-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      inset: 0;
       background-color: rgba(0, 0, 0, 0.5);
       opacity: 0;
       pointer-events: none;
@@ -131,62 +71,47 @@
       pointer-events: auto;
     }
     
-    /* Animation Classes */
-    .animate-fade-up {
-      animation: fadeUp 1s ease-out forwards;
-      opacity: 0;
-      transform: translateY(30px);
+    /* Animations */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
     }
-    
-    .delay-100 {
-      animation-delay: 0.1s;
-    }
-    
-    .delay-200 {
-      animation-delay: 0.2s;
-    }
-    
-    @keyframes fadeUp {
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
       to {
         opacity: 1;
         transform: translateY(0);
       }
     }
-    
-    /* Dashboard Card Dropdown */
-    .card-dropdown-content {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.3s ease;
-      opacity: 0;
+
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .animate-gradient {
+      background-size: 200% auto;
+      animation: gradient 3s ease infinite;
     }
     
-    .card-dropdown-content.active {
-      max-height: 500px;
-      opacity: 1;
-      margin-top: 1.5rem;
+    .animate-float {
+      animation: float 3s ease-in-out infinite;
     }
     
-    .chevron-icon {
-      transition: transform 0.3s ease;
-    }
-    
-    .chevron-icon.rotate {
-      transform: rotate(180deg);
-    }
-    
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      .navbar {
-        margin-left: 0;
-        width: 100%;
-      }
+    .animate-slide-up {
+      animation: slideInUp 0.6s ease-out both;
     }
   </style>
 </head>
 
-<body class="bg-base-200">
-  <!-- Sidebar Toggle - เริ่มต้นปิด -->
+<body class="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-cyan-50 text-slate-900 overflow-x-hidden font-sans">
+  
+  <!-- Sidebar Toggle -->
   <input id="sidebar-toggle" type="checkbox" class="hidden peer" />
 
   <!-- Overlay -->
@@ -212,7 +137,7 @@
       <div class="flex-1 overflow-y-auto">
         <ul class="menu w-full p-2 bg-base-100 space-y-2">
           
-          <!-- Group 1: System Management -->
+          <!-- System Management Group -->
           {% set show_system_management = has_permission("เข้าถึงหน้าจัดการผู้ใช้") or has_permission("เข้าถึงหน้าจัดการผู้ใช้ในหน่วยงาน") or has_permission("เข้าถึงหน้าจัดการสิทธิ์") or has_permission("เข้าถึงหน้าแหล่งปล่อยก๊าซเรือนกระจก") or has_permission("เข้าถึงหน้าจัดการ GHG Scope") or has_permission("เข้าถึงหน้าจัดการวิทยาเขตและหน่วยงาน") or has_permission("เข้าถึงหน้าจัดการ Material Mapping Excel") %}
           {% if show_system_management %}
           <li class="menu-group">
@@ -291,7 +216,7 @@
           </li>
           {% endif %}
           
-          <!-- Group 2: Emissions Data -->
+          <!-- Emissions Data Group -->
           {% set show_emissions_data = has_permission("เข้าถึงหน้าข้อมูลการปล่อย") or has_permission("เข้าถึงหน้าภาพรวมความคืบหน้า") or has_permission("เข้าถึงหน้าสัดส่วนการปล่อย") or has_permission("เข้าถึงหน้าภาพรวมสัดส่วนการปล่อย") or has_permission("เข้าถึงหน้าสรุปผล") %}
           {% if show_emissions_data %}
           <li class="menu-group">
@@ -339,7 +264,6 @@
               </li>
               {% endif %}
               
-              
               {% if has_permission("เข้าถึงหน้าภาพรวมสัดส่วนการปล่อย") %}
               <li>
                 <a href="/proportions/overview" class="flex items-center gap-3 rounded-lg p-2.5  {% if request.path == '/proportions/overview/' %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
@@ -353,7 +277,7 @@
           </li>
           {% endif %}
 
-          <!-- Settings Menu (Outside Groups) -->
+          <!-- Settings Menu -->
           <li>
             <a href="/setting" class="flex items-center gap-3 rounded-lg p-3 font-bold hover:bg-base-200 {% if request.path == '/setting' %}bg-primary text-primary-content{% else %}hover:bg-primary/10{% endif %}">
               <i data-feather="settings" class="w-5 h-5"></i>
@@ -361,7 +285,6 @@
             </a>
           </li>
 
-          
         </ul>
       </div>
 
@@ -377,17 +300,7 @@
     </div>
   </div>
 
-  <script>
-    function toggleDashboardCard(cardId) {
-      const content = document.getElementById(cardId);
-      const chevron = document.getElementById(cardId + '-chevron');
-      
-      content.classList.toggle('active');
-      chevron.classList.toggle('rotate');
-    }
-  </script>
-
-  <!-- Navbar - โปร่งใส -->
+  <!-- Navbar -->
   <nav class="navbar p-3 flex justify-between items-center">
     <!-- Sidebar Toggle Button -->
     <div class="flex-none">
@@ -395,14 +308,16 @@
         <i data-feather="menu" class="h-6 w-6"></i>
       </label>
     </div>
+    
     <!-- Page Title -->
     <div class="flex-1 flex flex-col pl-4">
-      <span class="text-lg font-bold text-white">PSU-CFO</span>
-      <span class="text-sm text-white/80">{{ t.subtitle_default }}</span>
+      <span class="text-lg font-bold text-white">PSU Carbon Footprint</span>
+      <span class="text-sm text-white/90">{{ campus_name }}</span>
     </div>
+    
     <!-- User Profile -->
     <div class="flex items-center gap-2">
-      <a href="/profile/" class="flex items-center gap-2 text-white hover:text-white/80">
+      <a href="/profile/" class="flex items-center gap-2 text-white hover:text-white/80 transition">
         <div class="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white font-bold border border-white/30 overflow-hidden">
           {% if current_user.profile_picture %}
           <img src="{{ current_user.profile_picture }}" alt="Profile" class="w-full h-full object-cover">
@@ -410,543 +325,426 @@
           <span class="text-lg font-bold">{{ current_user.name[0]|upper if current_user.name else current_user.username[0]|upper if current_user else 'U' }}</span>
           {% endif %}
         </div>
-        <span class="ml-2 text-base font-medium">{{ current_user.name if current_user.name else current_user.username if current_user else 'Username' }}</span>
+        <span class="ml-2 text-base font-medium hidden md:block">{{ current_user.name if current_user.name else current_user.username if current_user else 'Username' }}</span>
       </a>
     </div>
   </nav>
 
   <!-- Main Content -->
-  <div id="main-content">
-    <!-- Hero Video Section -->
-    <section class="hero-video-section">
-      <video autoplay muted loop playsinline>
-        <source src="/static/imagines/dashboard-image.mp4" type="video/mp4">
-        Your browser does not support the video tag.
-      </video>
-      <div class="hero-content">
-        <h1 class="text-4xl md:text-6xl font-bold animate-fade-up">{{ department_name }}</h1>
-        <p class="mt-4 text-lg md:text-xl animate-fade-up delay-100 max-w-4xl mx-auto">{{ campus_name }} | ระบบติดตามและจัดการก๊าซเรือนกระจก</p>
-        <div class="mt-6 flex justify-center gap-4 animate-fade-up delay-200">
-          <a href="/emissions-scope" class="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 transition-colors">เริ่มกรอกข้อมูล ➜</a>
-          <a href="/summary" class="border border-white text-white px-6 py-3 rounded-full hover:bg-white hover:text-green-600 transition-colors">ดูสรุปผล</a>
+  <div id="main-content" class="pt-16">
+    
+    <!-- Background Texture -->
+    <div class="absolute inset-0 opacity-30 pointer-events-none" 
+         style="background-image: radial-gradient(circle at 2px 2px, rgba(16, 185, 129, 0.15) 1px, transparent 0); background-size: 40px 40px;"></div>
+
+    <!-- Hero Section -->
+    <section class="relative z-10 px-6 pt-20 pb-32">
+      <div class="max-w-7xl mx-auto">
+        
+        <!-- Hero Text -->
+        <div class="text-center mb-16">
+          <div class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 rounded-full mb-6 backdrop-blur-sm border border-emerald-200 text-emerald-700">
+            <i data-feather="wind" class="w-4 h-4 text-emerald-600"></i>
+            <span class="text-sm font-medium">Track, Reduce, Offset Your Carbon Footprint</span>
+          </div>
+
+          <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            <span class="bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-500 bg-clip-text text-transparent animate-gradient">
+              {{ department_name }}
+            </span>
+            <br />
+            <span class="text-slate-800 drop-shadow-sm">ระบบจัดการก๊าซเรือนกระจก</span>
+          </h1>
+
+          <p class="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">
+            {{ campus_name }} | ติดตามและจัดการข้อมูลการปล่อยก๊าซเรือนกระจกของปี {{ current_year }}
+          </p>
+
+          <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <a href="/emissions-scope" class="group px-8 py-4 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded-full font-semibold hover:shadow-2xl hover:shadow-emerald-500/30 transition-all hover:scale-105 flex items-center gap-2 w-full sm:w-auto justify-center">
+              เริ่มกรอกข้อมูล
+              <i data-feather="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+            </a>
+            <a href="/summary" class="px-8 py-4 bg-white text-slate-700 shadow-md shadow-slate-200/50 rounded-full font-semibold hover:bg-slate-50 transition-all border border-slate-200 w-full sm:w-auto text-center">
+              ดูสรุปผล
+            </a>
+          </div>
+        </div>
+
+        <!-- Image Slider -->
+        <div class="mt-20 relative">
+          <div class="absolute inset-0 bg-gradient-to-r from-emerald-200/30 to-cyan-200/30 blur-3xl rounded-full"></div>
+
+          <div class="relative grid grid-cols-1 gap-6 mb-20">
+            <div class="relative overflow-hidden rounded-3xl h-[400px] md:h-[500px] group shadow-2xl shadow-emerald-900/10 border border-white">
+              <div id="hero-slider" class="relative w-full h-full">
+                <!-- Replace these with your actual images -->
+                <img src="/static/imagines/Earth_image.png" alt="PSU Campus 1" class="absolute w-full h-full object-cover transition-all duration-700 opacity-100 active group-hover:scale-110" />
+                <img src="/static/imagines/stick_sapring.png" alt="PSU Campus 2" class="absolute w-full h-full object-cover transition-all duration-700 opacity-0 group-hover:scale-110" />
+                <img src="/static/imagines/dry_soil.png" alt="PSU Campus 3" class="absolute w-full h-full object-cover transition-all duration-700 opacity-0 group-hover:scale-110" />
+                <img src="/static/imagines/Many_hand.png" alt="PSU Campus 4" class="absolute w-full h-full object-cover transition-all duration-700 opacity-0 group-hover:scale-110" />
+                <img src="/static/imagines/Tree_and_sunV2.png" alt="PSU Campus 5" class="absolute w-full h-full object-cover transition-all duration-700 opacity-0 group-hover:scale-110" />
+              </div>
+              
+              <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60"></div>
+
+              <!-- Slider Controls -->
+              <button id="prev-btn" class="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/40 backdrop-blur-md p-3 rounded-full transition-all hover:scale-110 border border-white/30">
+                <i data-feather="chevron-left" class="w-6 h-6 text-white"></i>
+              </button>
+
+              <button id="next-btn" class="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/40 backdrop-blur-md p-3 rounded-full transition-all hover:scale-110 border border-white/30">
+                <i data-feather="chevron-right" class="w-6 h-6 text-white"></i>
+              </button>
+
+              <!-- Slider Indicators -->
+              <div id="slider-indicators" class="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex gap-2 p-2 bg-black/20 backdrop-blur-sm rounded-full">
+                <!-- Indicators will be generated by JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats Cards -->
+          <div class="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Card 1: Total Scopes -->
+            <div class="group p-6 bg-white/80 backdrop-blur-md rounded-2xl border border-emerald-50 hover:border-emerald-200 transition-all hover:scale-105 shadow-lg shadow-emerald-900/5 hover:shadow-xl hover:shadow-emerald-500/10 animate-float">
+              <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/20">
+                <i data-feather="globe" class="w-6 h-6 text-white"></i>
+              </div>
+              <div class="text-3xl font-bold mb-1 tracking-tight text-slate-800">{{ total_scopes }}</div>
+              <div class="text-slate-500 text-sm font-medium uppercase tracking-wider">แหล่งปล่อยทั้งหมด</div>
+            </div>
+
+            <!-- Card 2: Completed -->
+            <div class="group p-6 bg-white/80 backdrop-blur-md rounded-2xl border border-emerald-50 hover:border-emerald-200 transition-all hover:scale-105 shadow-lg shadow-emerald-900/5 hover:shadow-xl hover:shadow-emerald-500/10 animate-float" style="animation-delay: 0.2s">
+              <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/20">
+                <i data-feather="award" class="w-6 h-6 text-white"></i>
+              </div>
+              <div class="text-3xl font-bold mb-1 tracking-tight text-slate-800">{{ completed_scopes }}</div>
+              <div class="text-slate-500 text-sm font-medium uppercase tracking-wider">เสร็จสมบูรณ์</div>
+            </div>
+
+            <!-- Card 3: Total Materials -->
+            <div class="group p-6 bg-white/80 backdrop-blur-md rounded-2xl border border-emerald-50 hover:border-emerald-200 transition-all hover:scale-105 shadow-lg shadow-emerald-900/5 hover:shadow-xl hover:shadow-emerald-500/10 animate-float" style="animation-delay: 0.4s">
+              <div class="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/20">
+                <i data-feather="database" class="w-6 h-6 text-white"></i>
+              </div>
+              <div class="text-3xl font-bold mb-1 tracking-tight text-slate-800">{{ total_materials }}</div>
+              <div class="text-slate-500 text-sm font-medium uppercase tracking-wider">รายการข้อมูล</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Content Area -->
-    <div class="content-area">
-      <!-- About Section - Dashboard Stats -->
-      <section class="py-32 bg-gradient-to-b from-gray-50 to-white relative">
-        <!-- Section Label -->
-        <div class="absolute top-8 right-8 text-right">
-          <div class="text-sm font-bold tracking-widest text-gray-400 mb-2">DASHBOARD</div>
-          <div class="w-48 h-0.5 bg-gray-300 ml-auto"></div>
+    <!-- Features Section - Emissions by Scope -->
+    <section class="relative z-10 px-6 py-20 bg-emerald-50/50">
+      <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+          <h2 class="text-4xl md:text-5xl font-bold mb-4">
+            <span class="bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">
+              การปล่อยแยกตาม Scope
+            </span>
+          </h2>
+          <p class="text-slate-600 text-lg max-w-2xl mx-auto">ข้อมูลการปล่อยก๊าซเรือนกระจกแยกตาม Scope 1, 2 และ 3</p>
         </div>
-        
-        <div class="px-4 lg:px-8 max-w-7xl mx-auto">
-          <div class="text-center mb-16">
-            <h2 class="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 bg-clip-text text-transparent mb-6">สถานะการกรอกข้อมูล</h2>
-            <p class="text-2xl text-gray-600 max-w-3xl mx-auto">ภาพรวมความคืบหน้าของ <span class="font-bold text-green-600">{{ department_name }}</span></p>
-          </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-          <!-- Card 1: Total Scopes with Gradient -->
-          <div onclick="toggleDashboardCard('card-1-details')" class="relative group overflow-hidden bg-gradient-to-br from-blue-500 to-blue-700 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all hover:scale-105 cursor-pointer">
-            <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
-            <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16"></div>
-            
-            <!-- Chevron Icon -->
-            <div class="absolute top-6 right-6">
-              <i data-feather="chevron-down" id="card-1-details-chevron" class="w-6 h-6 text-white chevron-icon"></i>
-            </div>
-            
-            <div class="relative z-10">
-              <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <i data-feather="layers" class="w-10 h-10 text-white"></i>
-              </div>
-              <h3 class="text-5xl font-bold text-white mb-3">{{ total_scopes }}</h3>
-              <p class="text-blue-100 text-lg font-medium mb-6">แหล่งปล่อยทั้งหมด</p>
-              
-              <div class="bg-white/20 backdrop-blur-sm rounded-xl p-4">
-                <div class="flex justify-between mb-2 text-white">
-                  <span class="text-sm font-medium">ความคืบหน้า</span>
-                  <span class="text-lg font-bold">{{ progress_percentage }}%</span>
-                </div>
-                <div class="w-full bg-white/30 rounded-full h-3 overflow-hidden">
-                  <div class="bg-white h-3 rounded-full shadow-lg transition-all duration-500" style="width: {{ progress_percentage }}%"></div>
-                </div>
-              </div>
-              
-              <!-- Dropdown Details -->
-              <div id="card-1-details" class="card-dropdown-content">
-                <div class="bg-white/20 backdrop-blur-sm rounded-xl p-4 space-y-3">
-                  <div class="flex justify-between text-white">
-                    <span class="font-medium">Scope 1:</span>
-                    <span class="font-bold">{{ scope_1_count }} แหล่ง</span>
-                  </div>
-                  <div class="flex justify-between text-white">
-                    <span class="font-medium">Scope 2:</span>
-                    <span class="font-bold">{{ scope_2_count }} แหล่ง</span>
-                  </div>
-                  <div class="flex justify-between text-white">
-                    <span class="font-medium">Scope 3:</span>
-                    <span class="font-bold">{{ scope_3_count }} แหล่ง</span>
-                  </div>
-                  <div class="border-t border-white/30 pt-3 mt-3">
-                    <a href="/emissions-scope" class="block text-center bg-white text-blue-600 py-2 rounded-lg font-bold hover:bg-blue-50 transition-colors">
-                      ดูรายละเอียดทั้งหมด →
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Card 2: Completed Scopes with Gradient -->
-          <div onclick="toggleDashboardCard('card-2-details')" class="relative group overflow-hidden bg-gradient-to-br from-green-500 to-emerald-700 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all hover:scale-105 cursor-pointer">
-            <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
-            <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16"></div>
-            
-            <!-- Chevron Icon -->
-            <div class="absolute top-6 right-6">
-              <i data-feather="chevron-down" id="card-2-details-chevron" class="w-6 h-6 text-white chevron-icon"></i>
-            </div>
-            
-            <div class="relative z-10">
-              <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <i data-feather="check-circle" class="w-10 h-10 text-white"></i>
-              </div>
-              <h3 class="text-5xl font-bold text-white mb-3">{{ completed_scopes }}<span class="text-3xl text-green-100">/{{ total_scopes }}</span></h3>
-              <p class="text-green-100 text-lg font-medium mb-6">ข้อมูลครบถ้วน</p>
-              
-              <div class="space-y-3">
-                <div class="flex items-center justify-between bg-white/20 backdrop-blur-sm rounded-lg p-3">
-                  <div class="flex items-center gap-2 text-white">
-                    <i data-feather="clock" class="w-5 h-5"></i>
-                    <span class="font-medium">กำลังดำเนินการ</span>
-                  </div>
-                  <span class="text-2xl font-bold text-white">{{ in_progress_scopes }}</span>
-                </div>
-                <div class="flex items-center justify-between bg-white/20 backdrop-blur-sm rounded-lg p-3">
-                  <div class="flex items-center gap-2 text-white">
-                    <i data-feather="circle" class="w-5 h-5"></i>
-                    <span class="font-medium">ยังไม่เริ่ม</span>
-                  </div>
-                  <span class="text-2xl font-bold text-white">{{ not_started_scopes }}</span>
-                </div>
-              </div>
-              
-              <!-- Dropdown Details -->
-              <div id="card-2-details" class="card-dropdown-content">
-                <div class="bg-white/20 backdrop-blur-sm rounded-xl p-4 space-y-3">
-                  <div class="text-white text-center mb-3">
-                    <p class="text-sm font-medium mb-2">อัตราความสำเร็จ</p>
-                    <p class="text-4xl font-bold">{{ (completed_scopes / total_scopes * 100)|round|int if total_scopes > 0 else 0 }}%</p>
-                  </div>
-                  <div class="border-t border-white/30 pt-3">
-                    <div class="flex justify-between text-white text-sm mb-2">
-                      <span>เสร็จสมบูรณ์:</span>
-                      <span class="font-bold">{{ completed_scopes }} Scopes</span>
-                    </div>
-                    <div class="flex justify-between text-white text-sm mb-2">
-                      <span>กำลังดำเนินการ:</span>
-                      <span class="font-bold">{{ in_progress_scopes }} Scopes</span>
-                    </div>
-                    <div class="flex justify-between text-white text-sm">
-                      <span>ยังไม่เริ่ม:</span>
-                      <span class="font-bold">{{ not_started_scopes }} Scopes</span>
-                    </div>
-                  </div>
-                  <div class="border-t border-white/30 pt-3 mt-3">
-                    <a href="/scope-progress" class="block text-center bg-white text-green-600 py-2 rounded-lg font-bold hover:bg-green-50 transition-colors">
-                      ดูความคืบหน้า →
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Card 3: Total Emissions with Gradient -->
-          <div onclick="toggleDashboardCard('card-3-details')" class="relative group overflow-hidden bg-gradient-to-br from-red-500 to-orange-600 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all hover:scale-105 cursor-pointer">
-            <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
-            <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16"></div>
-            
-            <!-- Chevron Icon -->
-            <div class="absolute top-6 right-6">
-              <i data-feather="chevron-down" id="card-3-details-chevron" class="w-6 h-6 text-white chevron-icon"></i>
-            </div>
-            
-            <div class="relative z-10">
-              <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <i data-feather="activity" class="w-10 h-10 text-white"></i>
-              </div>
-              <h3 class="text-4xl font-bold text-white mb-2">{{ total_emissions }}</h3>
-              <p class="text-red-100 text-lg font-medium mb-6">tCO2e รวมทั้งหมด</p>
-              
-              <div class="bg-white/20 backdrop-blur-sm rounded-xl p-4">
-                <div class="flex items-start gap-3 text-white">
-                  <i data-feather="trending-up" class="w-5 h-5 mt-1 flex-shrink-0"></i>
-                  <div>
-                    <p class="font-medium mb-1">อัปเดตล่าสุด</p>
-                    <p class="text-2xl font-bold">{{ recent_updates }}</p>
-                    <p class="text-sm text-red-100 mt-1">รายการใน 30 วันที่ผ่านมา</p>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Dropdown Details -->
-              <div id="card-3-details" class="card-dropdown-content">
-                <div class="bg-white/20 backdrop-blur-sm rounded-xl p-4 space-y-3">
-                  <div class="text-white">
-                    <p class="text-sm font-medium mb-3 text-center">การปล่อยแยกตาม Scope</p>
-                    <div class="space-y-2">
-                      <div class="flex justify-between items-center">
-                        <span class="text-sm">Scope 1:</span>
-                        <span class="font-bold text-lg">{{ scope_1_emissions }}</span>
-                      </div>
-                      <div class="flex justify-between items-center">
-                        <span class="text-sm">Scope 2:</span>
-                        <span class="font-bold text-lg">{{ scope_2_emissions }}</span>
-                      </div>
-                      <div class="flex justify-between items-center">
-                        <span class="text-sm">Scope 3:</span>
-                        <span class="font-bold text-lg">{{ scope_3_emissions }}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="border-t border-white/30 pt-3 mt-3">
-                    <a href="/summary" class="block text-center bg-white text-red-600 py-2 rounded-lg font-bold hover:bg-red-50 transition-colors">
-                      ดูสรุปผลทั้งหมด →
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        </div>
-      </section>
 
-      <!-- Features Section - Emissions by Scope -->
-      <section class="py-32 bg-white relative">
-        
-        <!-- Header with Image - 1/4 screen height -->
-        <div class="relative h-96 overflow-hidden mb-16">
-          <!-- Section Label -->
-          <div class="absolute top-8 right-8 text-right z-30">
-            <div class="font-bold tracking-widest text-white mb-2">EMISSIONS</div>
-            <div class="w-48 h-0.5 bg-white ml-auto"></div>
-          </div>
-          
-          <img src="/static/imagines/car_pollution2.png" alt="Emissions" class="w-full h-full object-cover">
-          <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent"></div>
-          
-          <div class="absolute inset-0 flex items-center z-20">
-            <div class="px-4 lg:px-8 max-w-6xl mx-auto w-full">
-              <h2 class="text-5xl md:text-6xl font-bold text-white mb-4">การปล่อยก๊าซเรือนกระจกแยกตาม Scope</h2>
-              <p class="text-2xl text-gray-200">ข้อมูลการปล่อย CO2 ของปี {{ current_year }}</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Scope 1 -->
+          <div class="group relative bg-white rounded-3xl border border-slate-100 hover:border-emerald-200 transition-all hover:scale-105 cursor-pointer overflow-hidden flex flex-col h-full shadow-lg shadow-slate-200/50 animate-slide-up">
+            <div class="relative h-64 overflow-hidden">
+              <img src="/static/imagines/car_pollution2.png" alt="Scope 1" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
             </div>
-          </div>
-        </div>
-        
-        <!-- Content Area with Cards -->
-        <div class="px-4 lg:px-8 max-w-6xl mx-auto">
-          
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="bg-white p-8 rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-105 border-2 border-gray-100">
-              <div class="flex items-center justify-between mb-6">
-                <h3 class="text-3xl font-bold text-gray-900">Scope 1</h3>
-                <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center">
-                  <i data-feather="droplet" class="w-8 h-8 text-red-600"></i>
-                </div>
+
+            <div class="absolute inset-0 bg-red-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+
+            <div class="p-8 flex-1 flex flex-col">
+              <div class="w-14 h-14 bg-red-500 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-12 group-hover:scale-110 transition-transform shadow-md">
+                <i data-feather="activity" class="w-7 h-7 text-white"></i>
               </div>
+
+              <h3 class="text-2xl font-bold mb-3 text-slate-800">Scope 1</h3>
               <div class="text-4xl font-bold text-red-600 mb-2">{{ scope_1_emissions }}</div>
-              <div class="text-gray-600 text-base font-medium">tCO2e</div>
-              <div class="mt-6 text-base text-gray-700">
-                <p class="font-semibold">การปล่อยโดยตรง</p>
-                <p class="text-sm mt-2 text-gray-500">จากแหล่งที่หน่วยงานควบคุม</p>
+              <div class="text-slate-500 mb-4">tCO₂e</div>
+              <p class="text-slate-500 leading-relaxed flex-1 text-sm">การปล่อยโดยตรงจากแหล่งที่หน่วยงานควบคุม</p>
+
+              <div class="mt-6 flex items-center text-emerald-600 font-semibold group/link">
+                <span class="text-sm">ดูรายละเอียด</span>
+                <i data-feather="arrow-right" class="w-4 h-4 ml-2 group-hover/link:translate-x-1 transition-transform"></i>
               </div>
             </div>
-            
-            <div class="bg-white p-8 rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-105 border-2 border-gray-100">
-              <div class="flex items-center justify-between mb-6">
-                <h3 class="text-3xl font-bold text-gray-900">Scope 2</h3>
-                <div class="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center">
-                  <i data-feather="zap" class="w-8 h-8 text-orange-600"></i>
-                </div>
+          </div>
+
+          <!-- Scope 2 -->
+          <div class="group relative bg-white rounded-3xl border border-slate-100 hover:border-emerald-200 transition-all hover:scale-105 cursor-pointer overflow-hidden flex flex-col h-full shadow-lg shadow-slate-200/50 animate-slide-up" style="animation-delay: 0.1s">
+            <div class="relative h-64 overflow-hidden">
+              <img src="/static/imagines/electric_factory.png" alt="Scope 2" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+            </div>
+
+            <div class="absolute inset-0 bg-orange-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+
+            <div class="p-8 flex-1 flex flex-col">
+              <div class="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-12 group-hover:scale-110 transition-transform shadow-md">
+                <i data-feather="zap" class="w-7 h-7 text-white"></i>
               </div>
+
+              <h3 class="text-2xl font-bold mb-3 text-slate-800">Scope 2</h3>
               <div class="text-4xl font-bold text-orange-600 mb-2">{{ scope_2_emissions }}</div>
-              <div class="text-gray-600 text-base font-medium">tCO2e</div>
-              <div class="mt-6 text-base text-gray-700">
-                <p class="font-semibold">การปล่อยทางอ้อม</p>
-                <p class="text-sm mt-2 text-gray-500">จากพลังงานที่ซื้อมา</p>
+              <div class="text-slate-500 mb-4">tCO₂e</div>
+              <p class="text-slate-500 leading-relaxed flex-1 text-sm">การปล่อยทางอ้อมจากพลังงานที่ซื้อมา</p>
+
+              <div class="mt-6 flex items-center text-emerald-600 font-semibold group/link">
+                <span class="text-sm">ดูรายละเอียด</span>
+                <i data-feather="arrow-right" class="w-4 h-4 ml-2 group-hover/link:translate-x-1 transition-transform"></i>
               </div>
             </div>
-            
-            <div class="bg-white p-8 rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-105 border-2 border-gray-100">
-              <div class="flex items-center justify-between mb-6">
-                <h3 class="text-3xl font-bold text-gray-900">Scope 3</h3>
-                <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center">
-                  <i data-feather="truck" class="w-8 h-8 text-blue-600"></i>
-                </div>
+          </div>
+
+          <!-- Scope 3 -->
+          <div class="group relative bg-white rounded-3xl border border-slate-100 hover:border-emerald-200 transition-all hover:scale-105 cursor-pointer overflow-hidden flex flex-col h-full shadow-lg shadow-slate-200/50 animate-slide-up" style="animation-delay: 0.2s">
+            <div class="relative h-64 overflow-hidden">
+              <img src="/static/imagines/garbage.png" alt="Scope 3" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+            </div>
+
+            <div class="absolute inset-0 bg-blue-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+
+            <div class="p-8 flex-1 flex flex-col">
+              <div class="w-14 h-14 bg-blue-500 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-12 group-hover:scale-110 transition-transform shadow-md">
+                <i data-feather="truck" class="w-7 h-7 text-white"></i>
               </div>
+
+              <h3 class="text-2xl font-bold mb-3 text-slate-800">Scope 3</h3>
               <div class="text-4xl font-bold text-blue-600 mb-2">{{ scope_3_emissions }}</div>
-              <div class="text-gray-600 text-base font-medium">tCO2e</div>
-              <div class="mt-6 text-base text-gray-700">
-                <p class="font-semibold">การปล่อยทางอ้อมอื่นๆ</p>
-                <p class="text-sm mt-2 text-gray-500">ตลอดห่วงโซ่คุณค่า</p>
+              <div class="text-slate-500 mb-4">tCO₂e</div>
+              <p class="text-slate-500 leading-relaxed flex-1 text-sm">การปล่อยทางอ้อมอื่นๆ ตลอดห่วงโซ่คุณค่า</p>
+
+              <div class="mt-6 flex items-center text-emerald-600 font-semibold group/link">
+                <span class="text-sm">ดูรายละเอียด</span>
+                <i data-feather="arrow-right" class="w-4 h-4 ml-2 group-hover/link:translate-x-1 transition-transform"></i>
               </div>
             </div>
           </div>
+        </div>
+
+        <div class="mt-12 text-center">
+          <a href="/summary" class="inline-flex items-center gap-3 bg-slate-900 text-white px-8 py-4 rounded-full hover:bg-slate-800 transition-all font-bold text-lg shadow-xl hover:scale-105">
+            <span>ดูสรุปผลทั้งหมด</span>
+            <i data-feather="arrow-right" class="w-5 h-5"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact/Info Section -->
+    <section class="relative z-10 px-6 py-20" id="agency-section">
+      <div class="max-w-6xl mx-auto">
+        <div class="bg-white rounded-[2rem] p-10 shadow-2xl shadow-emerald-900/5 border border-slate-100 relative overflow-hidden">
           
-          <div class="mt-12 text-center">
-            <a href="/summary" class="inline-flex items-center gap-3 bg-green-600 text-white px-8 py-4 rounded-full hover:bg-green-700 transition-all font-bold text-lg shadow-xl hover:scale-105">
-              <span>ดูรายละเอียดเพิ่มเติม</span>
-              <i data-feather="arrow-right" class="w-5 h-5"></i>
-            </a>
-          </div>
-        </div>
-      </section>
+          <!-- Decorative Background Pattern -->
+          <img 
+            src="/static/imagines/Earth_image.png"
+            class="absolute top-0 right-0 w-1/3 h-full object-cover opacity-[0.03] pointer-events-none"
+            alt="Background Pattern"
+          />
 
-      <!-- Statistics Section - Quick Actions -->
-      <section class="py-32 bg-gradient-to-b from-gray-50 to-gray-100 relative">
-        <!-- Section Label -->
-        <div class="absolute top-8 right-8 text-right">
-          <div class="text-sm font-bold tracking-widest text-gray-400 mb-2">QUICK ACCESS</div>
-          <div class="w-48 h-0.5 bg-gray-300 ml-auto"></div>
-        </div>
-        
-        <div class="px-4 lg:px-8 max-w-6xl mx-auto">
-          <div class="text-center mb-20">
-            <h2 class="text-5xl font-bold text-gray-900 mb-6">เข้าถึงระบบ</h2>
-            <p class="text-2xl text-gray-600">เลือกเมนูที่ต้องการเพื่อจัดการข้อมูล</p>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <a href="/emissions-scope" class="bg-white p-8 rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-110 group border-2 border-transparent hover:border-green-500">
-              <div class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform shadow-lg">
-                <i data-feather="database" class="w-10 h-10 text-white"></i>
-              </div>
-              <div class="text-center">
-                <div class="text-xl font-bold text-gray-900 mb-2">กรอกข้อมูล</div>
-                <div class="text-base text-gray-600">Emissions Data</div>
-              </div>
-            </a>
+          <div class="flex flex-col lg:flex-row gap-12 lg:gap-16 relative z-10">
             
-            <a href="/summary" class="bg-white p-8 rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-110 group border-2 border-transparent hover:border-blue-500">
-              <div class="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform shadow-lg">
-                <i data-feather="bar-chart-2" class="w-10 h-10 text-white"></i>
-              </div>
-              <div class="text-center">
-                <div class="text-xl font-bold text-gray-900 mb-2">สรุปผล</div>
-                <div class="text-base text-gray-600">Summary Report</div>
-              </div>
-            </a>
-            
-            <a href="/proportions" class="bg-white p-8 rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-110 group border-2 border-transparent hover:border-purple-500">
-              <div class="w-20 h-20 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform shadow-lg">
-                <i data-feather="pie-chart" class="w-10 h-10 text-white"></i>
-              </div>
-              <div class="text-center">
-                <div class="text-xl font-bold text-gray-900 mb-2">สัดส่วน</div>
-                <div class="text-base text-gray-600">Proportions</div>
-              </div>
-            </a>
-            
-            <a href="/scope-progress" class="bg-white p-8 rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-110 group border-2 border-transparent hover:border-orange-500">
-              <div class="w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform shadow-lg">
-                <i data-feather="activity" class="w-10 h-10 text-white"></i>
-              </div>
-              <div class="text-center">
-                <div class="text-xl font-bold text-gray-900 mb-2">ความคืบหน้า</div>
-                <div class="text-base text-gray-600">Progress</div>
-              </div>
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <!-- Additional Content - About PSU-CFO -->
-      <section class="py-32 bg-white relative">
-        <!-- Section Label -->
-        <div class="absolute top-8 right-8 text-right z-20">
-          <div class="text-sm font-bold tracking-widest text-gray-400 mb-2">ABOUT</div>
-          <div class="w-48 h-0.5 bg-gray-300 ml-auto"></div>
-        </div>
-        
-        <div class="absolute inset-0 bg-gradient-to-b from-gray-100 to-white"></div>
-        <div class="px-4 lg:px-8 max-w-6xl mx-auto relative z-10">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-            <div>
-              <h3 class="text-4xl font-bold text-gray-900 mb-8">เกี่ยวกับ PSU-CFO</h3>
-              <p class="text-lg text-gray-700 mb-8 leading-relaxed">ระบบจัดการและติดตามข้อมูลการปล่อยก๊าซเรือนกระจกของมหาวิทยาลัยสงขลานครินทร์ (PSU Carbon Footprint Organization) ถูกพัฒนาขึ้นเพื่อช่วยในการรวบรวม วิเคราะห์ และรายงานข้อมูลการปล่อยก๊าซเรือนกระจกจากกิจกรรมต่างๆ ของมหาวิทยาลัย</p>
-              <ul class="space-y-3">
-                <li class="flex items-center gap-3">
-                  <i data-feather="check-circle" class="w-5 h-5 text-green-500 flex-shrink-0"></i>
-                  <span>ติดตามและจัดการข้อมูล Scope 1, 2, 3</span>
-                </li>
-                <li class="flex items-center gap-3">
-                  <i data-feather="check-circle" class="w-5 h-5 text-green-500 flex-shrink-0"></i>
-                  <span>รายงานและวิเคราะห์ข้อมูลแบบเรียลไทม์</span>
-                </li>
-                <li class="flex items-center gap-3">
-                  <i data-feather="check-circle" class="w-5 h-5 text-green-500 flex-shrink-0"></i>
-                  <span>สนับสนุนการตัดสินใจเพื่อความยั่งยืน</span>
-                </li>
-              </ul>
-            </div>
-            
-            <div class="bg-gradient-to-br from-green-400 to-blue-500 p-8 rounded-xl text-white">
-              <h4 class="text-2xl font-bold mb-6">ข้อมูลหน่วยงานของคุณ</h4>
-              <div class="space-y-4">
-                <div class="bg-white/20 p-4 rounded-lg backdrop-blur-sm">
-                  <div class="flex items-center gap-3 mb-2">
-                    <i data-feather="map-pin" class="w-5 h-5"></i>
-                    <span class="font-semibold">วิทยาเขต</span>
-                  </div>
-                  <div class="text-lg pl-8">{{ campus_name }}</div>
-                </div>
-                
-                <div class="bg-white/20 p-4 rounded-lg backdrop-blur-sm">
-                  <div class="flex items-center gap-3 mb-2">
-                    <i data-feather="briefcase" class="w-5 h-5"></i>
-                    <span class="font-semibold">หน่วยงาน</span>
-                  </div>
-                  <div class="text-lg pl-8">{{ department_name }}</div>
-                </div>
-                
-                <div class="bg-white/20 p-4 rounded-lg backdrop-blur-sm">
-                  <div class="flex items-center gap-3 mb-2">
-                    <i data-feather="user" class="w-5 h-5"></i>
-                    <span class="font-semibold">ผู้ใช้งาน</span>
-                  </div>
-                  <div class="text-lg pl-8">{{ user.name or user.username }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Contact Section -->
-      <section class="py-16 bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white relative overflow-hidden">
-        <!-- Section Label -->
-        <div class="absolute top-8 right-8 text-right z-20">
-          <div class="text-sm font-bold tracking-widest text-gray-500 mb-2">CONTACT</div>
-          <div class="w-48 h-0.5 bg-gray-600 ml-auto"></div>
-        </div>
-        
-        <div class="absolute inset-0 bg-gradient-to-t from-green-900/20 to-transparent"></div>
-        <div class="px-4 lg:px-8 max-w-6xl mx-auto relative z-10">
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <!-- Contact Info -->
-            <div>
-              <h2 class="text-5xl font-bold mb-8">ติดต่อเรา</h2>
-              <p class="text-2xl text-gray-300 mb-10 leading-relaxed">มีคำถามหรือต้องการความช่วยเหลือ? ติดต่อเราได้ตามช่องทางด้านล่าง</p>
+            <!-- Left Column: Agency Information with Image -->
+            <div class="lg:w-1/3 flex flex-col">
               
-              <div class="space-y-6">
-                <div class="flex items-start gap-4">
-                  <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <i data-feather="mail" class="w-6 h-6"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-lg font-bold mb-1">อีเมล</h3>
-                    <a href="mailto:cfo@psu.ac.th" class="text-gray-300 hover:text-white">cfo@psu.ac.th</a>
+              <!-- Office Image -->
+              <div class="relative h-40 rounded-2xl overflow-hidden mb-6 shadow-lg shadow-emerald-900/10 group cursor-pointer">
+                <video autoplay muted loop playsinline class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                  <source src="/static/imagines/dashboard-image.mp4" type="video/mp4">
+                </video>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4">
+                  <span class="text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1">
+                    <i data-feather="map-pin" class="w-3 h-3"></i> หน่วยงาน
+                  </span>
+                </div>
+              </div>
+
+              <!-- Agency Logo & Name -->
+              <div class="flex items-center gap-3 mb-6">
+                <div class="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center border border-emerald-100 shrink-0">
+                  <i data-feather="wind" class="w-8 h-8 text-emerald-600"></i>
+                </div>
+                <div>
+                  <h3 class="text-2xl font-bold text-slate-900 leading-none mb-1">{{ department_name }}</h3>
+                  <p class="text-emerald-600 font-medium text-sm">{{ campus_name }}</p>
+                </div>
+              </div>
+
+              <!-- Contact Info -->
+              <div class="mt-auto space-y-4 pt-4 border-t border-slate-100">
+                <div class="flex items-start gap-3">
+                  <i data-feather="map-pin" class="w-5 h-5 text-slate-400 mt-1"></i>
+                  <div class="text-sm text-slate-600">
+                    <p class="font-semibold text-slate-700 mb-1">วิทยาเขต</p>
+                    <p>{{ campus_name }}</p>
                   </div>
                 </div>
-                
-                <div class="flex items-start gap-4">
-                  <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <i data-feather="phone" class="w-6 h-6"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-lg font-bold mb-1">โทรศัพท์</h3>
-                    <a href="tel:+6674212000" class="text-gray-300 hover:text-white">074-212-000</a>
+                <div class="flex items-center gap-3">
+                  <i data-feather="briefcase" class="w-5 h-5 text-slate-400"></i>
+                  <div class="text-sm text-slate-600">
+                    <p class="font-semibold text-slate-700 mb-1">หน่วยงาน</p>
+                    <p>{{ department_name }}</p>
                   </div>
                 </div>
-                
-                <div class="flex items-start gap-4">
-                  <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <i data-feather="map-pin" class="w-6 h-6"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-lg font-bold mb-1">ที่อยู่</h3>
-                    <p class="text-gray-300">มหาวิทยาลัยสงขลานครินทร์<br>วิทยาเขตหาดใหญ่<br>ตำบลคอหงส์ อำเภอหาดใหญ่<br>จังหวัดสงขลา 90110</p>
-                  </div>
-                </div>
-                
-                <div class="flex items-start gap-4">
-                  <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <i data-feather="globe" class="w-6 h-6"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-lg font-bold mb-1">เว็บไซต์</h3>
-                    <a href="https://www.psu.ac.th" target="_blank" class="text-gray-300 hover:text-white">www.psu.ac.th</a>
+                <div class="flex items-center gap-3">
+                  <i data-feather="activity" class="w-5 h-5 text-slate-400"></i>
+                  <div class="text-sm text-slate-600">
+                    <p class="font-semibold text-slate-700 mb-1">ข้อมูลล่าสุด</p>
+                    <p><span class="font-semibold text-emerald-600">{{ recent_updates }}</span> รายการข้อมูลล่าสุด (30 วัน)</p>
                   </div>
                 </div>
               </div>
             </div>
-            
-            <!-- Quick Links -->
-            <div>
-              <h2 class="text-4xl font-bold mb-6">ลิงก์ที่เป็นประโยชน์</h2>
-              <div class="grid grid-cols-2 gap-4">
-                <a href="/emissions-scope" class="bg-white/10 p-4 rounded-lg hover:bg-white/20 transition-colors">
-                  <i data-feather="arrow-right" class="w-5 h-5 mb-2"></i>
-                  <div class="font-bold">กรอกข้อมูล</div>
-                </a>
-                
-                <a href="/summary" class="bg-white/10 p-4 rounded-lg hover:bg-white/20 transition-colors">
-                  <i data-feather="arrow-right" class="w-5 h-5 mb-2"></i>
-                  <div class="font-bold">สรุปผล</div>
-                </a>
-                
-                <a href="/scope-progress" class="bg-white/10 p-4 rounded-lg hover:bg-white/20 transition-colors">
-                  <i data-feather="arrow-right" class="w-5 h-5 mb-2"></i>
-                  <div class="font-bold">ความคืบหน้า</div>
-                </a>
-                
-                <a href="/setting" class="bg-white/10 p-4 rounded-lg hover:bg-white/20 transition-colors">
-                  <i data-feather="arrow-right" class="w-5 h-5 mb-2"></i>
-                  <div class="font-bold">ตั้งค่า</div>
+
+            <!-- Right Column: Quick Shortcuts Grid -->
+            <div class="lg:w-2/3">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-slate-800">เข้าถึงระบบอย่างรวดเร็ว</h3>
+                <a href="/emissions-scope" class="text-sm text-emerald-600 font-semibold hover:underline flex items-center gap-1">
+                  ดูทั้งหมด <i data-feather="arrow-right" class="w-3 h-3"></i>
                 </a>
               </div>
               
-              <div class="mt-8">
-                <h3 class="text-xl font-bold mb-4">เวลาทำการ</h3>
-                <div class="space-y-2 text-gray-300">
-                  <p>จันทร์ - ศุกร์: 08:30 - 16:30</p>
-                  <p>เสาร์ - อาทิตย์: ปิดทำการ</p>
-                  <p class="text-sm mt-4">ระบบออนไลน์พร้อมให้บริการ 24/7</p>
-                </div>
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <!-- Dashboard -->
+                <a href="/emissions-scope" class="flex flex-col items-center justify-center p-6 rounded-2xl border border-slate-100 hover:border-emerald-200 bg-white hover:bg-slate-50 hover:shadow-lg hover:shadow-emerald-500/5 transition-all group text-center h-full relative overflow-hidden">
+                  <div class="absolute -top-10 -right-10 w-20 h-20 bg-blue-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-xl"></div>
+                  <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10">
+                    <i data-feather="layout" class="w-6 h-6 text-blue-500"></i>
+                  </div>
+                  <span class="font-bold text-slate-800 mb-1 relative z-10">กรอกข้อมูล</span>
+                  <span class="text-xs text-slate-400 relative z-10">ข้อมูลการปล่อย</span>
+                </a>
+
+                <!-- Calculator -->
+                <a href="/summary" class="flex flex-col items-center justify-center p-6 rounded-2xl border border-slate-100 hover:border-emerald-200 bg-white hover:bg-slate-50 hover:shadow-lg hover:shadow-emerald-500/5 transition-all group text-center h-full relative overflow-hidden">
+                  <div class="absolute -top-10 -right-10 w-20 h-20 bg-emerald-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-xl"></div>
+                  <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10">
+                    <i data-feather="trending-up" class="w-6 h-6 text-emerald-500"></i>
+                  </div>
+                  <span class="font-bold text-slate-800 mb-1 relative z-10">สรุปผล</span>
+                  <span class="text-xs text-slate-400 relative z-10">Analytics & Stats</span>
+                </a>
+
+                <!-- Reports -->
+                <a href="/proportions" class="flex flex-col items-center justify-center p-6 rounded-2xl border border-slate-100 hover:border-emerald-200 bg-white hover:bg-slate-50 hover:shadow-lg hover:shadow-emerald-500/5 transition-all group text-center h-full relative overflow-hidden">
+                  <div class="absolute -top-10 -right-10 w-20 h-20 bg-purple-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-xl"></div>
+                  <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10">
+                    <i data-feather="pie-chart" class="w-6 h-6 text-purple-500"></i>
+                  </div>
+                  <span class="font-bold text-slate-800 mb-1 relative z-10">สัดส่วนการปล่อย</span>
+                  <span class="text-xs text-slate-400 relative z-10">Emission Ratios</span>
+                </a>
+
+                <!-- Community -->
+                <a href="/scope-progress" class="flex flex-col items-center justify-center p-6 rounded-2xl border border-slate-100 hover:border-emerald-200 bg-white hover:bg-slate-50 hover:shadow-lg hover:shadow-emerald-500/5 transition-all group text-center h-full relative overflow-hidden">
+                  <div class="absolute -top-10 -right-10 w-20 h-20 bg-orange-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-xl"></div>
+                  <div class="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10">
+                    <i data-feather="activity" class="w-6 h-6 text-orange-500"></i>
+                  </div>
+                  <span class="font-bold text-slate-800 mb-1 relative z-10">ความคืบหน้า</span>
+                  <span class="text-xs text-slate-400 relative z-10">Progress Tracking</span>
+                </a>
+
+                <!-- Settings -->
+                <a href="/setting" class="flex flex-col items-center justify-center p-6 rounded-2xl border border-slate-100 hover:border-emerald-200 bg-white hover:bg-slate-50 hover:shadow-lg hover:shadow-emerald-500/5 transition-all group text-center h-full relative overflow-hidden">
+                  <div class="absolute -top-10 -right-10 w-20 h-20 bg-slate-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-xl"></div>
+                  <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10">
+                    <i data-feather="settings" class="w-6 h-6 text-slate-500"></i>
+                  </div>
+                  <span class="font-bold text-slate-800 mb-1 relative z-10">ตั้งค่า</span>
+                  <span class="text-xs text-slate-400 relative z-10">Account Config</span>
+                </a>
+
+                <!-- Support -->
+                <a href="/profile" class="flex flex-col items-center justify-center p-6 rounded-2xl border border-slate-100 hover:border-emerald-200 bg-white hover:bg-slate-50 hover:shadow-lg hover:shadow-emerald-500/5 transition-all group text-center h-full relative overflow-hidden">
+                  <div class="absolute -top-10 -right-10 w-20 h-20 bg-cyan-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-xl"></div>
+                  <div class="w-12 h-12 bg-cyan-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10">
+                    <i data-feather="user" class="w-6 h-6 text-cyan-500"></i>
+                  </div>
+                  <span class="font-bold text-slate-800 mb-1 relative z-10">โปรไฟล์</span>
+                  <span class="text-xs text-slate-400 relative z-10">User Profile</span>
+                </a>
               </div>
             </div>
-          </div>
-          
-          <div class="mt-12 pt-8 border-t border-gray-700 text-center">
-            <p class="text-gray-400">&copy; 2025 PSU-CFO. All rights reserved. | มหาวิทยาลัยสงขลานครินทร์</p>
+
           </div>
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="relative z-10 px-6 py-20 mt-20 bg-gradient-to-b from-slate-800 to-slate-900">
+      <div class="max-w-7xl mx-auto">
+        <!-- Social Media Icons -->
+        <div class="flex justify-center gap-4 mb-8">
+          <a href="#" class="w-14 h-14 bg-slate-700 hover:bg-emerald-500 rounded-full flex items-center justify-center transition-all hover:scale-110 group">
+            <i data-feather="mail" class="w-5 h-5 text-slate-400 group-hover:text-white transition-colors"></i>
+          </a>
+          <a href="#" class="w-14 h-14 bg-slate-700 hover:bg-emerald-500 rounded-full flex items-center justify-center transition-all hover:scale-110 group">
+            <i data-feather="phone" class="w-5 h-5 text-slate-400 group-hover:text-white transition-colors"></i>
+          </a>
+          <a href="#" class="w-14 h-14 bg-slate-700 hover:bg-emerald-500 rounded-full flex items-center justify-center transition-all hover:scale-110 group">
+            <i data-feather="facebook" class="w-5 h-5 text-slate-400 group-hover:text-white transition-colors"></i>
+          </a>
+          <a href="#" class="w-14 h-14 bg-slate-700 hover:bg-emerald-500 rounded-full flex items-center justify-center transition-all hover:scale-110 group">
+            <i data-feather="twitter" class="w-5 h-5 text-slate-400 group-hover:text-white transition-colors"></i>
+          </a>
+          <a href="#" class="w-14 h-14 bg-slate-700 hover:bg-emerald-500 rounded-full flex items-center justify-center transition-all hover:scale-110 group">
+            <i data-feather="instagram" class="w-5 h-5 text-slate-400 group-hover:text-white transition-colors"></i>
+          </a>
+          <a href="#" class="w-14 h-14 bg-slate-700 hover:bg-emerald-500 rounded-full flex items-center justify-center transition-all hover:scale-110 group">
+            <i data-feather="linkedin" class="w-5 h-5 text-slate-400 group-hover:text-white transition-colors"></i>
+          </a>
+        </div>
+
+        <!-- Links -->
+        <div class="flex justify-center gap-8 mb-8">
+          <a href="#" class="text-white hover:text-emerald-400 transition-colors text-sm font-medium">Privacy Policy</a>
+          <a href="#" class="text-white hover:text-emerald-400 transition-colors text-sm font-medium">Terms of Service</a>
+          <a href="#" class="text-white hover:text-emerald-400 transition-colors text-sm font-medium">Cookie Policy</a>
+        </div>
+
+        <!-- Divider -->
+        <div class="border-t border-slate-700 my-8"></div>
+
+        <!-- Lab Logo & Info -->
+        <div class="flex flex-col items-center gap-4 mb-6">
+          <div class="flex items-center gap-3">
+            <div class="flex items-center justify-center">
+              <img src="/static/imagines/Aum_logo.png" alt="Lab Logo" class="h-16 w-auto object-contain">
+            </div>
+            <div class="text-left">
+              <p class="text-white font-semibold text-sm">Developed by</p>
+              <p class="text-emerald-400 font-bold text-base">R211 Lab</p>
+            </div>
+          </div>
+          <p class="text-slate-400 text-xs max-w-md text-center">Prince of Songkla University | Research & Development Lab</p>
+        </div>
+
+        <!-- Copyright -->
+        <div class="text-center">
+          <p class="text-white text-sm">&copy; {{ current_year }} EcoTracker. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+
   </div>
 
-  <!-- Zoom Slider Component -->
-  {% include 'components/zoom-slider.html' %}
-
-  <!-- Modal -->
-  <div id="modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div id="modal-content" class="modal-box w-full max-w-none bg-white">
-      <!-- เนื้อหาจะถูกโหลดที่นี่ -->
-    </div>
-  </div>
-
+  <!-- Scripts -->
   <script>
-    // Feather Replace Script
+    // Initialize Feather Icons
     feather.replace();
 
-    // Toggle menu group functionality
+    // Toggle menu group
     function toggleMenuGroup(groupId) {
       const submenu = document.getElementById(groupId + '-submenu');
       const icon = document.getElementById(groupId + '-icon');
@@ -957,186 +755,89 @@
       }
     }
 
-    // Zoom function for index page
-    function applyZoom(zoomLevel) {
-      console.log('Index: Applying zoom:', zoomLevel);
-      
-      // Apply zoom to main content area
-      const mainContent = document.getElementById('main-content');
-      if (mainContent) {
-        mainContent.style.transform = `scale(${zoomLevel})`;
-        mainContent.style.transformOrigin = 'top left';
-        mainContent.style.width = zoomLevel !== 1 ? `${100 / zoomLevel}%` : '100%';
-        console.log('Index: Applied zoom to main-content:', mainContent.style.transform);
+    // Sidebar overlay click handler
+    document.getElementById('sidebar-overlay').addEventListener('click', function () {
+      document.getElementById('sidebar-toggle').checked = false;
+    });
+
+    // Navbar scroll effect
+    const navbar = document.querySelector('.navbar');
+    window.addEventListener('scroll', function () {
+      if (window.scrollY > 50) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
       }
-      
-      // Apply zoom to sidebar as well
-      const sidebar = document.getElementById('sidebar');
-      if (sidebar) {
-        const baseSidebarWidth = 256; // 16rem * 16px = 256px (w-64)
-        const newSidebarWidth = baseSidebarWidth * zoomLevel;
-        sidebar.style.width = newSidebarWidth + 'px';
-        console.log('Index: Applied zoom to sidebar width:', newSidebarWidth + 'px');
+    });
+
+    // Auto-expand active menu group
+    const activeLinks = document.querySelectorAll('.menu-group a.bg-emerald-500');
+    activeLinks.forEach(link => {
+      const submenu = link.closest('ul[id$="-submenu"]');
+      if (submenu) {
+        submenu.classList.remove('hidden');
+        const groupId = submenu.id.replace('-submenu', '');
+        const icon = document.getElementById(groupId + '-icon');
+        if (icon) {
+          icon.classList.add('rotate-180');
+        }
       }
+    });
+
+    // Image Slider
+    const sliderImages = document.querySelectorAll('#hero-slider img');
+    const sliderIndicators = document.getElementById('slider-indicators');
+    let currentSlide = 0;
+    let slideInterval;
+
+    // Create indicators
+    sliderImages.forEach((_, index) => {
+      const indicator = document.createElement('button');
+      indicator.className = `h-2 rounded-full transition-all duration-300 ${index === 0 ? 'bg-white w-8' : 'bg-white/40 w-2 hover:bg-white/75'}`;
+      indicator.setAttribute('aria-label', `Go to image ${index + 1}`);
+      indicator.addEventListener('click', () => goToSlide(index));
+      sliderIndicators.appendChild(indicator);
+    });
+
+    function goToSlide(index) {
+      sliderImages[currentSlide].classList.remove('active');
+      sliderImages[currentSlide].style.opacity = '0';
       
-      // Update zoom slider if it exists
-      const slider = document.getElementById('zoom-slider');
-      if (slider) {
-        slider.value = zoomLevel;
-        // Update slider background
-        const percentage = ((zoomLevel - 0.5) / 1.5) * 100;
-        slider.style.background = `linear-gradient(to right, #003366 0%, #003366 ${percentage}%, #e5e7eb ${percentage}%, #e5e7eb 100%)`;
-        console.log('Index: Updated zoom slider:', slider.value);
-      }
+      const indicators = sliderIndicators.children;
+      indicators[currentSlide].className = 'h-2 rounded-full transition-all duration-300 bg-white/40 w-2 hover:bg-white/75';
       
-      // Keep zoom slider component at constant size
-      const container = document.getElementById('zoom-slider-container');
-      if (container) {
-        const inverseScale = 1 / zoomLevel;
-        container.style.transform = `scale(${inverseScale})`;
-        container.style.transformOrigin = 'bottom right';
-        console.log('Index: Applied inverse scale to zoom container:', inverseScale);
-      }
+      currentSlide = index;
       
-      // Save zoom level to localStorage
-      localStorage.setItem('pageZoom', zoomLevel);
+      sliderImages[currentSlide].classList.add('active');
+      sliderImages[currentSlide].style.opacity = '1';
+      indicators[currentSlide].className = 'h-2 rounded-full transition-all duration-300 bg-white w-8';
       
-      // Trigger storage event to sync with other pages
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'pageZoom',
-        newValue: zoomLevel.toString(),
-        oldValue: localStorage.getItem('pageZoom'),
-        storageArea: localStorage
-      }));
+      resetSlideInterval();
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-      const sidebarToggle = document.getElementById('sidebar-toggle');
-      const overlay = document.getElementById('sidebar-overlay');
-      const navbar = document.getElementById('navbar');
+    function nextSlide() {
+      goToSlide((currentSlide + 1) % sliderImages.length);
+    }
 
-      // ปิด sidebar เมื่อคลิก overlay
-      overlay.addEventListener('click', function () {
-        sidebarToggle.checked = false;
-      });
+    function prevSlide() {
+      goToSlide((currentSlide - 1 + sliderImages.length) % sliderImages.length);
+    }
 
-      // Navbar scroll effect
-      window.addEventListener('scroll', function () {
-        if (window.scrollY > 50) {
-          navbar.classList.add('scrolled');
-        } else {
-          navbar.classList.remove('scrolled');
-        }
-      });
+    function resetSlideInterval() {
+      clearInterval(slideInterval);
+      slideInterval = setInterval(nextSlide, 5000);
+    }
 
-      // Auto-expand active menu group on page load
-      const activeLinks = document.querySelectorAll('.menu-group a.bg-primary');
-      
-      activeLinks.forEach(link => {
-        // Find parent submenu and expand it
-        const submenu = link.closest('ul[id$="-submenu"]');
-        if (submenu) {
-          submenu.classList.remove('hidden');
-          const groupId = submenu.id.replace('-submenu', '');
-          const icon = document.getElementById(groupId + '-icon');
-          if (icon) {
-            icon.classList.add('rotate-180');
-          }
-        }
-      });
+    // Auto-slide every 5 seconds
+    resetSlideInterval();
 
-      // Load saved zoom on index page
-      const savedZoom = localStorage.getItem('pageZoom');
-      if (savedZoom) {
-        const zoomLevel = parseFloat(savedZoom);
-        console.log('Index: Loading saved zoom:', zoomLevel);
-        applyZoom(zoomLevel);
-      } else {
-        console.log('Index: No saved zoom found, using default');
-        applyZoom(1);
-      }
+    // Slider button handlers
+    document.getElementById('next-btn').addEventListener('click', nextSlide);
+    document.getElementById('prev-btn').addEventListener('click', prevSlide);
 
-      // Add zoom slider event listener
-      const slider = document.getElementById('zoom-slider');
-      if (slider) {
-        slider.addEventListener('input', function(e) {
-          const zoomLevel = parseFloat(e.target.value);
-          applyZoom(zoomLevel);
-        });
-      }
-
-      // Add zoom button event listeners
-      const zoomInBtn = document.getElementById('zoom-in-btn');
-      const zoomOutBtn = document.getElementById('zoom-out-btn');
-      const resetBtn = document.getElementById('zoom-reset-btn');
-
-      if (zoomInBtn) {
-        zoomInBtn.addEventListener('click', function() {
-          const slider = document.getElementById('zoom-slider');
-          if (slider) {
-            const currentZoom = parseFloat(slider.value);
-            const newZoom = Math.min(currentZoom + 0.05, 2);
-            slider.value = newZoom;
-            applyZoom(newZoom);
-          }
-        });
-      }
-
-      if (zoomOutBtn) {
-        zoomOutBtn.addEventListener('click', function() {
-          const slider = document.getElementById('zoom-slider');
-          if (slider) {
-            const currentZoom = parseFloat(slider.value);
-            const newZoom = Math.max(currentZoom - 0.05, 0.5);
-            slider.value = newZoom;
-            applyZoom(newZoom);
-          }
-        });
-      }
-
-      if (resetBtn) {
-        resetBtn.addEventListener('click', function() {
-          const slider = document.getElementById('zoom-slider');
-          if (slider) {
-            slider.value = 1;
-            applyZoom(1);
-          }
-        });
-      }
-
-      // Keyboard shortcuts
-      document.addEventListener('keydown', function(e) {
-        if (e.ctrlKey || e.metaKey) {
-          if (e.key === '=' || e.key === '+') {
-            e.preventDefault();
-            const slider = document.getElementById('zoom-slider');
-            if (slider) {
-              const currentZoom = parseFloat(slider.value);
-              const newZoom = Math.min(currentZoom + 0.05, 2);
-              slider.value = newZoom;
-              applyZoom(newZoom);
-            }
-          } else if (e.key === '-') {
-            e.preventDefault();
-            const slider = document.getElementById('zoom-slider');
-            if (slider) {
-              const currentZoom = parseFloat(slider.value);
-              const newZoom = Math.max(currentZoom - 0.05, 0.5);
-              slider.value = newZoom;
-              applyZoom(newZoom);
-            }
-          } else if (e.key === '0') {
-            e.preventDefault();
-            const slider = document.getElementById('zoom-slider');
-            if (slider) {
-              slider.value = 1;
-              applyZoom(1);
-            }
-          }
-        }
-      });
-    });
+    // Re-initialize icons after any dynamic content
+    setTimeout(() => feather.replace(), 100);
   </script>
-</body>
 
+</body>
 </html>
