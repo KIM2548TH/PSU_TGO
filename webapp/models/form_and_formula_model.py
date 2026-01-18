@@ -3,8 +3,8 @@ import datetime
 
 
 class InputType(me.EmbeddedDocument):
-    field = me.StringField(required=True)  # ชื่อฟิลด์ เช่น "n"
-    label = me.StringField(required=True)  # คำอธิบาย เช่น "ไนโตรเจน (N)"
+    field = me.StringField(required=True)  # ชื่อฟิลด์ เช่น "ปริมาณ_ดีเซล"
+    label = me.StringField(required=True)  # คำอธิบาย เช่น "ปริมาณ (ดีเซล)"
     input_type = me.StringField(
         required=True, choices=["number", "text", "select"]
     )  # ประเภทอินพุต เช่น "number"
@@ -13,12 +13,15 @@ class InputType(me.EmbeddedDocument):
     # ข้อมูลสำหรับ linked forms - บอกว่า field นี้มาจากฟอร์มไหน
     source_form_id = me.StringField(required=False, default=None)  # ID ของฟอร์มต้นฉบับ (None = ฟิลด์ของตัวเอง)
     is_used = me.BooleanField(default=True)  # เปิดใช้งานฟิลด์นี้หรือไม่ (สำหรับ linked fields)
+    original_field = me.StringField(required=False, default=None)  # ชื่อฟิลด์ต้นฉบับ (สำหรับ linked fields) เช่น "ปริมาณ"
 
     @staticmethod
-    def create_input(field, label, input_type, unit="", source_form_id=None, is_used=True):
+    def create_input(field, label, input_type, unit="", source_form_id=None, is_used=True, original_field=None):
         """
         สร้าง InputType ใหม่
         Parameters:
+        - field: ชื่อฟิลด์ที่ใช้ในสูตร (สำหรับ linked: "ปริมาณ_ดีเซล")
+        - original_field: ชื่อฟิลด์ต้นฉบับ (สำหรับดึงข้อมูล: "ปริมาณ")
         - source_form_id: ID ของฟอร์มต้นฉบับ (None = ฟิลด์ของตัวเอง, มีค่า = ลิงก์จากฟอร์มอื่น)
         - is_used: เปิดใช้งานฟิลด์นี้หรือไม่ (default=True)
         """
@@ -28,7 +31,8 @@ class InputType(me.EmbeddedDocument):
             input_type=input_type, 
             unit=unit,
             source_form_id=source_form_id or None,
-            is_used=is_used
+            is_used=is_used,
+            original_field=original_field or field  # ถ้าไม่ระบุให้ใช้ field
         )
 
 
@@ -43,6 +47,7 @@ class FormAndFormula(me.Document):
     # ระบบลิงก์
     is_linked = me.BooleanField(default=False)  # เป็นฟอร์มที่ลิงก์หรือไม่
     linked_forms = me.ListField(me.StringField(), required=False, default=[])  # List ของ Form IDs ที่ลิงก์
+    used_by_forms = me.ListField(me.StringField(), required=False, default=[])  # List ของ Form IDs ที่ใช้ฟอร์มนี้ (reverse reference)
     
     input_types = me.EmbeddedDocumentListField(InputType)
     variables = me.ListField(me.StringField(), required=False, default=[])
@@ -69,12 +74,25 @@ class FormAndFormula(me.Document):
         """
         ตั้งค่าฟอร์มให้เป็นแบบลิงก์และสร้าง auto input_types
         รองรับหลาย form IDs
+        และอัปเดต used_by_forms ของ source forms
         """
         self.is_linked = True
         if isinstance(linked_form_ids, str):
             self.linked_forms = [linked_form_ids]
         else:
             self.linked_forms = linked_form_ids
+        
+        # อัปเดต used_by_forms ของ source forms
+        from bson import ObjectId
+        for form_id in self.linked_forms:
+            try:
+                source_form = FormAndFormula.objects(id=ObjectId(form_id)).first()
+                if source_form:
+                    if str(self.id) not in source_form.used_by_forms:
+                        source_form.used_by_forms.append(str(self.id))
+                        source_form.save()
+            except Exception as e:
+                print(f"Error updating used_by_forms for {form_id}: {e}")
         
         # สร้าง buffer field อัตโนมัติ
         auto_field = InputType.create_input(
@@ -154,7 +172,7 @@ class FormAndFormula(me.Document):
 
     meta = {
         "collection": "form_and_formula",
-        "indexes": ["material_name", "is_linked"],
+        "indexes": ["material_name", "is_linked", "used_by_forms"],
     }
 
 

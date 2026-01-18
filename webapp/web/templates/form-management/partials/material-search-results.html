@@ -16,12 +16,17 @@
     {% endif %}
     
     <!-- Material Item -->
-    <div class="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
+    {% set is_selected = material.id|string in selected_ids %}
+    <div class="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors {{ 'bg-green-50' if is_selected else '' }}"
          data-material-id="{{ material.id }}"
          onclick="addSelectedMaterial('{{ material.id }}', '{{ material.material_name }}', '{{ scope_label }}'); return false;">
       <div class="flex items-start gap-3">
-        <div class="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-          <i data-feather="file-text" class="w-3 h-3 text-blue-600"></i>
+        <div class="flex-shrink-0 w-6 h-6 {{ 'bg-green-100' if is_selected else 'bg-blue-100' }} rounded-full flex items-center justify-center">
+          {% if is_selected %}
+            <i data-feather="check" class="w-3 h-3 text-green-600"></i>
+          {% else %}
+            <i data-feather="file-text" class="w-3 h-3 text-blue-600"></i>
+          {% endif %}
         </div>
         <div class="flex-1 min-w-0">
           <h5 class="font-medium text-sm text-gray-900 truncate">{{ material.material_name }}</h5>
@@ -39,7 +44,11 @@
           {% endif %}
         </div>
         <div class="flex-shrink-0 material-select-icon">
-          <i data-feather="plus-circle" class="w-4 h-4 text-blue-600"></i>
+          {% if is_selected %}
+            <i data-feather="check-circle" class="w-4 h-4 text-green-600"></i>
+          {% else %}
+            <i data-feather="plus-circle" class="w-4 h-4 text-blue-600"></i>
+          {% endif %}
         </div>
       </div>
     </div>

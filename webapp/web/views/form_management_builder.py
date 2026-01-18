@@ -181,6 +181,16 @@ def search_materials():
     """ค้นหา Material สำหรับลิงก์"""
     try:
         search_term = request.args.get('material_search', '').lower().strip()
+        selected_ids_str = request.args.get('selected_ids', '')  # เพิ่ม: รับ selected IDs
+        
+        # Parse selected IDs
+        selected_ids = []
+        if selected_ids_str:
+            try:
+                import json
+                selected_ids = json.loads(selected_ids_str)
+            except:
+                selected_ids = [sid.strip() for sid in selected_ids_str.split(',') if sid.strip()]
         
         # ดึงรายการ material ที่สามารถลิงก์ได้
         materials_query = FormAndFormula.objects(is_linked=False).order_by("ghg_scope", "ghg_sup_scope", "material_name")
@@ -199,7 +209,8 @@ def search_materials():
         
         return render_template(
             "form-management/partials/material-search-results.html",
-            materials=materials
+            materials=materials,
+            selected_ids=selected_ids
         )
     except Exception as e:
         return f'<div class="text-error p-4">Error: {str(e)}</div>'
@@ -250,12 +261,30 @@ def load_multiple_linked_fields():
     from bson import ObjectId
     
     form_ids_str = request.args.get('form_ids', '')
+    editing_form_id = request.args.get('editing_form_id', '')  # เพิ่ม: ID ของฟอร์มที่กำลังแก้ไข
+    
     if not form_ids_str:
         return '<div class="text-center text-gray-500">กรุณาเลือก Material</div>'
     
     form_ids = [fid.strip() for fid in form_ids_str.split(',') if fid.strip()]
     if not form_ids:
         return '<div class="text-center text-gray-500">กรุณาเลือก Material</div>'
+    
+    # ถ้ากำลังแก้ไข ให้ดึง is_used จาก database
+    existing_is_used = {}
+    if editing_form_id:
+        try:
+            editing_form = FormAndFormula.objects(id=ObjectId(editing_form_id)).first()
+            if editing_form and editing_form.input_types:
+                for input_type in editing_form.input_types:
+                    source_id = getattr(input_type, 'source_form_id', None)
+                    original_field = getattr(input_type, 'original_field', input_type.field)
+                    if source_id:
+                        key = f"{original_field}_{source_id}"
+                        existing_is_used[key] = getattr(input_type, 'is_used', True)
+                        print(f"🔍 MULTI LOAD: existing key={key}, is_used={existing_is_used[key]}")
+        except Exception as e:
+            print(f"🔍 MULTI LOAD: Error loading editing form: {e}")
     
     all_fields = []
     
@@ -291,12 +320,23 @@ def load_multiple_linked_fields():
     html += '<div class="space-y-2 max-h-80 overflow-y-auto">'
     
     for field in all_fields:
+        # ตรวจสอบว่าควรติ๊กหรือไม่
+        if editing_form_id:
+            # ถ้ากำลังแก้ไข ใช้ค่าจาก database
+            is_checked = existing_is_used.get(field['field_identifier'], True)
+        else:
+            # ถ้าสร้างใหม่ ติ๊กหมดเป็น default
+            is_checked = True
+        
+        checked_attr = 'checked' if is_checked else ''
+        print(f"🔍 MULTI HTML: field_identifier={field['field_identifier']}, is_checked={is_checked}, checked_attr='{checked_attr}'")
+        
         html += f'''
         <div class="flex items-start gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:bg-blue-50 transition-colors">
           <input type="checkbox" 
                  name="linked_field_used"
                  class="checkbox checkbox-sm checkbox-primary mt-1" 
-                 checked
+                 {checked_attr}
                  value="{field['field_identifier']}">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">
@@ -472,6 +512,9 @@ def load_edit_linked_fields():
         for input_type in form_obj.input_types:
             source_id = getattr(input_type, 'source_form_id', None)
             is_used = getattr(input_type, 'is_used', True)
+            original_field = getattr(input_type, 'original_field', input_type.field)
+            
+            print(f"🔍 LOAD DEBUG: field={input_type.field}, source_id={source_id}, is_used={is_used}, original_field={original_field}")
             
             if source_id:  # เฉพาะ linked fields
                 source_form_name = source_forms_map.get(source_id, "Unknown")
@@ -484,8 +527,11 @@ def load_edit_linked_fields():
                     'source_form_id': source_id,
                     'source_form_name': source_form_name,
                     'is_used': is_used,
-                    'field_identifier': f"{input_type.field}_{source_id}"
+                    'original_field': original_field,
+                    'field_identifier': f"{original_field}_{source_id}"
                 })
+                
+                print(f"🔍 LOAD DEBUG: Added linked field - identifier={original_field}_{source_id}, is_used={is_used}")
         
         if not linked_fields_with_info:
             return '<div class="text-center text-gray-500">ไม่มี linked fields</div>'
@@ -496,6 +542,8 @@ def load_edit_linked_fields():
         
         for field in linked_fields_with_info:
             checked = 'checked' if field['is_used'] else ''
+            print(f"🔍 HTML DEBUG: field_identifier={field['field_identifier']}, is_used={field['is_used']}, checked_attr='{checked}'")
+            
             html += f'''
             <div class="flex items-start gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:bg-blue-50 transition-colors">
               <input type="checkbox" 

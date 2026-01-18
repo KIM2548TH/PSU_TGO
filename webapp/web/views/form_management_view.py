@@ -284,6 +284,10 @@ def add_form_and_formula():
         
         new_form.save()
         
+        # อัปเดต used_by_forms ของ source forms ทันที
+        if is_linked and linked_forms:
+            _update_used_by_forms(new_form.id, linked_forms)
+        
         return _success_response("เพิ่มฟอร์มสำเร็จ!", ghg_scope)
 
     except Exception as e:
@@ -320,16 +324,26 @@ def edit_form_and_formula():
         # อัปเดต is_linked status
         form.is_linked = is_linked
         
+        # เก็บ linked_forms เก่าไว้เพื่อเอาออกจาก used_by_forms
+        old_linked_forms = list(form.linked_forms) if form.linked_forms else []
+        
         if is_linked:
             # ดึง linked_forms จาก request ไม่ใช่จาก database เก่า
             linked_forms_raw = request.form.get("linked_forms", "")
+            print(f"🔍 DEBUG: linked_forms_raw from request = {linked_forms_raw}")
+            
             linked_forms = []
             if linked_forms_raw:
                 try:
                     import json
                     linked_forms = json.loads(linked_forms_raw)
-                except:
+                    print(f"🔍 DEBUG: Parsed linked_forms = {linked_forms}")
+                except Exception as e:
+                    print(f"🔍 DEBUG: JSON parse failed, trying split: {e}")
                     linked_forms = [f.strip() for f in linked_forms_raw.split(",") if f.strip()]
+            
+            print(f"🔍 DEBUG: old_linked_forms = {old_linked_forms}")
+            print(f"🔍 DEBUG: new linked_forms = {linked_forms}")
             
             form.linked_forms = linked_forms
             if linked_forms:
@@ -339,6 +353,17 @@ def edit_form_and_formula():
             _setup_normal_form_fields(form)
 
         form.save()
+        
+        # อัปเดต used_by_forms ของ source forms
+        # 1. ลบฟอร์มนี้ออกจาก used_by_forms ของฟอร์มเก่าที่ไม่ได้ใช้แล้ว
+        print(f"🔍 DEBUG: Removing form {form.id} from old_linked_forms: {old_linked_forms}")
+        _remove_from_used_by_forms(form.id, old_linked_forms)
+        
+        # 2. เพิ่มฟอร์มนี้เข้า used_by_forms ของฟอร์มใหม่
+        if is_linked and form.linked_forms:
+            print(f"🔍 DEBUG: Adding form {form.id} to new linked_forms: {form.linked_forms}")
+            _update_used_by_forms(form.id, form.linked_forms)
+        
         return _success_response("บันทึกการแก้ไขสำเร็จ!", form.ghg_scope)
 
     except Exception as e:
@@ -358,6 +383,11 @@ def delete_form(form_id):
         
         form_name = form.material_name
         scope = form.ghg_scope
+        
+        # ลบฟอร์มนี้ออกจาก used_by_forms ของ source forms ที่ link มา
+        if form.linked_forms:
+            _remove_from_used_by_forms(form.id, form.linked_forms)
+        
         form.delete()
         
         return _success_response(f"ลบฟอร์ม '{form_name}' สำเร็จ!", scope)
@@ -632,37 +662,70 @@ def _setup_linked_form_fields(form_obj, linked_form_ids):
     # 1. เพิ่มฟิลด์จาก linked forms
     # ดึงข้อมูลว่าฟิลด์ไหนถูกเลือกใช้ (format: "field_formid")
     linked_fields_used_raw = request.form.getlist('linked_field_used')
+    print(f"🔍 DEBUG: linked_fields_used_raw = {linked_fields_used_raw}")
+    print(f"🔍 DEBUG: linked_form_ids = {linked_form_ids}")
     
     for form_id in linked_form_ids:
         # ค้นหาฟอร์มจาก ID
         from bson import ObjectId
         try:
             linked_form = FormAndFormula.objects(id=ObjectId(form_id)).first()
-        except:
+        except Exception as e:
+            print(f"🔍 DEBUG: Error loading form {form_id}: {e}")
             continue
         
-        if linked_form and linked_form.input_types:
-            for quantity in linked_form.input_types:
-                # สร้าง field identifier สำหรับเช็คว่าถูกเลือกหรือไม่
-                field_identifier = f"{quantity.field}_{str(linked_form.id)}"
-                
-                # เช็คว่าฟิลด์นี้ถูกเลือกใช้หรือไม่
-                is_used = field_identifier in linked_fields_used_raw
-                print(f"DEBUG: field={quantity.field}, identifier={field_identifier}, is_used={is_used}")  # Debug
-                # ลอก InputType ต้นฉบับมาเลย - ไม่เปลี่ยนชื่อ
-                new_field = InputType.create_input(
-                    field=quantity.field,  # ใช้ชื่อเดิม ไม่ต่อ form_id
-                    label=quantity.label,  # ใช้ label เดิม
-                    input_type=quantity.input_type,
-                    unit=quantity.unit,
-                    source_form_id=str(linked_form.id),  # บันทึก ID ต้นฉบับ
-                    is_used=is_used
-                )
-                input_fields.append(new_field)
-                
-                # เพิ่มเข้า variables ถ้าถูกเลือกใช้
-                if is_used:
-                    variables.append(new_field.field)
+        if not linked_form:
+            print(f"🔍 DEBUG: Form {form_id} not found")
+            continue
+            
+        if not linked_form.input_types:
+            print(f"🔍 DEBUG: Form {form_id} ({linked_form.material_name}) has no input_types")
+            continue
+        
+        print(f"🔍 DEBUG: Processing form {form_id} ({linked_form.material_name}) with {len(linked_form.input_types)} input_types")
+        
+        # ดึงชื่อฟอร์มต้นฉบับ
+        material_name = linked_form.material_name
+        
+        for quantity in linked_form.input_types:
+            # ตรวจสอบว่า quantity นี้มี source_form_id หรือไม่ (อาจเป็น custom field)
+            if hasattr(quantity, 'source_form_id') and quantity.source_form_id:
+                print(f"🔍 DEBUG: Skipping field {quantity.field} from form {form_id} - it has source_form_id (already a linked field)")
+                continue
+            
+            # ใช้ original field สำหรับสร้าง identifier เพื่อเช็คกับ checkbox
+            # เพราะ quantity.field อาจมีชื่อฟอร์มต่อท้ายแล้ว แต่ checkbox ส่งมาเป็น original_field
+            original_field = quantity.field
+            
+            # สร้าง field identifier สำหรับเช็คว่าถูกเลือกหรือไม่ (ใช้ original field)
+            field_identifier = f"{original_field}_{str(linked_form.id)}"
+            field_with_source = f"{original_field}_{material_name}"
+            
+            # บันทึกตาม checkbox จาก UI
+            is_used = field_identifier in linked_fields_used_raw
+            
+            print(f"🔍 DEBUG: original_field={original_field}, form_id={linked_form.id}")
+            print(f"🔍 DEBUG: field_identifier={field_identifier}")
+            print(f"🔍 DEBUG: is_used={is_used} (checked: {field_identifier in linked_fields_used_raw})")
+            
+            # สร้าง field name และ label ใหม่ ต่อท้ายด้วยชื่อฟอร์ม (ใช้รูปแบบเดียวกัน)
+            label_with_source = f"{quantity.label}_{material_name}"
+            
+            # ลอก InputType แต่ต่อท้ายชื่อฟอร์ม และเก็บชื่อต้นฉบับไว้ใน original_field
+            new_field = InputType.create_input(
+                field=field_with_source,  # "ปริมาณ_ดีเซล"
+                label=label_with_source,  # "ปริมาณ_ดีเซล"
+                input_type=quantity.input_type,
+                unit=quantity.unit,
+                source_form_id=str(linked_form.id),  # บันทึก ID ต้นฉบับ
+                is_used=is_used,
+                original_field=original_field  # ชื่อต้นฉบับ: "ปริมาณ" (สำหรับดึงข้อมูล)
+            )
+            input_fields.append(new_field)
+            
+            # เพิ่มเข้า variables ถ้าถูกเลือกใช้
+            if is_used:
+                variables.append(field_with_source)  # ใช้ชื่อที่ต่อท้ายแล้ว
     
     # 2. เพิ่มฟิลด์ของตัวเอง (custom fields)
     custom_fields = request.form.getlist("custom_field")
@@ -691,6 +754,52 @@ def _setup_linked_form_fields(form_obj, linked_form_ids):
     
     form_obj.input_types = input_fields
     form_obj.variables = variables
+
+
+def _update_used_by_forms(linked_form_id, source_form_ids):
+    """
+    อัปเดต used_by_forms ของ source forms
+    เพิ่ม linked_form_id เข้าไปใน used_by_forms ของแต่ละ source form
+    """
+    if not source_form_ids:
+        return
+        
+    from bson import ObjectId
+    linked_form_id_str = str(linked_form_id)
+    
+    for source_form_id in source_form_ids:
+        try:
+            source_form = FormAndFormula.objects(id=ObjectId(source_form_id)).first()
+            if source_form:
+                # เช็คว่ามี ID นี้อยู่แล้วหรือไม่
+                if linked_form_id_str not in source_form.used_by_forms:
+                    source_form.used_by_forms.append(linked_form_id_str)
+                    source_form.save()
+        except Exception as e:
+            print(f"Error updating used_by_forms for {source_form_id}: {e}")
+            continue
+
+
+def _remove_from_used_by_forms(linked_form_id, source_form_ids):
+    """
+    ลบ linked_form_id ออกจาก used_by_forms ของ source forms
+    ใช้เมื่อแก้ไขฟอร์มและเปลี่ยน linked_forms
+    """
+    if not source_form_ids:
+        return
+        
+    from bson import ObjectId
+    linked_form_id_str = str(linked_form_id)
+    
+    for source_form_id in source_form_ids:
+        try:
+            source_form = FormAndFormula.objects(id=ObjectId(source_form_id)).first()
+            if source_form and linked_form_id_str in source_form.used_by_forms:
+                source_form.used_by_forms.remove(linked_form_id_str)
+                source_form.save()
+        except Exception as e:
+            print(f"Error removing from used_by_forms for {source_form_id}: {e}")
+            continue
 
 
 def _setup_normal_form_fields(form_obj):

@@ -306,6 +306,13 @@ function initializeSearch() {
   }
 }
 
+// Re-initialize feather icons after HTMX swap
+document.body.addEventListener('htmx:afterSwap', function(evt) {
+  if (feather) {
+    feather.replace();
+  }
+});
+
 // Initialize with scope1 active
 document.addEventListener('DOMContentLoaded', function() {
   updateActiveScope('scope1');

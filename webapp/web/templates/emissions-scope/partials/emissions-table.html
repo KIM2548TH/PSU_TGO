@@ -152,32 +152,33 @@
                                 {% set matched_material = materials | selectattr('month', 'equalto', month.id)
                                                                     | selectattr('name', 'equalto', head)
                                                                     | list %}
-                                {% set is_head_linked = head_table_info.get(head) and head_table_info[head].is_linked %}
+                                {% set is_linked_field = input.source_form_id %}
                                 {% set matched_quantity = matched_material[0].quantity_type | selectattr('field', 'equalto', input.field) | list if matched_material else [] %}
 
                                 <div class="text-sm text-gray-900 relative">
-                                    {% if is_head_linked and matched_quantity|length == 0 %}
-                                    <!-- Read-only for linked head without values - ไม่สามารถคลิกได้ -->
-                                    <div class="cursor-not-allowed opacity-60 pointer-events-none">
-                                        <div class="flex items-center justify-center gap-1">
-                                            <span class="text-gray-400">ระบุ - {{ input.unit }}</span>
-                                           
-                                        </div>
-                                    </div>
-                                    {% elif is_head_linked and matched_quantity|length > 0 %}
-                                    <!-- Linked head with values - สามารถคลิกดูรายละเอียดได้ -->
-                                    <div class="cursor-pointer hover:text-blue-500"
-                                         hx-get="{{ url_for('emissions.get_linked_form_info', material_name=head, month_id=month.id, year=year) }}"
+                                    {% if is_linked_field %}
+                                    <!-- Linked field - แสดงค่าจาก source material -->
+                                    {% set linked_value = None %}
+                                    {% if matched_quantity|length > 0 %}
+                                        {% set linked_value = matched_quantity[0].amount %}
+                                    {% endif %}
+                                    <div class="cursor-pointer hover:text-blue-700"
+                                         hx-get="{{ url_for('emissions.get_linked_field_info', material_name=head, field=input.field, month_id=month.id, year=year) }}"
                                          hx-target="#modal-content"
                                          hx-swap="innerHTML"
-                                         hx-on="htmx:afterRequest: document.getElementById('modal').classList.add('modal-open')">
+                                         hx-on="htmx:afterRequest: document.getElementById('modal').classList.add('modal-open')"
+                                         title="คลิกเพื่อดูรายละเอียด">
                                         <div class="flex items-center justify-center gap-1">
-                                            <span class="text-gray-400">{{ matched_quantity[0].amount }} </span>
-                                            
+                                            {% if linked_value is not none %}
+                                            <span class="text-blue-600">{{ linked_value }}</span>
+                                            {% else %}
+                                            <span class="text-blue-400">-</span>
+                                            {% endif %}
+                                            <i data-feather="link" class="w-3 h-3 text-blue-500"></i>
                                         </div>
                                     </div>
                                     {% else %}
-                                    <!-- Non-linked head - สามารถแก้ไขได้ปกติ -->
+                                    <!-- Custom field - สามารถแก้ไขได้ปกติ -->
                                     <div class="cursor-pointer hover:text-blue-500"
                                          hx-get="{{ url_for('emissions.load_material_form', month_id=month.id, head=head, scope_id=scope_id, sub_scope_id=sub_scope_id, page=page, year=year, month=month.name, amount=(matched_quantity[0].amount if matched_quantity|length > 0 else None), input_label=input.label, input_field=input.field, input_unit=input.unit) }}"
                                          hx-target="#modal-content"
