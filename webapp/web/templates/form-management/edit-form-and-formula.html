@@ -10,20 +10,12 @@
     </button>
   </div>
 
-  <!-- Checkbox สำหรับ toggle preview (ซ่อนไว้) -->
-  <input type="checkbox" id="preview-toggle" class="hidden" checked>
-
   <!-- Main container -->
-  <div class="main-container">
+  <div class="flex justify-center">
     <!-- Left: Edit Form Field -->
     <div class="bg-white rounded-[7px] border border-gray-300 shadow-md p-6">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-gray-800 font-bold text-lg border-b border-b-gray-200 pb-3">{{ t.edit_form_field }}</h3>
-        <!-- ปุ่ม toggle พรีวิว -->
-        <label for="preview-toggle" class="btn btn-sm btn-ghost text-gray-600 hover:text-gray-800 hover:bg-gray-100 cursor-pointer" title="เปิด/ปิดพรีวิว">
-          <i data-feather="eye" class="h-5 w-5 mr-1"></i>
-          <span class="toggle-text">ซ่อนพรีวิว</span>
-        </label>
       </div>
       
       <form method="POST" action="{{ url_for('form_management.edit_form_and_formula') }}"
@@ -33,6 +25,14 @@
             hx-headers='{"X-Requested-With": "XMLHttpRequest"}'>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}"/>
         <input type="hidden" name="form_id" value="{{ form.id if form else '' }}">
+        
+        <!-- Hidden inputs สำหรับ linked form -->
+        {% if form and form.is_linked %}
+        <input type="hidden" name="form_type" value="linked">
+        <input type="hidden" name="linked_forms" value='{{ form.linked_forms|tojson|safe }}'>
+        {% else %}
+        <input type="hidden" name="form_type" value="normal">
+        {% endif %}
 
         <!-- Form Metadata -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -42,10 +42,6 @@
                    class="input input-bordered w-full mt-1" 
                    placeholder="Enter material name" 
                    value="{{ form.material_name if form else '' }}"
-                   hx-post="/form-management/form-builder/preview"
-                   hx-target="#preview-content"
-                   hx-trigger="keyup delay:800ms, change"
-                   hx-include="closest form"
                    required>
           </div>
 
@@ -82,11 +78,7 @@
             <label class="text-font">{{ t.form_description }}</label>
             <textarea name="desc_form" 
                       class="textarea textarea-bordered w-full mt-1" 
-                      placeholder="Enter form description"
-                      hx-post="/form-management/form-builder/preview"
-                      hx-target="#preview-content"
-                      hx-trigger="keyup delay:800ms, change"
-                      hx-include="closest form">{{ form.desc_form if form else '' }}</textarea>
+                      placeholder="Enter form description">{{ form.desc_form if form else '' }}</textarea>
           </div>
         </div>
 
@@ -100,30 +92,70 @@
               <div>
                 <h3 class="font-bold text-blue-800">ข้อมูลการเชื่อมโยง</h3>
                 <div class="text-sm mt-2" id="linked-info">
-                  <p><strong>เชื่อมโยงกับ Material:</strong> 
-                    <span class="font-mono bg-gray-100 border border-gray-300 px-2 py-1 rounded text-gray-800">
-                      {{ form.linked_material_name }}
-                    </span>
-                  </p>
-                  <p class="mt-1">
-                    <strong>Scope:</strong> <span class="text-blue-700">{{ form.ghg_scope }}</span> | 
-                    <strong>Sub-Scope:</strong> <span class="text-blue-700">{{ form.ghg_sup_scope }}</span>
-                  </p>
-                  <p class="text-xs text-blue-700 mt-2">ระบบจะดึงข้อมูลจาก Material ดังกล่าวโดยอัตโนมัติ</p>
+                  <p><strong>เชื่อมโยงกับ Materials:</strong></p>
+                  {% if form.linked_forms_data %}
+                  <ul class="mt-1 space-y-1">
+                    {% for linked_form in form.linked_forms_data %}
+                    <li class="bg-blue-100 border border-blue-300 px-2 py-1 rounded text-gray-800">
+                      <i data-feather="link" class="w-4 h-4 inline mr-1 text-blue-600"></i>
+                      {{ linked_form.name }}
+                    </li>
+                    {% endfor %}
+                  </ul>
+                  {% else %}
+                  <span class="text-gray-500 italic">ไม่มีฟอร์มที่เชื่อมโยง</span>
+                  {% endif %}
+                  <p class="text-xs text-blue-700 mt-2">ระบบจะดึงข้อมูลจาก Materials ดังกล่าวโดยอัตโนมัติ</p>
                 </div>
               </div>
             </div>
             
             <!-- แสดงฟิลด์ที่จะถูกสร้างอัตโนมัติ -->
             <div class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-              <h4 class="text-sm font-medium text-gray-800 mb-3">ฟิลด์ที่สร้างอัตโนมัติ</h4>
+              <h4 class="text-sm font-medium text-gray-800 mb-3">ฟิลด์ที่ลิงก์มา</h4>
               <div id="linked-fields-preview"
-                   hx-get="/form-management/form-builder/load-linked-fields"
-                   hx-vals='{"material_name": "{{ form.linked_material_name }}"}'
+                   hx-get="/form-management/form-builder/load-edit-linked-fields"
+                   hx-vals='{"form_id": "{{ form.id }}"}'
                    hx-trigger="load"
                    hx-target="this"
                    hx-swap="innerHTML">
-                <div class="text-center text-gray-500">กำลังโหลดฟิลด์...</div>
+                <div class="text-sm text-gray-500">กำลังโหลด...</div>
+              </div>
+            </div>
+            
+            <!-- ฟิลด์ของตัวเอง (Custom Fields) -->
+            <div class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <i data-feather="edit-3" class="w-4 h-4 text-amber-600"></i>
+                  <h4 class="text-sm font-medium text-amber-800">ฟิลด์เพิ่มเติมที่กรอกได้</h4>
+                </div>
+                <span class="text-xs text-amber-600">ฟิลด์ที่ไม่ได้ลิงก์มา</span>
+              </div>
+              
+              <div id="custom-input-fields-container"
+                   hx-get="/form-management/form-builder/load-edit-custom-fields"
+                   hx-vals='{"form_id": "{{ form.id }}"}'
+                   hx-trigger="load"
+                   hx-target="this"
+                   hx-swap="innerHTML">
+                <div class="text-sm text-gray-500">กำลังโหลด...</div>
+              </div>
+              
+              <!-- ปุ่มเพิ่มฟิลด์ของตัวเอง -->
+              <button type="button" class="btn btn-sm btn-outline btn-warning w-full mt-3"
+                      hx-post="/form-management/form-builder/add-input-field"
+                      hx-target="#custom-input-fields-container"
+                      hx-swap="beforeend"
+                      hx-vals='{"field_index": "0", "is_linked_form": "true"}'
+                      onclick="updateCustomFieldCounter()">
+                <i data-feather="plus" class="w-4 h-4 mr-1"></i>
+                เพิ่มฟิลด์ที่กรอกได้
+              </button>
+              
+              <div class="text-xs text-amber-700 mt-2 flex items-center gap-2">
+                <i data-feather="info" class="w-3 h-3"></i>
+                <span>ฟิลด์เหล่านี้สามารถกรอกข้อมูลได้โดยตรง ไม่ได้ดึงมาจาก Material อื่น</span>
               </div>
             </div>
           </div>
@@ -161,88 +193,31 @@
         </div>
       </form>
     </div>
-
-    <!-- Right: Form Preview -->
-    <div class="bg-white rounded-[7px] border border-gray-300 shadow-md p-6 transition-all duration-300 preview-panel">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-gray-800 font-bold text-lg">{{ t.form_preview }}</h3>
-        <label for="preview-toggle" class="btn btn-sm btn-ghost text-gray-500 hover:text-gray-700 hover:bg-gray-100 cursor-pointer" title="ปิดพรีวิว">
-          <i data-feather="x" class="h-5 w-5"></i>
-        </label>
-      </div>
-      <div id="preview-content" 
-           hx-post="/form-management/form-builder/preview"
-           hx-trigger="load"
-           hx-include="closest form"
-           class="bg-white rounded-[7px] border border-gray-300 shadow-md p-6">
-        <p class="italic text-sm text-gray-500">กำลังโหลดตัวอย่างฟอร์ม...</p>
-      </div>
-    </div>
   </div>
 </div>
 
-<!-- เก็บ CSS เดิมทั้งหมด -->
-<style>
-/* Grid layout หลัก */
-.main-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  transition: all 0.3s ease-in-out;
+<script>
+// Update custom field counter
+function updateCustomFieldCounter() {
+  setTimeout(function() {
+    var container = document.getElementById('custom-input-fields-container');
+    var addButton = document.querySelector('button[hx-vals*="is_linked_form"]');
+    
+    if (container && addButton) {
+      var fieldCount = container.querySelectorAll('[data-index]').length;
+      addButton.setAttribute('hx-vals', JSON.stringify({
+        field_index: fieldCount,
+        is_linked_form: "true"
+      }));
+    }
+  }, 100);
 }
 
-/* เมื่อ checkbox ไม่ถูกเลือก (ปิดพรีวิว) */
-#preview-toggle:not(:checked) ~ .main-container {
-  grid-template-columns: 1fr 0fr !important;
-}
+// Make function global
+window.updateCustomFieldCounter = updateCustomFieldCounter;
 
-#preview-toggle:not(:checked) ~ .main-container .preview-panel {
-  width: 0 !important;
-  min-width: 0 !important;
-  opacity: 0 !important;
-  overflow: hidden !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border: none !important;
+// Initialize feather icons
+if (typeof feather !== 'undefined') {
+  feather.replace();
 }
-
-/* เปลี่ยนข้อความปุ่ม */
-#preview-toggle:checked ~ .main-container .toggle-text::before {
-  content: "ซ่อนพรีวิว";
-}
-
-#preview-toggle:not(:checked) ~ .main-container .toggle-text::before {
-  content: "แสดงพรีวิว";
-}
-
-.toggle-text {
-  display: none;
-}
-
-.toggle-text::before {
-  display: inline;
-}
-
-/* Smooth transitions */
-.preview-panel,
-.main-container {
-  transition: all 0.3s ease-in-out;
-}
-
-/* Responsive */
-@media (max-width: 1280px) {
-  .main-container {
-    grid-template-columns: 1fr !important;
-  }
-  
-  #preview-toggle:not(:checked) ~ .main-container .preview-panel {
-    display: none !important;
-  }
-}
-
-/* ปรับให้ form section ขยายเต็มพื้นที่เมื่อปิดพรีวิว */
-#preview-toggle:not(:checked) ~ .main-container > div:first-child {
-  width: 100% !important;
-  max-width: none !important;
-}
-</style>
+</script>

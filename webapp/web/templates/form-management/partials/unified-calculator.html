@@ -1,0 +1,306 @@
+{# 
+  Unified Calculator Template
+  Parameters:
+  - calculator_type: 'formula', 'gas', 'conversion', 'conversion2'
+  - variables: list of {field, label, color}
+  - title: Calculator title (optional)
+  - target_input: target input ID
+  - hide_route: route for hide button
+  - add_value_route: route for add value
+  - extra_vars: additional variables for gas_type/calculator_type
+#}
+
+{% set calc_config = {
+  'formula': {
+    'title': 'Formula Calculator',
+    'hide_route': '/form-management/calculator/hide',
+    'add_route': '/form-management/calculator/add-value',
+    'remove_route': '/form-management/calculator/remove-last',
+    'clear_route': '/form-management/calculator/clear',
+    'target': '#formula',
+    'container_id': 'calculator-dropdown-container'
+  },
+  'gas': {
+    'title': 'เครื่องคิดเลขสูตรก๊าซ',
+    'hide_route': '/gas-formula/calculator/hide-gas',
+    'add_route': '/gas-formula/calculator/add-value-gas',
+    'remove_route': '/gas-formula/calculator/remove-last-gas',
+    'clear_route': '/gas-formula/calculator/clear-gas',
+    'target': '#gas-' ~ (gas_type or 'co2') ~ '-formula-input',
+    'container_class': 'calculator-container'
+  },
+  'conversion': {
+    'title': 'เครื่องคิดเลขสูตรแปลงหน่วย',
+    'hide_route': '/gas-formula/calculator/hide-conversion',
+    'add_route': '/gas-formula/calculator/add-value-conversion',
+    'remove_route': '/gas-formula/calculator/remove-last-conversion',
+    'clear_route': '/gas-formula/calculator/clear-conversion',
+    'target': '#conversion-formula-wrapper',
+    'container_class': 'calculator-container'
+  },
+  'conversion2': {
+    'title': 'เครื่องคิดเลขสูตร tonCO₂e',
+    'hide_route': '/gas-formula/calculator/hide-conversion2',
+    'add_route': '/gas-formula/calculator/add-value-conversion2',
+    'remove_route': '/gas-formula/calculator/remove-last-conversion2',
+    'clear_route': '/gas-formula/calculator/clear-conversion2',
+    'target': '#conversion2-formula-wrapper',
+    'container_class': 'calculator-container'
+  }
+} %}
+
+{% set config = calc_config[calculator_type] %}
+{% set container_id = config.container_id if config.container_id else '' %}
+
+<!-- Calculator Dropdown - Positioned to the right -->
+<div {% if container_id %}id="{{ container_id }}"{% endif %} 
+     class="absolute right-0 z-50 mt-1 bg-white border-2 border-gray-300 rounded-xl shadow-2xl p-4 calculator-dropdown"
+     style="min-width: 280px; max-width: 320px;">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-200">
+    <h4 class="text-sm font-semibold text-gray-800">{{ title or config.title }}</h4>
+    <button type="button" class="btn btn-sm btn-ghost hover:bg-red-100"
+            onclick="const container = this.closest('.calculator-dropdown').parentElement; const toggleBtn = container.previousElementSibling; if(toggleBtn && toggleBtn.classList.contains('calculator-toggle')) { toggleBtn.classList.remove('btn-active'); } container.innerHTML = '';">
+      <i data-feather="x" class="w-4 h-4"></i>
+    </button>
+  </div>
+
+  <!-- Variables Section -->
+  {% if variables %}
+  <div class="mb-4">
+    <h5 class="text-xs font-medium text-gray-600 mb-2">{% if calculator_type == 'formula' %}Variables{% else %}ตัวแปรที่ใช้ได้{% endif %}</h5>
+    <div class="{% if calculator_type == 'formula' %}grid grid-cols-2 gap-2{% else %}flex flex-wrap gap-1{% endif %}">
+      {% for variable in variables %}
+        <button type="button" 
+                class="btn {% if calculator_type == 'formula' %}btn-sm{% else %}btn-xs{% endif %} {% if calculator_type == 'formula' %}btn-outline text-xs {% endif %}{{ variable.color or 'bg-green-100 text-green-800 hover:bg-green-200' }}"
+                hx-post="{{ config.add_route }}"
+                hx-target="{{ target_input or config.target }}"
+                hx-swap="outerHTML"
+                hx-vals='{"value": "{{ variable.field }}"{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+                hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+          {{ variable.field }}
+          {% if calculator_type == 'formula' and variable.label %}
+          <br><span class="text-xs opacity-70">{{ variable.label }}</span>
+          {% endif %}
+        </button>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Special variable for conversion2 (result) -->
+  {% if calculator_type == 'conversion2' %}
+  <div class="mb-3">
+    <button type="button" 
+            class="btn btn-xs bg-blue-100 text-blue-800 hover:bg-blue-200"
+            hx-post="{{ config.add_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            hx-include="closest form"
+            hx-vals='{"value": "result", "calculator_type": "{{ calculator_type }}"}'>
+      result (ผลจากสูตรแปลงหน่วยหลัก)
+    </button>
+  </div>
+  {% endif %}
+
+  <!-- Parentheses -->
+  <div class="mb-3">
+    <div class="grid grid-cols-2 gap-2">
+      <button type="button" 
+              class="btn btn-sm btn-outline"
+              hx-post="{{ config.add_route }}"
+              hx-target="{{ target_input or config.target }}"
+              hx-swap="outerHTML"
+              hx-vals='{"value": "{{ ' ( ' if calculator_type == 'formula' else '(' }}"{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+              hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+        (
+      </button>
+      <button type="button" 
+              class="btn btn-sm btn-outline"
+              hx-post="{{ config.add_route }}"
+              hx-target="{{ target_input or config.target }}"
+              hx-swap="outerHTML"
+              hx-vals='{"value": "{{ ' ) ' if calculator_type == 'formula' else ')' }}"{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+              hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+        )
+      </button>
+    </div>
+  </div>
+
+  <!-- Calculator Grid - 4 columns like iOS calculator -->
+  <div class="grid grid-cols-4 gap-2 mb-3">
+    <!-- Row 1: 7 8 9 ÷ -->
+    <button type="button" class="btn btn-sm bg-gray-700 hover:bg-gray-600 text-white border-0"
+            hx-post="{{ config.add_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            hx-vals='{"value": "7"{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+            hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+      7
+    </button>
+    <button type="button" class="btn btn-sm bg-gray-700 hover:bg-gray-600 text-white border-0"
+            hx-post="{{ config.add_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            hx-vals='{"value": "8"{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+            hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+      8
+    </button>
+    <button type="button" class="btn btn-sm bg-gray-700 hover:bg-gray-600 text-white border-0"
+            hx-post="{{ config.add_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            hx-vals='{"value": "9"{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+            hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+      9
+    </button>
+    <button type="button" class="btn btn-sm bg-gray-400 hover:bg-gray-300 text-gray-900 border-0"
+            hx-post="{{ config.add_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            hx-vals='{"value": "{{ ' / ' if calculator_type == 'formula' else '/' }}"{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+            hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+      ÷
+    </button>
+
+    <!-- Row 2: 4 5 6 × -->
+    <button type="button" class="btn btn-sm bg-gray-700 hover:bg-gray-600 text-white border-0"
+            hx-post="{{ config.add_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            hx-vals='{"value": "4"{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+            hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+      4
+    </button>
+    <button type="button" class="btn btn-sm bg-gray-700 hover:bg-gray-600 text-white border-0"
+            hx-post="{{ config.add_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            hx-vals='{"value": "5"{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+            hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+      5
+    </button>
+    <button type="button" class="btn btn-sm bg-gray-700 hover:bg-gray-600 text-white border-0"
+            hx-post="{{ config.add_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            hx-vals='{"value": "6"{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+            hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+      6
+    </button>
+    <button type="button" class="btn btn-sm bg-gray-400 hover:bg-gray-300 text-gray-900 border-0"
+            hx-post="{{ config.add_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            hx-vals='{"value": "{{ ' * ' if calculator_type == 'formula' else '*' }}"{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+            hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+      ×
+    </button>
+
+    <!-- Row 3: 3 2 1 - -->
+    <button type="button" class="btn btn-sm bg-gray-700 hover:bg-gray-600 text-white border-0"
+            hx-post="{{ config.add_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            hx-vals='{"value": "3"{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+            hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+      3
+    </button>
+    <button type="button" class="btn btn-sm bg-gray-700 hover:bg-gray-600 text-white border-0"
+            hx-post="{{ config.add_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            hx-vals='{"value": "2"{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+            hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+      2
+    </button>
+    <button type="button" class="btn btn-sm bg-gray-700 hover:bg-gray-600 text-white border-0"
+            hx-post="{{ config.add_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            hx-vals='{"value": "1"{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+            hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+      1
+    </button>
+    <button type="button" class="btn btn-sm bg-gray-400 hover:bg-gray-300 text-gray-900 border-0"
+            hx-post="{{ config.add_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            hx-vals='{"value": "{{ ' - ' if calculator_type == 'formula' else '-' }}"{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+            hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+      -
+    </button>
+
+    <!-- Row 4: 0 . = + -->
+    <button type="button" class="btn btn-sm bg-gray-700 hover:bg-gray-600 text-white border-0"
+            hx-post="{{ config.add_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            hx-vals='{"value": "0"{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+            hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+      0
+    </button>
+    <button type="button" class="btn btn-sm bg-gray-700 hover:bg-gray-600 text-white border-0"
+            hx-post="{{ config.add_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            hx-vals='{"value": "."{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+            hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+      .
+    </button>
+    <button type="button" class="btn btn-sm bg-gray-400 hover:bg-gray-300 text-gray-900 border-0"
+            hx-post="{{ config.add_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            hx-vals='{"value": "="{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+            hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+      =
+    </button>
+    <button type="button" class="btn btn-sm bg-orange-500 hover:bg-orange-400 text-white border-0"
+            hx-post="{{ config.add_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            hx-vals='{"value": "{{ ' + ' if calculator_type == 'formula' else '+' }}"{% if gas_type %}, "gas_type": "{{ gas_type }}"{% endif %}{% if calculator_type in ['conversion', 'conversion2'] %}, "calculator_type": "{{ calculator_type }}"{% endif %}}'
+            hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+      +
+    </button>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="flex gap-2">
+    <button type="button" 
+            class="btn btn-sm btn-warning flex-1"
+            hx-post="{{ config.remove_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            {% if gas_type %}hx-vals='{"gas_type": "{{ gas_type }}"}'{% endif %}
+            {% if calculator_type in ['conversion', 'conversion2'] %}hx-vals='{"calculator_type": "{{ calculator_type }}"}'{% endif %}
+            hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+      <i data-feather="delete" class="w-4 h-4 mr-1"></i>
+      ลบตัวสุดท้าย
+    </button>
+    <button type="button" 
+            class="btn btn-sm btn-error flex-1"
+            hx-post="{{ config.clear_route }}"
+            hx-target="{{ target_input or config.target }}"
+            hx-swap="outerHTML"
+            {% if gas_type %}hx-vals='{"gas_type": "{{ gas_type }}"}'{% endif %}
+            {% if calculator_type in ['conversion', 'conversion2'] %}hx-vals='{"calculator_type": "{{ calculator_type }}"}'{% endif %}
+            hx-include="{% if calculator_type == 'formula' %}#formula{% else %}closest form{% endif %}">
+      <i data-feather="x-circle" class="w-4 h-4 mr-1"></i>
+      ล้างทั้งหมด
+    </button>
+  </div>
+</div>
+
+<script>
+// Initialize feather icons
+if (typeof feather !== 'undefined') {
+  feather.replace();
+}
+document.addEventListener('htmx:afterSwap', function() {
+  if (typeof feather !== 'undefined') {
+    feather.replace();
+  }
+});
+</script>

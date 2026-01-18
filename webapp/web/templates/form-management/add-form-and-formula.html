@@ -12,27 +12,18 @@
     </button>
   </div>
 
-  <!-- Checkbox สำหรับ toggle preview -->
-  <input type="checkbox" id="preview-toggle" class="hidden" checked>
-
   <!-- Main container -->
-  <div class="main-container">
+  <div class="flex justify-center">
     <!-- Left: Create Form Field -->
     <div class="bg-white rounded-[7px] border border-gray-300 shadow-md p-6">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-black-600 font-bold text-lg border-b border-b-gray-200 pb-3">สร้างฟอร์ม</h3>
-        <!-- ปุ่ม toggle พรีวิว -->
-        <label for="preview-toggle" class="btn btn-sm btn-ghost text-gray-600 hover:text-gray-800 hover:bg-gray-100 cursor-pointer" title="เปิด/ปิดพรีวิว">
-          <i data-feather="eye" class="h-5 w-5 mr-1"></i>
-          <span class="toggle-text">ซ่อนพรีวิว</span>
-        </label>
       </div>
       
       <form method="POST" 
             hx-post="{{ url_for('form_management.add_form_and_formula') }}"
             hx-target="#modal-content"
-            hx-swap="innerHTML"
-            onsubmit="return validateForm(this)">
+            hx-swap="innerHTML">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}"/>
         <input type="hidden" name="is_linked" value="false"/>
         
@@ -43,10 +34,6 @@
             <input type="text" name="material_name" 
                    class="input input-bordered w-full mt-1" 
                    placeholder="กรอกชื่อวัสดุ"
-                   hx-post="/form-management/form-builder/preview"
-                   hx-target="#preview-content"
-                   hx-trigger="keyup delay:800ms, change"
-                   hx-include="closest form"
                    required>
           </div>
 
@@ -92,11 +79,7 @@
             <label class="text-font">คำอธิบายฟอร์ม</label>
             <textarea name="desc_form" 
                       class="textarea textarea-bordered w-full mt-1" 
-                      placeholder="กรอกคำอธิบายฟอร์ม"
-                      hx-post="/form-management/form-builder/preview"
-                      hx-target="#preview-content"
-                      hx-trigger="keyup delay:800ms, change"
-                      hx-include="closest form"></textarea>
+                      placeholder="กรอกคำอธิบายฟอร์ม"></textarea>
           </div>
         </div>
 
@@ -153,91 +136,10 @@
         </div>
       </form>
     </div>
-
-    <!-- Right: Form Preview -->
-    <div class="bg-white rounded-[7px] border border-gray-300 shadow-md p-6 transition-all duration-300 preview-panel">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-black-600 font-bold text-lg">พรีวิวฟอร์ม</h3>
-        <label for="preview-toggle" class="btn btn-sm btn-ghost text-gray-500 hover:text-gray-700 hover:bg-gray-100 cursor-pointer" title="ปิดพรีวิว">
-          <i data-feather="x" class="h-5 w-5"></i>
-        </label>
-      </div>
-      <div id="preview-content" 
-           hx-post="/form-management/form-builder/preview"
-           hx-trigger="load"
-           hx-include="closest form"
-           class="bg-white rounded-[7px] border border-gray-300 shadow-md p-6">
-        <p class="italic text-sm text-gray-500">ช่องข้อมูลจะแสดงที่นี่เมื่อคุณเพิ่มฟิลด์</p>
-      </div>
-    </div>
   </div>
 </div>
 
-<!-- เก็บ CSS เดิมทั้งหมด -->
 <style>
-/* Grid layout หลัก */
-.main-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  transition: all 0.3s ease-in-out;
-}
-
-/* เมื่อ checkbox ไม่ถูกเลือก (ปิดพรีวิว) */
-#preview-toggle:not(:checked) ~ .main-container {
-  grid-template-columns: 1fr 0fr !important;
-}
-
-#preview-toggle:not(:checked) ~ .main-container .preview-panel {
-  width: 0 !important;
-  min-width: 0 !important;
-  opacity: 0 !important;
-  overflow: hidden !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border: none !important;
-}
-
-/* เปลี่ยนข้อความปุ่ม */
-#preview-toggle:checked ~ .main-container .toggle-text::before {
-  content: "ซ่อนพรีวิว";
-}
-
-#preview-toggle:not(:checked) ~ .main-container .toggle-text::before {
-  content: "แสดงพรีวิว";
-}
-
-.toggle-text {
-  display: none;
-}
-
-.toggle-text::before {
-  display: inline;
-}
-
-/* Smooth transitions */
-.preview-panel,
-.main-container {
-  transition: all 0.3s ease-in-out;
-}
-
-/* Responsive */
-@media (max-width: 1280px) {
-  .main-container {
-    grid-template-columns: 1fr !important;
-  }
-  
-  #preview-toggle:not(:checked) ~ .main-container .preview-panel {
-    display: none !important;
-  }
-}
-
-/* ปรับให้ form section ขยายเต็มพื้นที่เมื่อปิดพรีวิว */
-#preview-toggle:not(:checked) ~ .main-container > div:first-child {
-  width: 100% !important;
-  max-width: none !important;
-}
-
 /* CSS สำหรับ calculator toggle */
 /* ซ่อน calculator เมื่อ checkbox ไม่ถูก check */
 #calculator-toggle:not(:checked) ~ div .calculator-container {
@@ -284,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Make function global
+    // Make functions global
     window.updateFieldCounter = updateFieldCounter;
 });
 </script>

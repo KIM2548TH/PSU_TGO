@@ -1,19 +1,23 @@
-from flask import Blueprint, render_template, redirect, url_for, request, jsonify, flash, make_response
-from flask_login import login_required, logout_user, current_user
-from ..forms.user_form import LoginForm, RegisterForm, EditUserForm, EditprofileForm
-from ..forms.form_management_form import FormAndFormulaForm, InputFieldForm
-from ...services.user_service import UserService
-from ...models import User, Role, Permission, FormAndFormula, Scope, Material, InputType
-from ...models.materail_model import QuantityType  # เพิ่ม import QuantityType
+"""
+Form Management - จัดการฟอร์ม CRUD
+Display, Add, Edit, Delete, Update Materials
+"""
+from flask import Blueprint, render_template, request, jsonify, make_response
+from flask_login import login_required, current_user
+from ...models import FormAndFormula, Scope, Material, InputType
+from ...models.materail_model import QuantityType
 from ..views.emissoins import calculate_result
 from ..utils.acl import permissions_required_all
-from ..utils.toast_utils import success_response, error_response, warning_response, info_response, ToastType
-import datetime
+from ..utils.toast_utils import success_response, error_response
 from bson import ObjectId
 from bson.errors import InvalidId
-
+import datetime
 
 module = Blueprint("form_management", __name__, url_prefix="/form-management")
+
+# Register form builder as sub-blueprint
+from . import form_management_builder
+module.register_blueprint(form_management_builder.module)
 
 
 @module.route("/", methods=["GET"])
@@ -214,239 +218,6 @@ def get_scope_content(scope_id):
     return _get_scope_content(scope_id)
 
 
-# === CALCULATOR ROUTES ===
-@module.route("/calculator/load-variables", methods=["POST"])
-@login_required
-def calculator_load_variables():
-    """โหลด variable buttons สำหรับ calculator - แทน updateFormulaButtons()"""
-    try:
-        form_data = request.form.to_dict()
-        variables = _get_calculator_variables(form_data)
-        
-        return render_template(
-            "form-management/partials/calculator-variables.html",
-            variables=variables
-        )
-    except Exception as e:
-        return f'<div class="text-error">Error: {str(e)}</div>'
-
-
-@module.route("/calculator/show", methods=["POST"])
-@login_required
-def calculator_show():
-    """แสดง/ซ่อน calculator dropdown แบบ toggle"""
-    try:
-        form_data = request.form.to_dict()
-        variables = _get_calculator_variables(form_data)
-        
-        # สร้าง calculator HTML พร้อมปุ่มปิดที่ทำงานแบบ toggle
-        calculator_html = render_template(
-            "form-management/partials/calculator-dropdown.html",
-            variables=variables
-        )
-        
-        # แทนที่ปุ่ม X ให้ส่ง empty content กลับมา
-        calculator_html = calculator_html.replace(
-            'hx-post="/form-management/calculator/hide"',
-            'hx-post="/form-management/calculator/hide"'
-        )
-        
-        return calculator_html
-        
-    except Exception as e:
-        return f'<div class="text-error">Error: {str(e)}</div>'
-
-
-@module.route("/calculator/hide", methods=["POST"])
-@login_required
-def calculator_hide():
-    """ปิด calculator - ส่งคืน empty content"""
-    return ""
-
-
-@module.route("/calculator/check-existing", methods=["POST"])
-@login_required
-def calculator_check_existing():
-    """เช็คว่า calculator มีอยู่หรือไม่"""
-    return ""
-
-
-@module.route("/calculator/add-value", methods=["POST"])
-@login_required
-def calculator_add_value():
-    """เพิ่มค่าลงในสูตร"""
-    try:
-        current_formula = request.form.get('formula', '')
-        new_value = request.form.get('value', '')
-        updated_formula = current_formula + str(new_value)
-        
-        return render_template(
-            "form-management/partials/formula-input.html",
-            formula_value=updated_formula
-        )
-        
-    except Exception as e:
-        return f'<div class="text-error">Error: {str(e)}</div>'
-
-
-@module.route("/calculator/remove-last", methods=["POST"])
-@login_required
-def calculator_remove_last():
-    """ลบตัวอักษรสุดท้ายในสูตร"""
-    try:
-        current_formula = request.form.get('formula', '')
-        updated_formula = current_formula[:-1] if current_formula else ''
-        
-        return render_template(
-            "form-management/partials/formula-input.html",
-            formula_value=updated_formula
-        )
-        
-    except Exception as e:
-        return f'<div class="text-error">Error: {str(e)}</div>'
-
-
-@module.route("/calculator/clear", methods=["POST"])
-@login_required
-def calculator_clear():
-    """ล้างสูตรทั้งหมด"""
-    try:
-        return render_template(
-            "form-management/partials/formula-input.html",
-            formula_value=""
-        )
-        
-    except Exception as e:
-        return f'<div class="text-error">Error: {str(e)}</div>'
-
-
-# === FORM BUILDER ROUTES ===
-@module.route("/form-builder/add-input-field", methods=["POST"])
-@login_required
-def add_input_field_htmx():
-    """เพิ่ม input field ใหม่ - แทน addInputField()"""
-    try:
-        field_index = request.form.get('field_index', 0)
-        field_number = int(field_index) + 1
-        
-        return render_template(
-            "form-management/partials/input-field-row.html",
-            field_index=field_index,
-            field_number=field_number
-        )
-    except Exception as e:
-        return f'<div class="text-error">Error: {str(e)}</div>'
-
-
-@module.route("/form-builder/remove-input-field", methods=["DELETE"])
-@login_required
-def remove_input_field():
-    """ลบ input field - แทน removeField()"""
-    # Return empty response เพื่อลบ element (HTMX จะทำการลบ DOM element)
-    return "", 200
-
-
-@module.route("/form-builder/toggle-form-type", methods=["POST"])
-@login_required
-def toggle_form_type():
-    """สลับระหว่าง normal และ linked form"""
-    try:
-        form_type = request.form.get('form_type', 'normal')
-        
-        if form_type == 'linked':
-            # โหลด available materials
-            available_materials = FormAndFormula.objects(is_linked=False).only('material_name', 'ghg_scope', 'ghg_sup_scope')
-            return render_template(
-                "form-management/partials/linked-form-section.html",
-                materials=available_materials
-            )
-        else:
-            return render_template(
-                "form-management/partials/normal-form-section.html"
-            )
-    except Exception as e:
-        return f'<div class="text-error">Error: {str(e)}</div>'
-
-
-@module.route("/form-builder/preview", methods=["POST"])
-@login_required
-def preview_form():
-    """สร้าง form preview - แทน updatePreview()"""
-    try:
-        form_data = request.form.to_dict()
-        
-        # สร้าง preview HTML
-        preview_data = {
-            'material_name': form_data.get('material_name', ''),
-            'desc_form': form_data.get('desc_form', ''),
-            'formula': form_data.get('formula', ''),
-            'desc_formula': form_data.get('desc_formula', ''),
-            'formula2': form_data.get('formula2', ''),
-            'desc_formula2': form_data.get('desc_formula2', ''),
-            'is_linked': form_data.get('form_type') == 'linked',
-            'linked_material_name': form_data.get('linked_material_name', ''),
-            'input_fields': []
-        }
-        
-        # ตรวจสอบว่าเป็น linked form หรือไม่
-        if preview_data['is_linked'] and preview_data['linked_material_name']:
-            # ดึงข้อมูลจาก linked material
-            linked_material = FormAndFormula.objects(material_name=preview_data['linked_material_name']).first()
-            if linked_material and linked_material.input_types:
-                for input_type in linked_material.input_types:
-                    preview_data['input_fields'].append({
-                        'field': input_type.field,
-                        'label': input_type.label,
-                        'input_type': input_type.input_type,
-                        'unit': input_type.unit or ''
-                    })
-        else:
-            # รวบรวม input fields จาก form ปกติ
-            fields = request.form.getlist('field')
-            labels = request.form.getlist('label')
-            input_types = request.form.getlist('input_type')
-            units = request.form.getlist('unit')
-            
-            for i in range(len(fields)):
-                if fields[i]:
-                    preview_data['input_fields'].append({
-                        'field': fields[i],
-                        'label': labels[i] if i < len(labels) else '',
-                        'input_type': input_types[i] if i < len(input_types) else 'text',
-                        'unit': units[i] if i < len(units) else ''
-                    })
-        
-        # เพิ่ม current datetime
-        current_datetime = datetime.datetime.now().strftime('%d/%m/%Y %H:%M')
-        
-        return render_template(
-            "form-management/partials/form-preview-panel.html",
-            preview_data=preview_data,
-            current_datetime=current_datetime
-        )
-    except Exception as e:
-        return f'<div class="text-error">Error: {str(e)}</div>'
-
-
-@module.route("/form-builder/load-linked-fields", methods=["GET"])  
-@login_required
-def load_linked_fields():
-    """โหลดฟิลด์ของ linked material"""
-    material_name = request.args.get('material_name')
-    
-    if not material_name:
-        return '<div class="text-center text-gray-500">กรุณาเลือก Material</div>'
-    
-    linked_material = FormAndFormula.objects(material_name=material_name).first()
-    if not linked_material:
-        return '<div class="text-center text-error">ไม่พบ Material ที่เลือก</div>'
-    
-    return render_template(
-        "form-management/partials/linked-fields-preview.html",
-        linked_material=linked_material
-    )
-
-
 # === MAIN CRUD OPERATIONS ===
 @module.route("/add-form", methods=["POST"])
 @login_required
@@ -466,7 +237,17 @@ def add_form_and_formula():
         # เพิ่มการจัดการลิงก์
         form_type = request.form.get("form_type", "normal")
         is_linked = form_type == "linked"
-        linked_material_name = request.form.get("linked_material_name", "")
+        
+        # รองรับการเลือกหลายฟอร์ม (รับเป็น JSON array)
+        linked_forms_raw = request.form.get("linked_forms", "")
+        linked_forms = []
+        if linked_forms_raw:
+            try:
+                import json
+                linked_forms = json.loads(linked_forms_raw)
+            except:
+                # ถ้าไม่ใช่ JSON ลองแยกด้วย comma
+                linked_forms = [f.strip() for f in linked_forms_raw.split(",") if f.strip()]
 
         # ตรวจสอบข้อมูลที่จำเป็น (formula ไม่จำเป็นต้องกรอก)
         if not material_name or not ghg_scope or not ghg_sup_scope:
@@ -493,11 +274,11 @@ def add_form_and_formula():
             ghg_scope=int(ghg_scope),
             ghg_sup_scope=ghg_sup_scope_int,
             is_linked=is_linked,
-            linked_material_name=linked_material_name if is_linked else "",
+            linked_forms=linked_forms if is_linked else [],
         )
 
-        if is_linked and linked_material_name:
-            _setup_linked_form_fields(new_form, linked_material_name)
+        if is_linked and linked_forms:
+            _setup_linked_form_fields(new_form, linked_forms)
         else:
             _setup_normal_form_fields(new_form)
         
@@ -532,15 +313,29 @@ def edit_form_and_formula():
         form.formula = request.form.get("formula")
         form.formula2 = request.form.get("formula2")
 
-        # อัปเดต input fields สำหรับฟอร์มปกติเท่านั้น
-        is_linked = getattr(form, "is_linked", False)
+        # อัปเดต input fields
+        form_type = request.form.get("form_type", "normal")
+        is_linked = form_type == "linked"
+        
+        # อัปเดต is_linked status
+        form.is_linked = is_linked
+        
         if is_linked:
-            # สำหรับ linked form ใช้ข้อมูลเดิม
-            linked_material_name = getattr(form, "linked_material_name", "")
-            if linked_material_name:
-                _setup_linked_form_fields(form, linked_material_name)
+            # ดึง linked_forms จาก request ไม่ใช่จาก database เก่า
+            linked_forms_raw = request.form.get("linked_forms", "")
+            linked_forms = []
+            if linked_forms_raw:
+                try:
+                    import json
+                    linked_forms = json.loads(linked_forms_raw)
+                except:
+                    linked_forms = [f.strip() for f in linked_forms_raw.split(",") if f.strip()]
+            
+            form.linked_forms = linked_forms
+            if linked_forms:
+                _setup_linked_form_fields(form, linked_forms)
         else:
-            # ฟอร์มปกติ - อัปเดต input fields
+            form.linked_forms = []
             _setup_normal_form_fields(form)
 
         form.save()
@@ -599,11 +394,13 @@ def update_materials(form_id):
                 print(f"Error updating material : {e}")
                 continue
 
-        # ตรวจสอบว่ามี linked forms หรือไม่
+        # ตรวจสอบว่ามี linked forms หรือไม่ (forms ที่ลิงก์มายังฟอร์มนี้)
         linked_updated_count = 0
         linked_created_count = 0
+        
+        # ค้นหาฟอร์มที่มี form ID นี้อยู่ใน linked_forms array
         linked_forms = FormAndFormula.objects(
-            linked_material_name=form.material_name, 
+            linked_forms=str(form.id),
             is_linked=True
         )
         
@@ -716,57 +513,184 @@ def update_materials(form_id):
         return _error_response(f"เกิดข้อผิดพลาดในการอัปเดต: {str(e)}")
 
 
-# === HELPER METHODS ===
-def _get_calculator_variables(form_data):
-    """ดึง variables สำหรับ calculator"""
-    variables = []
-    form_type = form_data.get('form_type', 'normal')
-    
-    if form_type == 'linked':
-        linked_material_name = form_data.get('linked_material_name')
-        if linked_material_name:
-            linked_form = FormAndFormula.objects(material_name=linked_material_name).first()
-            if linked_form and linked_form.input_types:
-                for input_type in linked_form.input_types:
-                    variables.append({
-                        'field': input_type.field,
-                        'label': input_type.label,
-                        'color': 'bg-pink-100 text-pink-800'
-                    })
+# === HELPER FUNCTIONS ===
+
+def _success_response(message, refresh_scope=None):
+    """สร้าง success response พร้อม toast notification"""
+    trigger_data = {"closeModal": True}
+    if refresh_scope:
+        trigger_data["refreshAllScopes"] = {"scope": str(refresh_scope)}
+        trigger_data["refreshScopeContent"] = {"scope": str(refresh_scope)}
+        trigger_data["updateActiveScopeCard"] = {"scope": str(refresh_scope)}
+        trigger_data[f"refreshScope{refresh_scope}"] = True
+        return success_response(message, **trigger_data)
     else:
-        # ดึงจาก input fields ปกติ
-        fields = form_data.getlist('field') if hasattr(form_data, 'getlist') else request.form.getlist('field')
-        labels = form_data.getlist('label') if hasattr(form_data, 'getlist') else request.form.getlist('label')
-        for i, field in enumerate(fields):
-            if field:
-                label = labels[i] if i < len(labels) else field
-                variables.append({
-                    'field': field,
-                    'label': label,
-                    'color': 'bg-blue-100 text-blue-800'
-                })
+        return success_response(message, **trigger_data)
+
+
+def _error_response(message):
+    """สร้าง error response พร้อม toast notification"""
+    return error_response(message, content=f'<div class="alert alert-error"><span>{message}</span></div>', HX_Retarget='#modal-content')
+
+
+def _get_scope_content(scope_id):
+    """Helper function สำหรับโหลด content ตาม scope"""
+    try:
+        forms = FormAndFormula.objects().order_by(
+            "ghg_scope", "ghg_sup_scope", "material_name"
+        )
+        
+        scopes = Scope.objects().order_by("ghg_scope", "ghg_sup_scope")
+        scope_names = {}
+        for scope in scopes:
+            key = f"{scope.ghg_scope}.{scope.ghg_sup_scope}"
+            scope_names[key] = scope.ghg_name
+        
+        filter_sub_scope = request.args.get('filter_sub_scope')
+        show_all = request.args.get('show_all', 'false').lower() == 'true'
+        
+        template_map = {
+            1: "form-management/partials/scope1-content.html",
+            2: "form-management/partials/scope2-content.html",  
+            3: "form-management/partials/scope3-content.html"
+        }
+        
+        template_name = template_map.get(scope_id, template_map[1])
+        
+        return render_template(
+            template_name,
+            forms=forms,
+            scope_names=scope_names,
+            active_scope=str(scope_id),
+            filter_sub_scope=int(filter_sub_scope) if filter_sub_scope else None,
+            show_all=show_all
+        )
+    except Exception as e:
+        return f'<div class="text-error">Error loading scope content: {str(e)}</div>'
+
+
+def _convert_form_to_dict(form_obj):
+    """แปลง FormAndFormula object เป็น dict พร้อม linked form names"""
+    # Query linked forms เพื่อเอา names - ใช้ list comprehension แทน loop
+    linked_forms_data = []
+    if getattr(form_obj, "linked_forms", []):
+        try:
+            # Query ทีเดียวแทนการ query ใน loop
+            from bson import ObjectId
+            form_ids = [ObjectId(fid) for fid in form_obj.linked_forms if fid]
+            linked_forms_objs = FormAndFormula.objects(id__in=form_ids).only('id', 'material_name')
+            
+            # สร้าง dict mapping
+            forms_map = {str(f.id): f.material_name for f in linked_forms_objs}
+            
+            # เรียงตาม order ของ linked_forms
+            linked_forms_data = [
+                {"id": fid, "name": forms_map.get(fid, "Unknown")}
+                for fid in form_obj.linked_forms
+            ]
+        except Exception as e:
+            print(f"Error querying linked forms: {e}")
     
-    return variables
+    return {
+        "id": str(form_obj.id),
+        "material_name": form_obj.material_name,
+        "desc_form": form_obj.desc_form,
+        "desc_formula": form_obj.desc_formula,
+        "formula": form_obj.formula,
+        "formula2": form_obj.formula2 or "",
+        "ghg_scope": form_obj.ghg_scope,
+        "ghg_sup_scope": form_obj.ghg_sup_scope,
+        "is_linked": getattr(form_obj, "is_linked", False),
+        "linked_forms": getattr(form_obj, "linked_forms", []),
+        "linked_forms_data": linked_forms_data,  # เพิ่ม form names
+        "input_types": [
+            {
+                "field": input_field.field,
+                "label": input_field.label,
+                "input_type": input_field.input_type,
+                "unit": input_field.unit,
+                "source_form_id": getattr(input_field, "source_form_id", None),
+                "is_used": getattr(input_field, "is_used", True),
+            }
+            for input_field in form_obj.input_types or []
+        ]
+    }
 
 
-def _setup_linked_form_fields(form_obj, linked_material_name):
-    """ตั้งค่า input fields สำหรับ linked form"""
-    linked_material = FormAndFormula.objects(material_name=linked_material_name).first()
-    if linked_material and linked_material.input_types:
-        input_fields = []
-        variables = []
-        for quantity in linked_material.input_types:
-            input_fields.append(
-                InputType.create_input(
-                    field=quantity.field,
-                    label=quantity.label,
+def _setup_linked_form_fields(form_obj, linked_form_ids):
+    """ตั้งค่า input fields สำหรับ linked form - ลอก InputType ต้นฉบับมาเลย"""
+    if not linked_form_ids:
+        return
+        
+    # รองรับทั้ง string เดียวและ list
+    if isinstance(linked_form_ids, str):
+        linked_form_ids = [linked_form_ids]
+    
+    input_fields = []
+    variables = []
+    
+    # 1. เพิ่มฟิลด์จาก linked forms
+    # ดึงข้อมูลว่าฟิลด์ไหนถูกเลือกใช้ (format: "field_formid")
+    linked_fields_used_raw = request.form.getlist('linked_field_used')
+    
+    for form_id in linked_form_ids:
+        # ค้นหาฟอร์มจาก ID
+        from bson import ObjectId
+        try:
+            linked_form = FormAndFormula.objects(id=ObjectId(form_id)).first()
+        except:
+            continue
+        
+        if linked_form and linked_form.input_types:
+            for quantity in linked_form.input_types:
+                # สร้าง field identifier สำหรับเช็คว่าถูกเลือกหรือไม่
+                field_identifier = f"{quantity.field}_{str(linked_form.id)}"
+                
+                # เช็คว่าฟิลด์นี้ถูกเลือกใช้หรือไม่
+                is_used = field_identifier in linked_fields_used_raw
+                print(f"DEBUG: field={quantity.field}, identifier={field_identifier}, is_used={is_used}")  # Debug
+                # ลอก InputType ต้นฉบับมาเลย - ไม่เปลี่ยนชื่อ
+                new_field = InputType.create_input(
+                    field=quantity.field,  # ใช้ชื่อเดิม ไม่ต่อ form_id
+                    label=quantity.label,  # ใช้ label เดิม
                     input_type=quantity.input_type,
                     unit=quantity.unit,
+                    source_form_id=str(linked_form.id),  # บันทึก ID ต้นฉบับ
+                    is_used=is_used
                 )
+                input_fields.append(new_field)
+                
+                # เพิ่มเข้า variables ถ้าถูกเลือกใช้
+                if is_used:
+                    variables.append(new_field.field)
+    
+    # 2. เพิ่มฟิลด์ของตัวเอง (custom fields)
+    custom_fields = request.form.getlist("custom_field")
+    custom_labels = request.form.getlist("custom_label")
+    custom_input_types = request.form.getlist("custom_input_type")
+    custom_units = request.form.getlist("custom_unit")
+
+    for i in range(len(custom_fields)):
+        field = custom_fields[i]
+        label = custom_labels[i] if i < len(custom_labels) else ""
+        input_type = custom_input_types[i] if i < len(custom_input_types) else "text"
+        unit = custom_units[i] if i < len(custom_units) else ""
+
+        if field and input_type:
+            # ฟิลด์ของตัวเอง: source_form_id = None
+            custom_field = InputType.create_input(
+                field=field,
+                label=label,
+                input_type=input_type,
+                unit=unit,
+                source_form_id=None,  # None = ฟิลด์ของตัวเอง
+                is_used=True
             )
-            variables.append(quantity.field)
-        form_obj.input_types = input_fields
-        form_obj.variables = variables
+            input_fields.append(custom_field)
+            variables.append(field)
+    
+    form_obj.input_types = input_fields
+    form_obj.variables = variables
 
 
 def _setup_normal_form_fields(form_obj):
@@ -796,26 +720,7 @@ def _setup_normal_form_fields(form_obj):
     form_obj.variables = variables
 
 
-def _success_response(message, refresh_scope=None):
-    """สร้าง success response พร้อม toast notification"""
-    trigger_data = {"closeModal": True}
-    if refresh_scope:
-        # ส่ง scope เป็นเลขจริง ไม่ต้อง nested ใน detail
-        trigger_data["refreshAllScopes"] = {"scope": str(refresh_scope)}
-        trigger_data["refreshScopeContent"] = {"scope": str(refresh_scope)}
-        trigger_data["updateActiveScopeCard"] = {"scope": str(refresh_scope)}
-        trigger_data[f"refreshScope{refresh_scope}"] = True
-        return success_response(message, **trigger_data)
-    else:
-        return success_response(message, **trigger_data)
-
-
-def _error_response(message):
-    """สร้าง error response พร้อม toast notification"""
-    return error_response(message, content=f'<div class="alert alert-error"><span>{message}</span></div>', HX_Retarget='#modal-content')
-
-
-# === SUB SCOPE ROUTES ===
+# === SUB SCOPE & UTILITY ROUTES ===
 @module.route("/get-sub-scopes/<int:main_scope>", methods=["GET"])
 @login_required
 def get_sub_scopes(main_scope):
@@ -877,141 +782,6 @@ def get_sub_scopes(main_scope):
         '''
 
 
-@module.route("/form-builder/load-edit-fields", methods=["GET"])
-@login_required
-def load_edit_fields():
-    """โหลด input fields สำหรับ edit form"""
-    try:
-        form_id = request.args.get('form_id')
-        
-        if not form_id:
-            return render_template("form-management/partials/normal-form-section.html")
-        
-        
-        form_obj = FormAndFormula.objects(id=ObjectId(form_id)).first()
-        
-        if not form_obj or not form_obj.input_types:
-            return render_template("form-management/partials/normal-form-section.html")
-        
-        # สร้าง HTML สำหรับ input fields ที่มีอยู่
-        fields_html = []
-        for i, input_type in enumerate(form_obj.input_types):
-            field_html = f'''
-            <div class="border border-gray-300 rounded-xl p-4 bg-gray-50 shadow-sm" data-index="input-{i}">
-                <div class="flex justify-between items-center mb-3">
-                    <h4 class="text-md font-semibold text-gray-600">Field #{i + 1}</h4>
-                    <button type="button" class="btn btn-sm btn-error"
-                            hx-delete="/form-management/form-builder/remove-input-field"
-                            hx-target="closest [data-index]"
-                            hx-swap="delete"
-                            hx-confirm="ต้องการลบฟิลด์นี้หรือไม่?">✕</button>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input name="field" class="input input-bordered w-full" 
-                           placeholder="Field" value="{input_type.field}" required
-                           hx-post="/form-management/form-builder/preview"
-                           hx-target="#preview-content"
-                           hx-trigger="change delay:500ms, keyup delay:800ms"
-                           hx-include="closest form">
-                    <input name="label" class="input input-bordered w-full" 
-                           placeholder="Label" value="{input_type.label}"
-                           hx-post="/form-management/form-builder/preview"
-                           hx-target="#preview-content"  
-                           hx-trigger="change delay:500ms, keyup delay:800ms"
-                           hx-include="closest form">
-                    <select name="input_type" class="select select-bordered w-full"
-                            hx-post="/form-management/form-builder/preview"
-                            hx-target="#preview-content"
-                            hx-trigger="change"
-                            hx-include="closest form">
-                        <option value="number" {"selected" if input_type.input_type == "number" else ""}>Number</option>
-                        <option value="text" {"selected" if input_type.input_type == "text" else ""}>Text</option>
-                        <option value="select" {"selected" if input_type.input_type == "select" else ""}>Select</option>
-                    </select>
-                    <input name="unit" class="input input-bordered w-full" 
-                           placeholder="Unit" value="{input_type.unit or ''}"
-                           hx-post="/form-management/form-builder/preview"
-                           hx-target="#preview-content"
-                           hx-trigger="change delay:500ms, keyup delay:800ms"
-                           hx-include="closest form">
-                </div>
-            </div>
-            '''
-            fields_html.append(field_html)
-        
-        # สร้าง complete HTML
-        complete_html = f'''
-        <div class="space-y-4">
-            <div class="flex justify-between items-center">
-                <h3 class="text-lg font-semibold text-gray-800">Input Fields</h3>
-            </div>
-            
-            <div id="input-fields-container" class="space-y-3">
-                {"".join(fields_html)}
-            </div>
-            
-            <!-- ปุ่มเพิ่มฟิลด์แยกเป็นการ์ด -->
-            <div class="card border border-dashed border-gray-300 bg-gray-50 p-6 flex items-center justify-center">
-                <button type="button" class="btn btn-primary btn-sm"
-                        hx-post="/form-management/form-builder/add-input-field"
-                        hx-target="#input-fields-container"
-                        hx-swap="beforeend"
-                        hx-vals='{{"field_index": "{len(form_obj.input_types)}"}}'>
-                    <i data-feather="plus" class="w-4 h-4 mr-1"></i>
-                    เพิ่มฟิลด์ใหม่
-                </button>
-            </div>
-            
-            <div class="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
-                <i data-feather="info" class="inline w-4 h-4 mr-1"></i>
-                กรุณาเพิ่ม input fields เพื่อกำหนดข้อมูลที่ต้องการรับจากผู้ใช้
-            </div>
-        </div>
-        '''
-        
-        return complete_html
-    except Exception as e:
-        return f'<div class="text-error">Error loading edit fields: {str(e)}</div>'
-
-
-@module.route("/get-available-materials", methods=["GET"])
-@login_required
-def get_available_materials():
-    """ดึงรายชื่อ material ที่สามารถลิงก์ได้ - สำหรับ linked form"""
-    try:
-        # ดึง material ที่ไม่ใช่ฟอร์มลิงก์ (ฟอร์มปกติเท่านั้น)
-        available_form = FormAndFormula.objects(is_linked=False).order_by("ghg_scope", "ghg_sup_scope", "material_name")
-        
-        return render_template(
-            "form-management/partials/material-select.html",
-            available_form=available_form,
-        )
-    except Exception as e:
-        return f'<select name="linked_material_name" class="select select-bordered w-full mt-1"><option value="">Error: {str(e)}</option></select>'
-
-
-# === TOAST NOTIFICATION ROUTES ===
-@module.route("/toast/show", methods=["POST"])
-@login_required
-def show_toast():
-    """แสดง toast notification"""
-    message = request.form.get('message', 'สำเร็จ!')
-    toast_type = request.form.get('type', 'success')
-    
-    return render_template(
-        "components/toast-notification.html",
-        message=message,
-        type=toast_type
-    )
-
-
-@module.route("/components/toast/hide", methods=["DELETE"])
-@login_required
-def hide_toast():
-    """ซ่อน toast notification"""
-    return "", 200
-
-
 # === GAS FORMULAS ROUTE ===
 @module.route("/gas-formulas/<form_id>", methods=["GET"])
 @login_required
@@ -1068,90 +838,3 @@ def get_gas_formulas(form_id):
         return f'<div class="text-center py-2 text-red-500"><i data-feather="alert-circle" class="w-3 h-3 inline mr-1"></i>Error: {str(e)}</div>'
 
 
-# === UTILITY ROUTES ===
-@module.route("/get-form-data/<form_id>", methods=["GET"])
-@login_required
-def get_form_data(form_id):
-    """ดึงข้อมูลฟอร์มในรูปแบบ JSON"""
-    try:
-        
-        
-
-        try:
-            object_id = ObjectId(form_id)
-        except InvalidId:
-            return jsonify({"success": False, "message": "Invalid form ID format"})
-        
-        form = FormAndFormula.objects(id=object_id).first()
-        if not form:
-            return jsonify({"success": False, "message": "Form not found"})
-
-        form_data = _convert_form_to_dict(form)
-        return jsonify({"success": True, "form": form_data})
-        
-    except Exception as e:
-        return jsonify({"success": False, "message": f"Error loading form: {str(e)}"})
-
-
-def _get_scope_content(scope_id):
-    """Helper function สำหรับโหลด content ตาม scope"""
-    try:
-        # โหลดข้อมูลใหม่
-        forms = FormAndFormula.objects().order_by(
-            "ghg_scope", "ghg_sup_scope", "material_name"
-        )
-        
-        scopes = Scope.objects().order_by("ghg_scope", "ghg_sup_scope")
-        scope_names = {}
-        for scope in scopes:
-            key = f"{scope.ghg_scope}.{scope.ghg_sup_scope}"
-            scope_names[key] = scope.ghg_name
-        
-        # รับพารามิเตอร์การกรอง
-        filter_sub_scope = request.args.get('filter_sub_scope')
-        show_all = request.args.get('show_all', 'false').lower() == 'true'
-        
-        # เลือก template ตาม scope
-        template_map = {
-            1: "form-management/partials/scope1-content.html",
-            2: "form-management/partials/scope2-content.html",  
-            3: "form-management/partials/scope3-content.html"
-        }
-        
-        template_name = template_map.get(scope_id, template_map[1])
-        
-        return render_template(
-            template_name,
-            forms=forms,
-            scope_names=scope_names,
-            active_scope=str(scope_id),
-            filter_sub_scope=int(filter_sub_scope) if filter_sub_scope else None,
-            show_all=show_all
-        )
-    except Exception as e:
-        return f'<div class="text-error">Error loading scope content: {str(e)}</div>'
-
-
-def _convert_form_to_dict(form_obj):
-    """แปลง FormAndFormula object เป็น dict"""
-    return {
-        "id": str(form_obj.id),
-        "material_name": form_obj.material_name,
-        "desc_form": form_obj.desc_form,
-        "desc_formula": form_obj.desc_formula,
-        "formula": form_obj.formula,
-        "formula2": form_obj.formula2 or "",
-        "ghg_scope": form_obj.ghg_scope,
-        "ghg_sup_scope": form_obj.ghg_sup_scope,
-        "is_linked": getattr(form_obj, "is_linked", False),
-        "linked_material_name": getattr(form_obj, "linked_material_name", ""),
-        "input_types": [
-            {
-                "field": input_field.field,
-                "label": input_field.label,
-                "input_type": input_field.input_type,
-                "unit": input_field.unit,
-            }
-            for input_field in form_obj.input_types or []
-        ]
-    }

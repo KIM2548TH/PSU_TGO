@@ -9,13 +9,27 @@ class InputType(me.EmbeddedDocument):
         required=True, choices=["number", "text", "select"]
     )  # ประเภทอินพุต เช่น "number"
     unit = me.StringField(required=False, default="")  # หน่วย เช่น "kg"
+    
+    # ข้อมูลสำหรับ linked forms - บอกว่า field นี้มาจากฟอร์มไหน
+    source_form_id = me.StringField(required=False, default=None)  # ID ของฟอร์มต้นฉบับ (None = ฟิลด์ของตัวเอง)
+    is_used = me.BooleanField(default=True)  # เปิดใช้งานฟิลด์นี้หรือไม่ (สำหรับ linked fields)
 
     @staticmethod
-    def create_input(field, label, input_type, unit=""):
+    def create_input(field, label, input_type, unit="", source_form_id=None, is_used=True):
         """
         สร้าง InputType ใหม่
+        Parameters:
+        - source_form_id: ID ของฟอร์มต้นฉบับ (None = ฟิลด์ของตัวเอง, มีค่า = ลิงก์จากฟอร์มอื่น)
+        - is_used: เปิดใช้งานฟิลด์นี้หรือไม่ (default=True)
         """
-        return InputType(field=field, label=label, input_type=input_type, unit=unit)
+        return InputType(
+            field=field, 
+            label=label, 
+            input_type=input_type, 
+            unit=unit,
+            source_form_id=source_form_id or None,
+            is_used=is_used
+        )
 
 
 class FormAndFormula(me.Document):
@@ -28,7 +42,7 @@ class FormAndFormula(me.Document):
     
     # ระบบลิงก์
     is_linked = me.BooleanField(default=False)  # เป็นฟอร์มที่ลิงก์หรือไม่
-    linked_material_name = me.StringField(required=False)  # ชื่อ material ที่ต้องการลิงก์
+    linked_forms = me.ListField(me.StringField(), required=False, default=[])  # List ของ Form IDs ที่ลิงก์
     
     input_types = me.EmbeddedDocumentListField(InputType)
     variables = me.ListField(me.StringField(), required=False, default=[])
@@ -51,12 +65,16 @@ class FormAndFormula(me.Document):
         self.update_date = datetime.datetime.now()
         self.save()
 
-    def setup_linked_form(self, linked_material_name):
+    def setup_linked_form(self, linked_form_ids):
         """
         ตั้งค่าฟอร์มให้เป็นแบบลิงก์และสร้าง auto input_types
+        รองรับหลาย form IDs
         """
         self.is_linked = True
-        self.linked_material_name = linked_material_name
+        if isinstance(linked_form_ids, str):
+            self.linked_forms = [linked_form_ids]
+        else:
+            self.linked_forms = linked_form_ids
         
         # สร้าง buffer field อัตโนมัติ
         auto_field = InputType.create_input(
@@ -70,26 +88,38 @@ class FormAndFormula(me.Document):
 
     def get_linked_data(self, year, month, campus, department):
         """
-        ดึงข้อมูลจาก Material ที่ลิงก์
+        ดึงข้อมูลจาก Material ที่ลิงก์ (ใช้ linked_forms แทน)
         """
-        if not self.is_linked or not self.linked_material_name:
+        if not self.is_linked or not self.linked_forms:
             return None
             
         from webapp.models.materail_model import Material
         
-        # ดึงข้อมูล Material ที่ต้องการ
-        materials = Material.objects(
-            name=self.linked_material_name,
-            year=year,
-            month=month,
-            campus=campus,
-            department=department
-        )
-        
         total_value = 0
-        for material in materials:
-            if material.result is not None:
-                total_value += float(material.result)
+        
+        # ดึงข้อมูลจากทุก linked forms
+        for form_id in self.linked_forms:
+            try:
+                from bson import ObjectId
+                linked_form = FormAndFormula.objects(id=ObjectId(form_id)).first()
+                if not linked_form:
+                    continue
+                    
+                # ดึงข้อมูล Material ที่ตรงกับ linked form
+                materials = Material.objects(
+                    name=linked_form.material_name,
+                    year=year,
+                    month=month,
+                    campus=campus,
+                    department=department
+                )
+                
+                for material in materials:
+                    if material.result is not None:
+                        total_value += float(material.result)
+            except Exception as e:
+                print(f"Error getting linked data from form {form_id}: {e}")
+                continue
                 
         return total_value
 
@@ -124,7 +154,7 @@ class FormAndFormula(me.Document):
 
     meta = {
         "collection": "form_and_formula",
-        "indexes": ["material_name", "is_linked", "linked_material_name"],
+        "indexes": ["material_name", "is_linked"],
     }
 
 

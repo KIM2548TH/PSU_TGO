@@ -65,27 +65,31 @@
         <div class="flex items-start gap-4">
           <!-- ช่องแสดงสูตร -->
           <div class="flex-1">
+            {% set input_type = 'gas' %}
             {% set formula_field = 'formula_co2' %}
             {% set gas_type = 'co2' %}
             {% set formula_value = form.formula_co2 or '' %}
-            {% include 'form-management/partials/gas-formula-input.html' %}
+            {% include 'form-management/partials/unified-formula-input.html' with context %}
           </div>
           
           <!-- ปุ่มเครื่องคิดเลข -->
-          <button type="button" 
-                  class="btn btn-warning px-1flex-shrink-0"
-                  hx-post="/gas-formula/calculator/show-gas"
-                  hx-target="#co2-calculator"
-                  hx-swap="innerHTML"
-                  hx-include="closest form"
-                  hx-vals='{"gas_type": "co2", "form_id": "{{ form.id }}"}'
-                  title="เปิดเครื่องคิดเลข">
-            <i data-feather="grid" class="w-4 h-4"></i>
-          </button>
+          <div class="relative flex-shrink-0">
+            <button type="button" 
+                    class="btn btn-warning calculator-toggle"
+                    hx-post="/gas-formula/calculator/show-gas"
+                    hx-target="#co2-calculator"
+                    hx-swap="innerHTML"
+                    hx-include="closest form"
+                    hx-vals='{"gas_type": "co2", "form_id": "{{ form.id }}"}'
+                    title="เปิด/ปิดเครื่องคิดเลข"
+                    onclick="const calc = this.nextElementSibling; if(calc.innerHTML) { calc.innerHTML = ''; this.classList.remove('btn-active'); return false; } else { this.classList.add('btn-active'); }">
+              <i data-feather="grid" class="w-4 h-4"></i>
+            </button>
+            
+            <!-- Calculator Container -->
+            <div id="co2-calculator"></div>
+          </div>
         </div>
-        
-        <!-- Calculator Container -->
-        <div id="co2-calculator" class="mt-3"></div>
         
       </div>
 
@@ -100,27 +104,31 @@
         <div class="flex items-start gap-4">
           <!-- ช่องแสดงสูตร -->
           <div class="flex-1">
+            {% set input_type = 'gas' %}
             {% set formula_field = 'formula_ch4' %}
             {% set gas_type = 'ch4' %}
             {% set formula_value = form.formula_ch4 or '' %}
-            {% include 'form-management/partials/gas-formula-input.html' %}
+            {% include 'form-management/partials/unified-formula-input.html' with context %}
           </div>
           
           <!-- ปุ่มเครื่องคิดเลข -->
-          <button type="button" 
-                  class="btn btn-warning px-1flex-shrink-0"
-                  hx-post="/gas-formula/calculator/show-gas"
-                  hx-target="#ch4-calculator"
-                  hx-swap="innerHTML"
-                  hx-include="closest form"
-                  hx-vals='{"gas_type": "ch4", "form_id": "{{ form.id }}"}'
-                  title="เปิดเครื่องคิดเลข">
-            <i data-feather="grid" class="w-4 h-4"></i>
-          </button>
+          <div class="relative flex-shrink-0">
+            <button type="button" 
+                    class="btn btn-warning calculator-toggle"
+                    hx-post="/gas-formula/calculator/show-gas"
+                    hx-target="#ch4-calculator"
+                    hx-swap="innerHTML"
+                    hx-include="closest form"
+                    hx-vals='{"gas_type": "ch4", "form_id": "{{ form.id }}"}'
+                    title="เปิด/ปิดเครื่องคิดเลข"
+                    onclick="const calc = this.nextElementSibling; if(calc.innerHTML) { calc.innerHTML = ''; this.classList.remove('btn-active'); return false; } else { this.classList.add('btn-active'); }">
+              <i data-feather="grid" class="w-4 h-4"></i>
+            </button>
+            
+            <!-- Calculator Container -->
+            <div id="ch4-calculator"></div>
+          </div>
         </div>
-        
-        <!-- Calculator Container -->
-        <div id="ch4-calculator" class="mt-3"></div>
         
       </div>
 
@@ -135,27 +143,31 @@
         <div class="flex items-start gap-4">
           <!-- ช่องแสดงสูตร -->
           <div class="flex-1">
+            {% set input_type = 'gas' %}
             {% set formula_field = 'formula_n2o' %}
             {% set gas_type = 'n2o' %}
             {% set formula_value = form.formula_n2o or '' %}
-            {% include 'form-management/partials/gas-formula-input.html' %}
+            {% include 'form-management/partials/unified-formula-input.html' with context %}
           </div>
           
           <!-- ปุ่มเครื่องคิดเลข -->
-          <button type="button" 
-                  class="btn btn-warning px-1flex-shrink-0"
-                  hx-post="/gas-formula/calculator/show-gas"
-                  hx-target="#n2o-calculator"
-                  hx-swap="innerHTML"
-                  hx-include="closest form"
-                  hx-vals='{"gas_type": "n2o", "form_id": "{{ form.id }}"}'
-                  title="เปิดเครื่องคิดเลข">
-            <i data-feather="grid" class="w-4 h-4"></i>
-          </button>
+          <div class="relative flex-shrink-0">
+            <button type="button" 
+                    class="btn btn-warning calculator-toggle"
+                    hx-post="/gas-formula/calculator/show-gas"
+                    hx-target="#n2o-calculator"
+                    hx-swap="innerHTML"
+                    hx-include="closest form"
+                    hx-vals='{"gas_type": "n2o", "form_id": "{{ form.id }}"}'
+                    title="เปิด/ปิดเครื่องคิดเลข"
+                    onclick="const calc = this.nextElementSibling; if(calc.innerHTML) { calc.innerHTML = ''; this.classList.remove('btn-active'); return false; } else { this.classList.add('btn-active'); }">
+              <i data-feather="grid" class="w-4 h-4"></i>
+            </button>
+            
+            <!-- Calculator Container -->
+            <div id="n2o-calculator"></div>
+          </div>
         </div>
-        
-        <!-- Calculator Container -->
-        <div id="n2o-calculator" class="mt-3"></div>
         
       </div>
 
@@ -170,27 +182,31 @@
         <div class="flex items-start gap-4">
           <!-- ช่องแสดงสูตร -->
           <div class="flex-1">
+            {% set input_type = 'gas' %}
             {% set formula_field = 'formula_hfcs' %}
             {% set gas_type = 'hfcs' %}
             {% set formula_value = form.formula_hfcs or '' %}
-            {% include 'form-management/partials/gas-formula-input.html' %}
+            {% include 'form-management/partials/unified-formula-input.html' with context %}
           </div>
           
           <!-- ปุ่มเครื่องคิดเลข -->
-          <button type="button" 
-                  class="btn btn-warning px-1flex-shrink-0"
-                  hx-post="/gas-formula/calculator/show-gas"
-                  hx-target="#hfcs-calculator"
-                  hx-swap="innerHTML"
-                  hx-include="closest form"
-                  hx-vals='{"gas_type": "hfcs", "form_id": "{{ form.id }}"}'
-                  title="เปิดเครื่องคิดเลข">
-            <i data-feather="grid" class="w-4 h-4"></i>
-          </button>
+          <div class="relative flex-shrink-0">
+            <button type="button" 
+                    class="btn btn-warning calculator-toggle"
+                    hx-post="/gas-formula/calculator/show-gas"
+                    hx-target="#hfcs-calculator"
+                    hx-swap="innerHTML"
+                    hx-include="closest form"
+                    hx-vals='{"gas_type": "hfcs", "form_id": "{{ form.id }}"}'
+                    title="เปิด/ปิดเครื่องคิดเลข"
+                    onclick="const calc = this.nextElementSibling; if(calc.innerHTML) { calc.innerHTML = ''; this.classList.remove('btn-active'); return false; } else { this.classList.add('btn-active'); }">
+              <i data-feather="grid" class="w-4 h-4"></i>
+            </button>
+            
+            <!-- Calculator Container -->
+            <div id="hfcs-calculator"></div>
+          </div>
         </div>
-        
-        <!-- Calculator Container -->
-        <div id="hfcs-calculator" class="mt-3"></div>
       </div>
 
       <!-- PFCs Formula -->
@@ -204,27 +220,31 @@
         <div class="flex items-start gap-4">
           <!-- ช่องแสดงสูตร -->
           <div class="flex-1">
+            {% set input_type = 'gas' %}
             {% set formula_field = 'formula_pfcs' %}
             {% set gas_type = 'pfcs' %}
             {% set formula_value = form.formula_pfcs or '' %}
-            {% include 'form-management/partials/gas-formula-input.html' %}
+            {% include 'form-management/partials/unified-formula-input.html' with context %}
           </div>
           
           <!-- ปุ่มเครื่องคิดเลข -->
-          <button type="button" 
-                  class="btn btn-warning px-1flex-shrink-0"
-                  hx-post="/gas-formula/calculator/show-gas"
-                  hx-target="#pfcs-calculator"
-                  hx-swap="innerHTML"
-                  hx-include="closest form"
-                  hx-vals='{"gas_type": "pfcs", "form_id": "{{ form.id }}"}'
-                  title="เปิดเครื่องคิดเลข">
-            <i data-feather="grid" class="w-4 h-4"></i>
-          </button>
+          <div class="relative flex-shrink-0">
+            <button type="button" 
+                    class="btn btn-warning calculator-toggle"
+                    hx-post="/gas-formula/calculator/show-gas"
+                    hx-target="#pfcs-calculator"
+                    hx-swap="innerHTML"
+                    hx-include="closest form"
+                    hx-vals='{"gas_type": "pfcs", "form_id": "{{ form.id }}"}'
+                    title="เปิด/ปิดเครื่องคิดเลข"
+                    onclick="const calc = this.nextElementSibling; if(calc.innerHTML) { calc.innerHTML = ''; this.classList.remove('btn-active'); return false; } else { this.classList.add('btn-active'); }">
+              <i data-feather="grid" class="w-4 h-4"></i>
+            </button>
+            
+            <!-- Calculator Container -->
+            <div id="pfcs-calculator"></div>
+          </div>
         </div>
-        
-        <!-- Calculator Container -->
-        <div id="pfcs-calculator" class="mt-3"></div>
       </div>
 
       <!-- SF6 Formula -->
@@ -238,27 +258,31 @@
         <div class="flex items-start gap-4">
           <!-- ช่องแสดงสูตร -->
           <div class="flex-1">
+            {% set input_type = 'gas' %}
             {% set formula_field = 'formula_sf6' %}
             {% set gas_type = 'sf6' %}
             {% set formula_value = form.formula_sf6 or '' %}
-            {% include 'form-management/partials/gas-formula-input.html' %}
+            {% include 'form-management/partials/unified-formula-input.html' with context %}
           </div>
           
           <!-- ปุ่มเครื่องคิดเลข -->
-          <button type="button" 
-                  class="btn btn-warning px-1flex-shrink-0"
-                  hx-post="/gas-formula/calculator/show-gas"
-                  hx-target="#sf6-calculator"
-                  hx-swap="innerHTML"
-                  hx-include="closest form"
-                  hx-vals='{"gas_type": "sf6", "form_id": "{{ form.id }}"}'
-                  title="เปิดเครื่องคิดเลข">
-            <i data-feather="grid" class="w-4 h-4"></i>
-          </button>
+          <div class="relative flex-shrink-0">
+            <button type="button" 
+                    class="btn btn-warning calculator-toggle"
+                    hx-post="/gas-formula/calculator/show-gas"
+                    hx-target="#sf6-calculator"
+                    hx-swap="innerHTML"
+                    hx-include="closest form"
+                    hx-vals='{"gas_type": "sf6", "form_id": "{{ form.id }}"}'
+                    title="เปิด/ปิดเครื่องคิดเลข"
+                    onclick="const calc = this.nextElementSibling; if(calc.innerHTML) { calc.innerHTML = ''; this.classList.remove('btn-active'); return false; } else { this.classList.add('btn-active'); }">
+              <i data-feather="grid" class="w-4 h-4"></i>
+            </button>
+            
+            <!-- Calculator Container -->
+            <div id="sf6-calculator"></div>
+          </div>
         </div>
-        
-        <!-- Calculator Container -->
-        <div id="sf6-calculator" class="mt-3"></div>
       </div>
 
       <!-- NF3 Formula -->
@@ -272,27 +296,31 @@
         <div class="flex items-start gap-4">
           <!-- ช่องแสดงสูตร -->
           <div class="flex-1">
+            {% set input_type = 'gas' %}
             {% set formula_field = 'formula_nf3' %}
             {% set gas_type = 'nf3' %}
             {% set formula_value = form.formula_nf3 or '' %}
-            {% include 'form-management/partials/gas-formula-input.html' %}
+            {% include 'form-management/partials/unified-formula-input.html' with context %}
           </div>
           
           <!-- ปุ่มเครื่องคิดเลข -->
-          <button type="button" 
-                  class="btn btn-warning px-1flex-shrink-0"
-                  hx-post="/gas-formula/calculator/show-gas"
-                  hx-target="#nf3-calculator"
-                  hx-swap="innerHTML"
-                  hx-include="closest form"
-                  hx-vals='{"gas_type": "nf3", "form_id": "{{ form.id }}"}'
-                  title="เปิดเครื่องคิดเลข">
-            <i data-feather="grid" class="w-4 h-4"></i>
-          </button>
+          <div class="relative flex-shrink-0">
+            <button type="button" 
+                    class="btn btn-warning calculator-toggle"
+                    hx-post="/gas-formula/calculator/show-gas"
+                    hx-target="#nf3-calculator"
+                    hx-swap="innerHTML"
+                    hx-include="closest form"
+                    hx-vals='{"gas_type": "nf3", "form_id": "{{ form.id }}"}'
+                    title="เปิด/ปิดเครื่องคิดเลข"
+                    onclick="const calc = this.nextElementSibling; if(calc.innerHTML) { calc.innerHTML = ''; this.classList.remove('btn-active'); return false; } else { this.classList.add('btn-active'); }">
+              <i data-feather="grid" class="w-4 h-4"></i>
+            </button>
+            
+            <!-- Calculator Container -->
+            <div id="nf3-calculator"></div>
+          </div>
         </div>
-        
-        <!-- Calculator Container -->
-        <div id="nf3-calculator" class="mt-3"></div>
       </div>
 
       <!-- ปุ่มบันทึก -->

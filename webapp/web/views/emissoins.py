@@ -229,7 +229,7 @@ def load_emissions_table():
         if form:
             head_table_info[head] = {
                 "is_linked": getattr(form, "is_linked", False),
-                "linked_material_name": getattr(form, "linked_material_name", ""),
+                "linked_forms": getattr(form, "linked_forms", []),
                 "desc_form": form.desc_form,
                 "formula": form.formula,
             }
@@ -542,8 +542,18 @@ def save_material(scope_id, sub_scope_id, month_id, year, material_data):
     # คำนวณและบันทึก result
     calculate_result(material)
 
-    # จัดการ Material ที่ลิงก์
-    linked_formulas = FormAndFormula.objects(linked_material_name=head, is_linked=True)
+    # จัดการ Material ที่ลิงก์ - ค้นหาฟอร์มที่ลิงก์มายังฟอร์มนี้
+    # หา form ID ของ material นี้ก่อน
+    source_form = FormAndFormula.objects(material_name=head).first()
+    if source_form:
+        # หาทุกฟอร์มที่มี source_form.id อยู่ใน linked_forms array
+        linked_formulas = FormAndFormula.objects(
+            linked_forms=str(source_form.id),
+            is_linked=True
+        )
+    else:
+        linked_formulas = []
+    
     for linked_formula in linked_formulas:
         linked_material = Material.objects(
             month=int(month_id),
@@ -897,7 +907,7 @@ def save_materials():
         if form:
             head_table_info[head] = {
                 "is_linked": getattr(form, "is_linked", False),
-                "linked_material_name": getattr(form, "linked_material_name", ""),
+                "linked_forms": getattr(form, "linked_forms", []),
                 "desc_form": form.desc_form,
                 "formula": form.formula,
             }
@@ -1004,9 +1014,16 @@ def delete_material_and_linked(
         calculate_result(material)
 
         # จัดการ Material ที่ลิงก์ - ต้องอัปเดตข้อมูลใหม่
-        linked_formulas = FormAndFormula.objects(
-            linked_material_name=head, is_linked=True
-        )
+        # หา form ID ของ material นี้ก่อน
+        source_form = FormAndFormula.objects(material_name=head).first()
+        if source_form:
+            linked_formulas = FormAndFormula.objects(
+                linked_forms=str(source_form.id),
+                is_linked=True
+            )
+        else:
+            linked_formulas = []
+        
         for linked_formula in linked_formulas:
             linked_material = Material.objects(
                 month=int(month_id),
@@ -1098,7 +1115,7 @@ def delete_material():
         if form:
             head_table_info[head] = {
                 "is_linked": getattr(form, "is_linked", False),
-                "linked_material_name": getattr(form, "linked_material_name", ""),
+                "linked_forms": getattr(form, "linked_forms", []),
                 "desc_form": form.desc_form,
                 "formula": form.formula,
             }
@@ -1205,9 +1222,16 @@ def delete_all_materials():
 
             # อัปเดต linked materials สำหรับทุก material ที่ถูกลบ
             for material_name in materials_to_update_linked:
-                linked_formulas = FormAndFormula.objects(
-                    linked_material_name=material_name, is_linked=True
-                )
+                # หา form ID ของ material นี้ก่อน
+                source_form = FormAndFormula.objects(material_name=material_name).first()
+                if source_form:
+                    linked_formulas = FormAndFormula.objects(
+                        linked_forms=str(source_form.id),
+                        is_linked=True
+                    )
+                else:
+                    linked_formulas = []
+                
                 for linked_formula in linked_formulas:
                     linked_material = Material.objects(
                         month=int(month_id),
@@ -1255,7 +1279,7 @@ def delete_all_materials():
             if form:
                 head_table_info[head] = {
                     "is_linked": getattr(form, "is_linked", False),
-                    "linked_material_name": getattr(form, "linked_material_name", ""),
+                    "linked_forms": getattr(form, "linked_forms", []),
                     "desc_form": form.desc_form,
                     "formula": form.formula,
                 }
@@ -1586,28 +1610,34 @@ def get_form_details(material_name):
                 }
 
         # ดึงข้อมูลฟอร์มต้นทาง (ถ้าเป็นฟอร์มลิงก์)
-        source_form = None
-        if getattr(form, "is_linked", False) and getattr(
-            form, "linked_material_name", ""
-        ):
-            source_form = FormAndFormula.objects(
-                material_name=form.linked_material_name
-            ).first()
-
-            if source_form:
-                source_scope = Scope.objects(
-                    ghg_scope=source_form.ghg_scope,
-                    ghg_sup_scope=source_form.ghg_sup_scope,
-                ).first()
-                source_form.scope_name = (
-                    source_scope.ghg_name if source_scope else "Unknown"
-                )
+        source_forms = []
+        if getattr(form, "is_linked", False) and getattr(form, "linked_forms", []):
+            # ดึงข้อมูลทุกฟอร์มที่ลิงก์
+            from bson import ObjectId
+            for form_id in form.linked_forms:
+                try:
+                    source_form = FormAndFormula.objects(id=ObjectId(form_id)).first()
+                    if source_form:
+                        source_scope = Scope.objects(
+                            ghg_scope=source_form.ghg_scope,
+                            ghg_sup_scope=source_form.ghg_sup_scope,
+                        ).first()
+                        
+                        source_forms.append({
+                            "form": source_form,
+                            "scope": source_scope,
+                            "scope_name": source_scope.ghg_name if source_scope else "Unknown"
+                        })
+                except:
+                    continue
 
         # ดึงรายชื่อฟอร์มที่ลิงก์มาจากฟอร์มนี้
         linked_forms = []
         if not getattr(form, "is_linked", False):
+            # หาฟอร์มที่มี form ID นี้อยู่ใน linked_forms array
             linked_forms_query = FormAndFormula.objects(
-                linked_material_name=material_name, is_linked=True
+                linked_forms=str(form.id),
+                is_linked=True
             )
 
             for linked_form in linked_forms_query:
@@ -1632,7 +1662,7 @@ def get_form_details(material_name):
             "emissions-scope/partials/form-detail-modal.html",
             form=form,
             scope_info=scope_info,
-            source_form=source_form,
+            source_forms=source_forms,  # เปลี่ยนเป็น list
             linked_forms=linked_forms,
         )
 
@@ -1664,31 +1694,36 @@ def get_linked_form_info(material_name):
             )
 
         # ดึงข้อมูลฟอร์มต้นทาง
-        source_form = None
-        source_material_data = None
+        source_forms_data = []
 
-        if getattr(form, "is_linked", False) and getattr(
-            form, "linked_material_name", ""
-        ):
-            source_form = FormAndFormula.objects(
-                material_name=form.linked_material_name
-            ).first()
-
-            if source_form:
-                # ดึงข้อมูล Material ต้นทางในเดือนเดียวกัน
-                source_material_data = Material.objects(
-                    month=int(month_id),
-                    name=form.linked_material_name,
-                    year=int(year),
-                    department=current_user.department_key,
-                    campus=current_user.campus_id,
-                ).first()
+        if getattr(form, "is_linked", False) and getattr(form, "linked_forms", []):
+            from bson import ObjectId
+            for form_id in form.linked_forms:
+                try:
+                    source_form = FormAndFormula.objects(id=ObjectId(form_id)).first()
+                    if source_form:
+                        # ดึงข้อมูล Material ต้นทางในเดือนเดียวกัน
+                        source_material_data = Material.objects(
+                            month=int(month_id),
+                            name=source_form.material_name,
+                            scope=int(source_form.ghg_scope),
+                            sub_scope=int(source_form.ghg_sup_scope),
+                            year=int(year),
+                            department=current_user.department_key,
+                            campus=current_user.campus_id,
+                        ).first()
+                        
+                        source_forms_data.append({
+                            "form": source_form,
+                            "material": source_material_data
+                        })
+                except:
+                    continue
 
         return render_template(
             "emissions-scope/partials/linked-form-info-modal.html",
             form=form,
-            source_form=source_form,
-            source_material_data=source_material_data,
+            source_forms=source_forms_data,
             month_id=month_id,
             year=year,
         )
