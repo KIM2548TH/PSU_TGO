@@ -264,78 +264,24 @@
 </div>
 
 <script>
-// Save filter selections to session storage
-function saveFilterSelections() {
-  const selectedScopes = Array.from(document.querySelectorAll('[name="selected_scopes"]:checked')).map(el => el.value);
-  const selectedSubScopes = Array.from(document.querySelectorAll('[name="selected_sub_scopes"]:checked')).map(el => el.value);
-  const selectedYear = document.querySelector('[name="selected_year"]:checked');
-  
-  // Only save if we have all required selections
-  if (selectedScopes.length === 0 || selectedSubScopes.length === 0 || !selectedYear) {
-    return;
-  }
-  
-  const filterState = {
-    scopes: selectedScopes,
-    subScopes: selectedSubScopes,
-    year: selectedYear ? selectedYear.value : null,
-    timestamp: new Date().getTime()
-  };
-  
-  sessionStorage.setItem('summaryFilterState', JSON.stringify(filterState));
+
+// No longer persist or restore year selection. Always default to current year.
+function getCurrentYear() {
+  return new Date().getFullYear();
 }
 
-// Restore filter selections from session storage
-function restoreFilterSelections() {
-  const savedState = sessionStorage.getItem('summaryFilterState');
-  if (!savedState) return false;
-  
-  try {
-    const filterState = JSON.parse(savedState);
-    
-    // Check if state is not too old (e.g., within 1 hour)
-    const oneHour = 60 * 60 * 1000;
-    if (new Date().getTime() - filterState.timestamp > oneHour) {
-      sessionStorage.removeItem('summaryFilterState');
-      return false;
-    }
-    
-    // Store for later use
-    window.savedFilterState = filterState;
-    
-    // Restore scopes
-    let hasSelections = false;
-    
-    if (filterState.scopes && filterState.scopes.length > 0) {
-      filterState.scopes.forEach(scope => {
-        const checkbox = document.querySelector(`[name="selected_scopes"][value="${scope}"]`);
-        if (checkbox) {
-          checkbox.checked = true;
-          hasSelections = true;
-        }
-      });
-    }
-    
-    // For sub-scopes, we need to wait for the popup to load
-    // Store them for later restoration
-    window.pendingSubScopeRestoration = filterState.subScopes;
-    
-    if (filterState.year) {
-      const radio = document.querySelector(`[name="selected_year"][value="${filterState.year}"]`);
-      if (radio) {
-        radio.checked = true;
-        hasSelections = true;
-        
-        // Update the dropdown button text to show selected year
-        updateYearDropdownText(filterState.year);
-      }
-    }
-    
-    return hasSelections;
-  } catch (e) {
-    console.error('Error restoring filter state:', e);
-    sessionStorage.removeItem('summaryFilterState');
-    return false;
+function setYearToCurrent() {
+  // Find the radio for the current year and check it
+  const currentYear = getCurrentYear();
+  // Uncheck all first to avoid multiple checked
+  const allRadios = document.querySelectorAll('[name="selected_year"]');
+  allRadios.forEach(r => { r.checked = false; });
+  const yearRadio = document.querySelector(`[name="selected_year"][value="${currentYear}"]`);
+  if (yearRadio) {
+    yearRadio.checked = true;
+    // Also trigger change event so HTMX and UI update
+    yearRadio.dispatchEvent(new Event('change', { bubbles: true }));
+    updateYearDropdownText(currentYear);
   }
 }
 
@@ -357,11 +303,9 @@ function updateYearDropdownFromChecked() {
   if (checkedYear) {
     updateYearDropdownText(checkedYear.value);
   } else {
-    // Check if server has a selected year
-    const serverSelectedYear = {{ selected_year|default('null') }};
-    if (serverSelectedYear) {
-      updateYearDropdownText(serverSelectedYear);
-    }
+    // Always use current year as default
+    const currentYear = getCurrentYear();
+    updateYearDropdownText(currentYear);
   }
 }
 
@@ -401,55 +345,30 @@ function restoreSubScopes() {
 // Function to check if PDF buttons should be enabled
 function checkPdfButtonsState() {
   const selectedScopes = document.querySelectorAll('[name="selected_scopes"]:checked');
-  const selectedSubScopes = document.querySelectorAll('[name="selected_sub_scopes"]:checked');
+  let selectedSubScopes = document.querySelectorAll('[name="selected_sub_scopes"]:checked');
   const selectedYear = document.querySelector('[name="selected_year"]:checked');
-  
-  let hasRequiredSelections = selectedScopes.length > 0 && selectedSubScopes.length > 0 && selectedYear;
-  
-  // If DOM doesn't have selections yet, check session storage
-  if (!hasRequiredSelections) {
-    const savedState = sessionStorage.getItem('summaryFilterState');
-    if (savedState) {
-      try {
-        const filterState = JSON.parse(savedState);
-        const oneHour = 60 * 60 * 1000;
-        if (new Date().getTime() - filterState.timestamp <= oneHour) {
-          hasRequiredSelections = filterState.scopes && filterState.scopes.length > 0 &&
-                                  filterState.subScopes && filterState.subScopes.length > 0 &&
-                                  filterState.year;
-        }
-      } catch (e) {
-        console.error('Error reading filter state:', e);
-      }
-    }
+
+  // If no sub-scope is checked in DOM, but pendingSubScopeRestoration exists and has values, treat as selected
+  let subScopeCount = selectedSubScopes.length;
+  if (subScopeCount === 0 && window.pendingSubScopeRestoration && Array.isArray(window.pendingSubScopeRestoration) && window.pendingSubScopeRestoration.length > 0) {
+    subScopeCount = window.pendingSubScopeRestoration.length;
   }
-  
+
+  let hasRequiredSelections = selectedScopes.length > 0 && subScopeCount > 0 && selectedYear;
   const previewBtn = document.getElementById('preview-pdf-btn');
   const downloadBtn = document.getElementById('download-pdf-btn');
-  
   if (!previewBtn || !downloadBtn) return;
-  
   if (hasRequiredSelections) {
-    // Save current selections if available
-    if (selectedScopes.length > 0 && selectedSubScopes.length > 0 && selectedYear) {
-      saveFilterSelections();
-    }
-    
-    // Enable buttons
     previewBtn.disabled = false;
     previewBtn.classList.remove('opacity-50', 'cursor-not-allowed');
     previewBtn.classList.add('cursor-pointer');
     previewBtn.title = 'พรีวิวรายงาน PDF';
-    
     downloadBtn.disabled = false;
     downloadBtn.classList.remove('opacity-50', 'cursor-not-allowed');
     downloadBtn.classList.add('cursor-pointer');
     downloadBtn.title = 'ดาวน์โหลดรายงาน PDF';
-    
-    // Add click handlers
     previewBtn.onclick = function() {
-      const year = selectedYear ? selectedYear.value : (window.savedFilterState ? window.savedFilterState.year : '');
-      // Load preview modal via HTMX
+      const year = selectedYear ? selectedYear.value : '';
       htmx.ajax('GET', '/summary/preview-pdf-modal', {
         target: 'body',
         swap: 'beforeend',
@@ -458,10 +377,8 @@ function checkPdfButtonsState() {
         }
       });
     };
-    
     downloadBtn.onclick = function() {
-      const year = selectedYear ? selectedYear.value : (window.savedFilterState ? window.savedFilterState.year : '');
-      // Load download modal via HTMX
+      const year = selectedYear ? selectedYear.value : '';
       htmx.ajax('GET', '/summary/download-pdf-modal', {
         target: 'body',  
         swap: 'beforeend',
@@ -470,15 +387,12 @@ function checkPdfButtonsState() {
         }
       });
     };
-    
   } else {
-    // Disable buttons
     previewBtn.disabled = true;
     previewBtn.classList.add('opacity-50', 'cursor-not-allowed');
     previewBtn.classList.remove('cursor-pointer');
     previewBtn.title = 'กรุณาเลือก Scope, Sub Scope และ Year ก่อน';
     previewBtn.onclick = null;
-    
     downloadBtn.disabled = true;
     downloadBtn.classList.add('opacity-50', 'cursor-not-allowed');
     downloadBtn.classList.remove('cursor-pointer');
@@ -489,94 +403,42 @@ function checkPdfButtonsState() {
 
 // Event listeners for form changes
 document.addEventListener('DOMContentLoaded', function() {
-  // Check PDF button state immediately on page load
+  // Always set year to current year on page load
   setTimeout(() => {
+    setYearToCurrent();
     checkPdfButtonsState();
   }, 100);
-  
-  // Wait for HTMX to load scopes and sub-scopes before restoring
-  let htmxLoadCount = 0;
-  const expectedLoads = 2; // scopes and years dropdowns
-  
-  function tryRestoreSelections() {
-    htmxLoadCount++;
-    if (htmxLoadCount >= expectedLoads) {
-      // Try to restore previous filter state
-      setTimeout(() => {
-        const hasRestoredSelections = restoreFilterSelections();
-        
-        // Don't open popup, just check and enable PDF buttons based on saved state
-        // The sub-scopes will be restored when user opens the popup naturally
-        // or when the stats/charts are loaded
-        
-        // Update year dropdown text based on checked year or server selected year
-        setTimeout(() => {
-          updateYearDropdownFromChecked();
-        }, 100);
-        
-        // Update year dropdown text if we have saved year in sessionStorage
-        if (window.savedFilterState && window.savedFilterState.year) {
-          setTimeout(() => {
-            updateYearDropdownText(window.savedFilterState.year);
-          }, 150);
-        }
-        
-        // Check PDF button state immediately based on saved state
-        setTimeout(() => {
-          checkPdfButtonsState();
-        }, 200);
-      }, 300);
-    }
-  }
-  
+
   // Listen for HTMX afterSwap on dropdowns
   document.addEventListener('htmx:afterSwap', function(e) {
-    // Check if this is a dropdown load
-    if (e.target.matches('.dropdown-content') || e.target.matches('ul[hx-get*="/summary/"]')) {
-      tryRestoreSelections();
-    }
-    
-    // Check if this is the sub-scope popup modal - restore selections when opened
-    if (e.target.id === 'modal-content' && e.detail.pathInfo.requestPath.includes('/summary/sub-scope-popup')) {
-      // Restore sub-scope selections after popup loads
+    // If year dropdown is swapped, set to current year
+    if (e.detail && e.detail.target && e.detail.target.querySelector && e.detail.target.querySelector('[name="selected_year"]')) {
       setTimeout(() => {
-        restoreSubScopes();
-      }, 100);
-    }
-    
-    // Always recheck PDF button state after any swap
-    setTimeout(checkPdfButtonsState, 100);
-  });
-  
-  // Listen for changes in scopes, sub-scopes, and year selections
-  document.addEventListener('change', function(e) {
-    if (e.target.matches('[name="selected_scopes"], [name="selected_sub_scopes"], [name="selected_year"]')) {
-      setTimeout(() => {
-        // Update year dropdown text if year changed
-        if (e.target.matches('[name="selected_year"]')) {
-          updateYearDropdownText(e.target.value);
-        }
-        
-        saveFilterSelections();
+        setYearToCurrent();
         checkPdfButtonsState();
       }, 100);
+    } else {
+      setTimeout(checkPdfButtonsState, 100);
     }
   });
-  
-  // Also save when badges are updated (from sub-scope popup)
-  const badgesObserver = new MutationObserver(function(mutations) {
-    saveFilterSelections();
+
+  // Listen for changes in scopes, sub-scopes, and year selections
+  document.addEventListener('change', function(e) {
+    if (e.target && e.target.name === 'selected_year') {
+      updateYearDropdownFromChecked();
+    }
     checkPdfButtonsState();
   });
-  
+
+  // Also check PDF button state when badges are updated (from sub-scope popup)
+  const badgesObserver = new MutationObserver(function(mutations) {
+    checkPdfButtonsState();
+  });
   // Start observing the badges container if it exists
   setTimeout(() => {
-    const badgesContainer = document.getElementById('active-badges-container');
+    const badgesContainer = document.getElementById('active-filters');
     if (badgesContainer) {
-      badgesObserver.observe(badgesContainer, {
-        childList: true,
-        subtree: true
-      });
+      badgesObserver.observe(badgesContainer, { childList: true, subtree: true });
     }
   }, 1000);
 });
