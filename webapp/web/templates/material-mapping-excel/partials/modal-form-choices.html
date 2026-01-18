@@ -8,8 +8,11 @@
   <div class="font-bold text-lg mb-4 {{ theme.head }} text-white px-4 py-2 rounded">
     เลือก Form/Formula สำหรับ Scope {{ scope_num }}
   </div>
+  <div class="mb-4 flex items-center gap-2">
+    <input type="text" id="formSearchInput" class="input input-bordered w-full max-w-xs" placeholder="ค้นหาชื่อฟอร์มหรือ Sub Scope..." oninput="filterFormTable()">
+  </div>
   <form id="formChoicesForm" method="POST">
-    <table class="w-full border rounded-lg overflow-hidden">
+    <table class="w-full border rounded-lg overflow-hidden" id="formChoicesTable">
       <thead>
         <tr class="{{ theme.bg }} ">
           <th class="py-2 px-3 text-left {{ theme.text }} border-r border-gray-300">Sub Scope</th>
@@ -33,6 +36,25 @@
         {% endfor %}
       </tbody>
     </table>
+    <script>
+      function filterFormTable() {
+        const input = document.getElementById('formSearchInput');
+        const filter = input.value.toLowerCase();
+        const table = document.getElementById('formChoicesTable');
+        const trs = table.getElementsByTagName('tr');
+        for (let i = 1; i < trs.length; i++) { // ข้าม thead
+          const tds = trs[i].getElementsByTagName('td');
+          if (tds.length < 2) continue;
+          const subScope = tds[0].textContent.toLowerCase();
+          const formName = tds[1].textContent.toLowerCase();
+          if (subScope.includes(filter) || formName.includes(filter)) {
+            trs[i].style.display = '';
+          } else {
+            trs[i].style.display = 'none';
+          }
+        }
+      }
+    </script>
     <div class="modal-action flex justify-end gap-2 mt-4">
       <button type="button" class="btn" onclick="document.getElementById('modal').classList.remove('modal-open')">ยกเลิก</button>
       <button type="submit" class="btn bg-[#193F6C] text-white border border-[#193F6C] hover:bg-[#142c4c] hover:border-[#142c4c]"

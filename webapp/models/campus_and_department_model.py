@@ -248,13 +248,50 @@ class  CampusAndDepartment(me.Document):
         self.save()
 
     def delete_department(self, dept_key):
-        """ลบหน่วยงาน (พร้อมตรวจสอบ)"""
+        """ลบหน่วยงาน (พร้อมลบข้อมูลที่เกี่ยวข้องทั้งหมด)"""
         if not self.can_delete_department(dept_key):
             raise ValueError("ไม่สามารถลบหน่วยงานนี้ได้ เนื่องจากมีข้อมูลที่เกี่ยวข้อง")
         
-        del self.departments[dept_key]
-        self.updated_date = datetime.datetime.now()
-        self.save()
+        campus_id = str(self.id)
+        dept_name = self.departments.get(dept_key, "")
+        campus_name = self.name.get("0", "")
+        
+        try:
+            # ลบข้อมูลที่เกี่ยวข้องทั้งหมด
+            
+            # 1. ลบ Scope ที่เกี่ยวข้อง
+            from .scope_model import Scope
+            deleted_scopes = Scope.objects(campus=campus_id, department=dept_key).delete()
+            print(f"Deleted {deleted_scopes} scope(s) for department {dept_key}")
+            
+            # 2. ลบ Material ที่เกี่ยวข้อง
+            from .materail_model import Material
+            deleted_materials = Material.objects(campus=campus_id, department=dept_key).delete()
+            print(f"Deleted {deleted_materials} material(s) for department {dept_key}")
+            
+            # 3. ลบ MaterialMappingExcel ที่เกี่ยวข้อง
+            from .material_mapping_excel_model import MaterialMappingExcel
+            deleted_mappings = MaterialMappingExcel.objects(campus_id=campus_id, department_key=dept_key).delete()
+            print(f"Deleted {deleted_mappings} material mapping(s) for department {dept_key}")
+            
+            # 4. ลบ ReferenceDocument ที่เกี่ยวข้อง (ลองทั้ง dept_key และ dept_name)
+            from .file_model import ReferenceDocument
+            deleted_files1 = ReferenceDocument.objects(campus=campus_name, department=dept_key).delete()
+            deleted_files2 = ReferenceDocument.objects(campus=campus_name, department=dept_name).delete()
+            print(f"Deleted {deleted_files1 + deleted_files2} file(s) for department {dept_key}")
+            
+            # 5. ลบหน่วยงานออกจาก campus
+            del self.departments[dept_key]
+            self.updated_date = datetime.datetime.now()
+            self.save()
+            
+            print(f"Successfully deleted department {dept_key} and all related data")
+            
+        except Exception as e:
+            print(f"Error deleting department data: {e}")
+            import traceback
+            traceback.print_exc()
+            raise ValueError(f"เกิดข้อผิดพลาดในการลบข้อมูล: {str(e)}")
 
     def update_campus_name(self, new_name, new_description=None):
         """แก้ไขชื่อและคำอธิบายวิทยาเขต"""
@@ -285,11 +322,46 @@ class  CampusAndDepartment(me.Document):
         return campus
 
     def safe_delete(self):
-        """ลบวิทยาเขต (พร้อมตรวจสอบ)"""
+        """ลบวิทยาเขต (พร้อมลบข้อมูลที่เกี่ยวข้องทั้งหมด)"""
         if not self.can_delete_campus():
             raise ValueError("ไม่สามารถลบวิทยาเขตนี้ได้ เนื่องจากมีข้อมูลที่เกี่ยวข้อง")
         
-        self.delete()
+        campus_id = str(self.id)
+        campus_name = self.name.get("0", "")
+        
+        try:
+            # ลบข้อมูลที่เกี่ยวข้องทั้งหมด
+            
+            # 1. ลบ Scope ทั้งหมดของ campus นี้
+            from .scope_model import Scope
+            deleted_scopes = Scope.objects(campus=campus_id).delete()
+            print(f"Deleted {deleted_scopes} scope(s) for campus {campus_id}")
+            
+            # 2. ลบ Material ทั้งหมดของ campus นี้
+            from .materail_model import Material
+            deleted_materials = Material.objects(campus=campus_id).delete()
+            print(f"Deleted {deleted_materials} material(s) for campus {campus_id}")
+            
+            # 3. ลบ MaterialMappingExcel ทั้งหมดของ campus นี้
+            from .material_mapping_excel_model import MaterialMappingExcel
+            deleted_mappings = MaterialMappingExcel.objects(campus_id=campus_id).delete()
+            print(f"Deleted {deleted_mappings} material mapping(s) for campus {campus_id}")
+            
+            # 4. ลบ ReferenceDocument ทั้งหมดของ campus นี้
+            from .file_model import ReferenceDocument
+            deleted_files = ReferenceDocument.objects(campus=campus_name).delete()
+            print(f"Deleted {deleted_files} file(s) for campus {campus_name}")
+            
+            # 5. ลบ campus
+            self.delete()
+            
+            print(f"Successfully deleted campus {campus_name} and all related data")
+            
+        except Exception as e:
+            print(f"Error deleting campus data: {e}")
+            import traceback
+            traceback.print_exc()
+            raise ValueError(f"เกิดข้อผิดพลาดในการลบข้อมูล: {str(e)}")
 
     @staticmethod
     @staticmethod
