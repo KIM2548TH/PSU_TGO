@@ -26,6 +26,9 @@ def load_config(app):
 def create_app():
     app = Flask(__name__)
     load_config(app)
+    
+    # เพิ่มขนาดไฟล์สูงสุดที่รับได้ (100 MB)
+    app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
 
     views.register_blueprint(app)
     views.init_htmx(app)

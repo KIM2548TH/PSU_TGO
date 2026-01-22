@@ -309,13 +309,11 @@ def edit_form_and_formula():
         if not form:
             return _error_response("Form not found")
 
-        # อัปเดตข้อมูลพื้นฐาน
+        # อัปเดตข้อมูลพื้นฐาน (ไม่รวมสูตร - สูตรแก้ที่หน้าอื่น)
         form.material_name = request.form.get("material_name")
         form.desc_form = request.form.get("desc_form")
-        form.desc_formula = request.form.get("desc_formula")
-        form.desc_formula2 = request.form.get("desc_formula2")
-        form.formula = request.form.get("formula")
-        form.formula2 = request.form.get("formula2")
+        # ไม่อัปเดต desc_formula, desc_formula2, formula, formula2
+        # เพราะหน้านี้ไม่ได้แก้สูตร แก้แค่ฟิลด์กับการลิงก์
 
         # อัปเดต input fields
         form_type = request.form.get("form_type", "normal")
@@ -328,9 +326,9 @@ def edit_form_and_formula():
         old_linked_forms = list(form.linked_forms) if form.linked_forms else []
         
         if is_linked:
-            # ดึง linked_forms จาก request ไม่ใช่จาก database เก่า
+            # ดึง linked_forms จาก request
             linked_forms_raw = request.form.get("linked_forms", "")
-            print(f"🔍 DEBUG: linked_forms_raw from request = {linked_forms_raw}")
+            print(f"🔍 DEBUG: linked_forms_raw from request = {repr(linked_forms_raw)}")
             
             linked_forms = []
             if linked_forms_raw:
