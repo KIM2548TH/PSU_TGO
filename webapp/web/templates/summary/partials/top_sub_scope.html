@@ -1,12 +1,17 @@
 <div id="top-sub-scope-content" class="space-y-1">
   <input type="hidden" name="selected_scope" value="{{ selected_scope if selected_scope is defined else 'all' }}">
   {% if top_materials and top_materials|length > 0 %}
-    {% set total_emissions = top_materials|sum(attribute='result2') %}
-    {% set safe_total = total_emissions if total_emissions > 0 else 1 %}
+    {% set show_limit = 3 %}
+    {% set has_more = top_materials|length > show_limit %}
+    
     <div class="space-y-1">
       {% for material in top_materials %}
-        {% set pct = (material.result2 / safe_total * 100) if safe_total else 0 %}
-        <div class="bg-white rounded-lg p-2 border border-gray-100 hover:border-gray-200 transition-colors">
+        {% if loop.index <= show_limit %}
+          {% set item_class = "" %}
+        {% else %}
+          {% set item_class = "hidden top-material-extra" %}
+        {% endif %}
+        <div class="bg-white rounded-lg p-2 border border-gray-100 hover:border-gray-200 transition-colors {{ item_class if loop.index > show_limit else '' }}">
           <div class="flex items-center space-x-2">
             <div class="flex items-center justify-center w-6 h-6 rounded text-xs font-bold text-white
               {% if loop.index == 1 %}bg-red-500
@@ -17,18 +22,18 @@
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex justify-between items-center">
-                <span class="text-xs font-medium text-gray-900 truncate pr-2">{{ material.head }}</span>
+                <span class="text-xs font-medium text-gray-900 truncate pr-2">{{ material.scope_name }}</span>
                 <span class="text-xs font-bold text-gray-900 whitespace-nowrap">
-                  {% if material.result2 >= 1000000 %}
-                    {{ (material.result2 / 1000000)|round(1) }}M
-                  {% elif material.result2 >= 1000 %}
-                    {{ (material.result2 / 1000)|round(1) }}k
+                  {% if material.emissions >= 1000000 %}
+                    {{ (material.emissions / 1000000)|round(1) }}M
+                  {% elif material.emissions >= 1000 %}
+                    {{ (material.emissions / 1000)|round(1) }}k
                   {% else %}
-                    {{ material.result2|round(1) }}
+                    {{ material.emissions|round(1) }}
                   {% endif %} tonCO₂e
                 </span>
               </div>
-              <div class="text-xs text-gray-500 truncate mb-1">{{ material.scope_name }}</div>
+              <div class="text-xs text-gray-500 truncate mb-1">Scope {{ material.scope }}.{{ material.sub_scope }}</div>
               <div class="mt-1 flex items-center space-x-2">
                 <div class="flex-1 bg-gray-100 rounded-full h-1">
                   <div class="h-full rounded-full transition-all duration-500
@@ -36,15 +41,29 @@
                     {% elif loop.index == 2 %}bg-orange-400
                     {% elif loop.index == 3 %}bg-yellow-400
                     {% else %}bg-gray-300{% endif %}"
-                       style="width: {{ pct|round(1) }}%"></div>
+                       style="width: {{ material.percentage|round(1) }}%"></div>
                 </div>
-                <span class="text-xs text-gray-500 whitespace-nowrap">{{ pct|round(1) }}%</span>
+                <span class="text-xs text-gray-500 whitespace-nowrap">{{ material.percentage|round(1) }}%</span>
               </div>
             </div>
           </div>
         </div>
       {% endfor %}
     </div>
+    
+    <!-- Show More/Less Button -->
+    {% if has_more %}
+    <div class="mt-2 text-center">
+      <button type="button" 
+              id="toggle-top-materials"
+              class="btn btn-xs btn-outline btn-primary"
+              onclick="toggleTopMaterials()">
+        <i data-feather="chevron-down" class="w-3 h-3 mr-1" id="toggle-icon"></i>
+        <span id="toggle-text">Show More ({{ top_materials|length - show_limit }})</span>
+      </button>
+    </div>
+    {% endif %}
+    
     <div class="mt-2 bg-gray-50 rounded-lg p-2 border border-gray-100">
       <div class="flex items-center justify-between">
         <span class="text-xs font-medium text-gray-700">Total</span>
@@ -61,7 +80,45 @@
     </div>
   {% else %}
     <div class="text-center py-4 bg-gray-50 rounded-lg">
-      <p class="text-xs text-gray-500">No data. Pick a scope.</p>
+      <p class="text-xs text-gray-500">No data available</p>
     </div>
   {% endif %}
 </div>
+
+<script>
+function toggleTopMaterials() {
+  const extras = document.querySelectorAll('.top-material-extra');
+  const button = document.getElementById('toggle-top-materials');
+  const text = document.getElementById('toggle-text');
+  const icon = document.getElementById('toggle-icon');
+  
+  if (!extras.length) return;
+  
+  const isHidden = extras[0].classList.contains('hidden');
+  
+  extras.forEach(item => {
+    if (isHidden) {
+      item.classList.remove('hidden');
+    } else {
+      item.classList.add('hidden');
+    }
+  });
+  
+  if (isHidden) {
+    text.textContent = 'Show Less';
+    icon.setAttribute('data-feather', 'chevron-up');
+  } else {
+    const hiddenCount = {{ top_materials|length - 3 if top_materials and top_materials|length > 3 else 0 }};
+    text.textContent = `Show More (${hiddenCount})`;
+    icon.setAttribute('data-feather', 'chevron-down');
+  }
+  
+  if (typeof feather !== 'undefined') {
+    feather.replace();
+  }
+}
+
+if (typeof feather !== 'undefined') {
+  feather.replace();
+}
+</script>

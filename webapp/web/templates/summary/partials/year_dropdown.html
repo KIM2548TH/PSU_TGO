@@ -8,25 +8,32 @@
            {% if year == selected_year %}checked{% endif %}
            hx-post="/summary/stats" 
            hx-target="#stats-container" 
-           hx-include="[name='time_period']:checked, [name='selected_year']:checked"
+           hx-include="[name='time_period']:checked, [name='selected_sub_scopes']:checked, [name='selected_scopes']:checked"
            hx-trigger="change"
-           hx-swap="outerHTML">
+           hx-swap="outerHTML"
+           onchange="
+             document.getElementById('hidden-selected-year').value = this.value;
+             setTimeout(function() {
+               htmx.ajax('POST', '/summary/charts', {
+                 target: '#charts-container',
+                 swap: 'outerHTML',
+                 values: {
+                   'selected_year': document.getElementById('hidden-selected-year').value,
+                   'time_period': document.querySelector('[name=\'time_period\']:checked')?.value || 'week',
+                   'chart_time_range': '1Y'
+                 }
+               });
+               
+               // Trigger Top Materials reload
+               var selectedScope = document.querySelector('[name=\'selected_scope\']:checked')?.value || 'all';
+               var yearValue = document.getElementById('hidden-selected-year').value;
+               htmx.ajax('GET', '/summary/partials/top_sub_scope?selected_scope=' + selectedScope + '&selected_year=' + yearValue, {
+                 target: '#top-sub-scope-content',
+                 swap: 'innerHTML'
+               });
+             }, 200);
+           ">
     <span class="flex-1">{{ year }}</span>
   </label>
 </li>
 {% endfor %}
-
-<!-- Auto trigger charts update -->
-<div class="hidden">
-  <div hx-post="/summary/charts" 
-    hx-target="#charts-container"
-    hx-include="[name='time_period']:checked, [name='selected_year']:checked"
-    hx-trigger="change from:[name='selected_year']"
-    hx-swap="outerHTML"></div>
-  <div hx-get="/summary/partials/top_sub_scope"
-    hx-target="#top-sub-scope-content"
-    hx-include="[name='selected_scope'],[name='time_period']:checked, [name='selected_year']:checked"
-    hx-trigger="change from:[name='selected_year']"
-    hx-swap="outerHTML"></div>
-</div>
-

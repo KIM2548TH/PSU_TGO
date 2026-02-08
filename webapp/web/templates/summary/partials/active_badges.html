@@ -3,12 +3,42 @@
   <span class="badge badge-primary badge-sm">{{ user.campus }}</span>
   <span class="badge badge-secondary badge-sm">{{ user.department }}</span>
   
-  <!-- Smart Scope Badges -->
-  {% if scope_badges %}
-    {% for badge in scope_badges %}
-      <span class="badge badge-sm {{ badge.class }}">{{ badge.text }}</span>
+  <!-- Scope Badges -->
+  {% if selected_scopes %}
+    {% for scope_id in selected_scopes %}
+      {% set scope_int = scope_id|int %}
+      {% if scope_int == 1 %}
+        {% set color_class = "bg-purple-100 text-purple-800 border border-purple-300" %}
+        {% set icon = "layers" %}
+      {% elif scope_int == 2 %}
+        {% set color_class = "bg-green-100 text-green-800 border border-green-300" %}
+        {% set icon = "zap" %}
+      {% else %}
+        {% set color_class = "bg-blue-100 text-blue-800 border border-blue-300" %}
+        {% set icon = "globe" %}
+      {% endif %}
+      <span class="badge badge-sm {{ color_class }}">
+        <i data-feather="{{ icon }}" class="w-3 h-3 mr-1"></i>
+        Scope {{ scope_id }}
+      </span>
     {% endfor %}
+  {% endif %}
+  
+  <!-- Sub Scope Count Badge -->
+  {% if sub_scope_objects %}
+    <span class="badge badge-success badge-sm">
+      <i data-feather="check-circle" class="w-3 h-3 mr-1"></i>
+      {{ sub_scope_objects|length }} Sub Scopes
+    </span>
   {% else %}
-    <span class="badge badge-ghost badge-sm text-gray-500">No sub scopes selected</span>
+    <span class="badge badge-ghost badge-sm text-gray-500">
+      <i data-feather="alert-circle" class="w-3 h-3 mr-1"></i>
+      No sub scopes selected
+    </span>
   {% endif %}
 </div>
+<script>
+  if (typeof feather !== 'undefined') {
+    feather.replace();
+  }
+</script>

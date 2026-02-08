@@ -18,7 +18,7 @@
             hx-post="/summary/charts"
             hx-target="#charts-container"
             hx-swap="outerHTML"
-            hx-include="[name='selected_scopes'],[name='selected_sub_scopes'],[name='time_period'],[name='selected_year']"
+            hx-include="[name='selected_scopes'],[name='selected_sub_scopes'],[name='time_period'],#hidden-selected-year"
             hx-vals='{"chart_time_range": "1Y"}'
           >1 Year</button>
           <button 
@@ -27,7 +27,7 @@
             hx-post="/summary/charts"
             hx-target="#charts-container"
             hx-swap="outerHTML"
-            hx-include="[name='selected_scopes'],[name='selected_sub_scopes'],[name='time_period'],[name='selected_year']"
+            hx-include="[name='selected_scopes'],[name='selected_sub_scopes'],[name='time_period'],#hidden-selected-year"
             hx-vals='{"chart_time_range": "5Y"}'
           >5 Years</button>
           <button 
@@ -36,7 +36,7 @@
             hx-post="/summary/charts"
             hx-target="#charts-container"
             hx-swap="outerHTML"
-            hx-include="[name='selected_scopes'],[name='selected_sub_scopes'],[name='time_period'],[name='selected_year']"
+            hx-include="[name='selected_scopes'],[name='selected_sub_scopes'],[name='time_period'],#hidden-selected-year"
             hx-vals='{"chart_time_range": "10Y"}'
           >10 Years</button>
           <button 
@@ -45,7 +45,7 @@
             hx-post="/summary/charts"
             hx-target="#charts-container"
             hx-swap="outerHTML"
-            hx-include="[name='selected_scopes'],[name='selected_sub_scopes'],[name='time_period'],[name='selected_year']"
+            hx-include="[name='selected_scopes'],[name='selected_sub_scopes'],[name='time_period'],#hidden-selected-year"
             hx-vals='{"chart_time_range": "ALL"}'
           >All Years</button>
         </div>
@@ -304,6 +304,8 @@
   var yearRange = {{ year_range | tojson | safe }}
   var categoryLabels = {{ data.category_data.keys() | list | tojson | safe }}
   var categoryValues = {{ data.category_data.values() | list | tojson | safe }}
+        console.log('📊 Selected Year:', selectedYear);
+        console.log('🍩 Category Data:', {labels: categoryLabels, values: categoryValues});
         
         const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
         const shortMonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
