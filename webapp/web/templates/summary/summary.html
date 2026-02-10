@@ -70,7 +70,7 @@
           <label class="block text-sm font-medium mb-2">{{ t.year }}</label>
           <div class="dropdown dropdown-bottom w-full">
             <div tabindex="0" role="button" class="btn btn-sm btn-outline w-full justify-between min-h-[2rem] text-sm">
-              <span class="truncate">{{ selected_year }}</span>
+              <span id="year-display" class="truncate">{{ selected_year }}</span>
               <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
@@ -284,17 +284,20 @@
        hx-trigger="load"
        hx-swap="innerHTML"></div>
   
+  <!-- Load badges ครั้งแรก -->
   <div hx-get="/summary/update-badges" 
        hx-target="#active-filters"
        hx-trigger="load"
        hx-swap="outerHTML"></div>
   
+  <!-- Load stats ครั้งแรก -->
   <div hx-post="/summary/stats" 
        hx-target="#stats-container"
        hx-include="[name='time_period']:checked, #hidden-selected-year"
        hx-trigger="load"
        hx-swap="outerHTML"></div>
   
+  <!-- Load charts ครั้งแรก (default chart_time_range = 1Y) -->
   <div hx-post="/summary/charts" 
        hx-target="#charts-container"
        hx-include="[name='time_period']:checked, #hidden-selected-year"
@@ -302,6 +305,7 @@
        hx-trigger="load"
        hx-swap="outerHTML"></div>
   
+  <!-- Load Top Materials ครั้งแรก (all scopes) -->
   <div hx-get="/summary/partials/top_sub_scope?selected_scope=all" 
        hx-target="#top-sub-scope-content"
        hx-include="#hidden-selected-year"
@@ -310,3 +314,4 @@
 </div>
 
 {% endblock content %}
+ 

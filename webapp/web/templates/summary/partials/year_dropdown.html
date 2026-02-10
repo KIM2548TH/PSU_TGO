@@ -13,6 +13,7 @@
            hx-swap="outerHTML"
            onchange="
              document.getElementById('hidden-selected-year').value = this.value;
+             document.getElementById('year-display').textContent = this.value;
              setTimeout(function() {
                htmx.ajax('POST', '/summary/charts', {
                  target: '#charts-container',
