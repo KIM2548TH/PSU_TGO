@@ -194,6 +194,7 @@
 <div hx-post="/summary/charts" 
      hx-target="#charts-container"
      hx-include="[name='time_period']:checked, [name='selected_year']:checked, [name='selected_sub_scopes']:checked, [name='selected_scopes']:checked"
+     hx-vals='{"chart_time_range": "1Y"}'
      hx-trigger="change from:[name='selected_sub_scopes']"
      hx-swap="outerHTML">
 </div>

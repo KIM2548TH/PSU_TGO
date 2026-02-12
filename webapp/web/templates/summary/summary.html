@@ -70,14 +70,14 @@
           <label class="block text-sm font-medium mb-2">{{ t.year }}</label>
           <div class="dropdown dropdown-bottom w-full">
             <div tabindex="0" role="button" class="btn btn-sm btn-outline w-full justify-between min-h-[2rem] text-sm">
-              <span class="truncate">{{ selected_year }}</span>
+              <span id="year-display" class="truncate">{{ selected_year }}</span>
               <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
             </div>
-            <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full max-h-48 overflow-y-auto z-[1]"
+            <ul id="years-dropdown-list" tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full max-h-48 overflow-y-auto z-[1]"
                  hx-get="/summary/years"
-                 hx-trigger="load, click from:previous div"
+                 hx-trigger="click from:previous div"
                  onclick="event.stopPropagation();">
               <li><span class="text-gray-500 p-2 text-sm">{{ t.loading_years }}</span></li>
             </ul>
@@ -91,22 +91,64 @@
             <input class="join-item btn btn-xs flex-1 text-xs" type="radio" name="time_period" value="Day" aria-label="{{ t.day }}"
                    hx-post="/summary/stats" 
                    hx-target="#stats-container" 
-                   hx-include="[name='selected_sub_scopes']:checked, [name='time_period'], [name='selected_scopes']:checked, [name='selected_year']:checked"
-                   hx-trigger="change" />
+                   hx-include="[name='selected_sub_scopes']:checked, [name='time_period'], [name='selected_scopes']:checked, #hidden-selected-year"
+                   hx-trigger="change"
+                   onchange="
+                     setTimeout(function() {
+                       htmx.ajax('POST', '/summary/charts', {
+                         target: '#charts-container',
+                         swap: 'outerHTML',
+                         values: {
+                           'selected_year': document.getElementById('hidden-selected-year').value,
+                           'time_period': document.querySelector('[name=\\'time_period\\']:checked')?.value || 'week',
+                           'chart_time_range': '1Y'
+                         }
+                       });
+                     }, 200);
+                   " />
             <input class="join-item btn btn-xs flex-1 text-xs" type="radio" name="time_period" value="week" aria-label="{{ t.week }}" checked 
                    hx-post="/summary/stats" 
                    hx-target="#stats-container" 
-                   hx-include="[name='selected_sub_scopes']:checked, [name='time_period'], [name='selected_scopes']:checked, [name='selected_year']:checked"
-                   hx-trigger="change" />
+                   hx-include="[name='selected_sub_scopes']:checked, [name='time_period'], [name='selected_scopes']:checked, #hidden-selected-year"
+                   hx-trigger="change"
+                   onchange="
+                     setTimeout(function() {
+                       htmx.ajax('POST', '/summary/charts', {
+                         target: '#charts-container',
+                         swap: 'outerHTML',
+                         values: {
+                           'selected_year': document.getElementById('hidden-selected-year').value,
+                           'time_period': document.querySelector('[name=\\'time_period\\']:checked')?.value || 'week',
+                           'chart_time_range': '1Y'
+                         }
+                       });
+                     }, 200);
+                   " />
             <input class="join-item btn btn-xs flex-1 text-xs" type="radio" name="time_period" value="month" aria-label="{{ t.month }}"
                    hx-post="/summary/stats" 
                    hx-target="#stats-container" 
-                   hx-include="[name='selected_sub_scopes']:checked, [name='time_period'], [name='selected_scopes']:checked, [name='selected_year']:checked"
-                   hx-trigger="change" />
+                   hx-include="[name='selected_sub_scopes']:checked, [name='time_period'], [name='selected_scopes']:checked, #hidden-selected-year"
+                   hx-trigger="change"
+                   onchange="
+                     setTimeout(function() {
+                       htmx.ajax('POST', '/summary/charts', {
+                         target: '#charts-container',
+                         swap: 'outerHTML',
+                         values: {
+                           'selected_year': document.getElementById('hidden-selected-year').value,
+                           'time_period': document.querySelector('[name=\\'time_period\\']:checked')?.value || 'week',
+                           'chart_time_range': '1Y'
+                         }
+                       });
+                     }, 200);
+                   " />
           </div>
         </div>
       </div>
 
+      <!-- Hidden inputs to maintain state -->
+      <input type="hidden" name="selected_year" value="{{ selected_year }}" id="hidden-selected-year">
+      
       <!-- Active Filters with PDF Buttons -->
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-4 border-t border-gray-200">
         <!-- Active Filters -->
@@ -160,8 +202,9 @@
                    name="selected_scope"
                    value="all"
                    class="radio radio-xs radio-primary"
+                   checked
                    hx-get="/summary/partials/top_sub_scope?selected_scope=all"
-                   hx-include="[name='selected_year']:checked"
+                   hx-include="#hidden-selected-year"
                    hx-target="#top-sub-scope-content"
                    hx-swap="innerHTML"
                    hx-trigger="change">
@@ -174,7 +217,7 @@
                    value="{{ s }}"
                    class="radio radio-xs radio-primary"
                    hx-get="/summary/partials/top_sub_scope?selected_scope={{ s }}"
-                   hx-include="[name='selected_year']:checked"
+                   hx-include="#hidden-selected-year"
                    hx-target="#top-sub-scope-content"
                    hx-swap="innerHTML"
                    hx-trigger="change">
@@ -185,17 +228,11 @@
 
         <div id="top-sub-scope-content"
              class="min-h-[60px] text-sm text-gray-500">
-          <span class="text-xs text-gray-400">Select a scope to view top materials.</span>
+          <div class="flex items-center justify-center py-4">
+            <span class="loading loading-spinner loading-sm mr-2"></span>
+            <span class="text-xs text-gray-400">Loading top materials...</span>
+          </div>
         </div>
-      </div>
-
-      <!-- Reload top list when year changes (ถ้าเลือก scope แล้ว) -->
-      <div class="hidden">
-        <div hx-get="/summary/partials/top_sub_scope"
-             hx-target="#top-sub-scope-content"
-             hx-include="[name='selected_scope']:checked, [name='selected_year']:checked"
-             hx-trigger="change from:[name='selected_year']"
-             hx-swap="innerHTML"></div>
       </div>
     </details>
 
@@ -241,6 +278,12 @@
 
 <!-- Auto-load ครั้งแรกเมื่อเข้าหน้า -->
 <div style="display: none;">
+  <!-- Load years dropdown ครั้งแรก -->
+  <div hx-get="/summary/years"
+       hx-target="#years-dropdown-list"
+       hx-trigger="load"
+       hx-swap="innerHTML"></div>
+  
   <!-- Load badges ครั้งแรก -->
   <div hx-get="/summary/update-badges" 
        hx-target="#active-filters"
@@ -250,200 +293,25 @@
   <!-- Load stats ครั้งแรก -->
   <div hx-post="/summary/stats" 
        hx-target="#stats-container"
-       hx-include="[name='time_period']:checked, [name='selected_year']:checked"
+       hx-include="[name='time_period']:checked, #hidden-selected-year"
        hx-trigger="load"
        hx-swap="outerHTML"></div>
   
   <!-- Load charts ครั้งแรก (default chart_time_range = 1Y) -->
   <div hx-post="/summary/charts" 
        hx-target="#charts-container"
-       hx-include="[name='time_period']:checked, [name='selected_year']:checked"
+       hx-include="[name='time_period']:checked, #hidden-selected-year"
        hx-vals='{"chart_time_range": "1Y"}'
        hx-trigger="load"
        hx-swap="outerHTML"></div>
+  
+  <!-- Load Top Materials ครั้งแรก (all scopes) -->
+  <div hx-get="/summary/partials/top_sub_scope?selected_scope=all" 
+       hx-target="#top-sub-scope-content"
+       hx-include="#hidden-selected-year"
+       hx-trigger="load delay:500ms"
+       hx-swap="innerHTML"></div>
 </div>
 
-<script>
-
-// No longer persist or restore year selection. Always default to current year.
-function getCurrentYear() {
-  return new Date().getFullYear();
-}
-
-function setYearToCurrent() {
-  // Find the radio for the current year and check it
-  const currentYear = getCurrentYear();
-  // Uncheck all first to avoid multiple checked
-  const allRadios = document.querySelectorAll('[name="selected_year"]');
-  allRadios.forEach(r => { r.checked = false; });
-  const yearRadio = document.querySelector(`[name="selected_year"][value="${currentYear}"]`);
-  if (yearRadio) {
-    yearRadio.checked = true;
-    // Also trigger change event so HTMX and UI update
-    yearRadio.dispatchEvent(new Event('change', { bubbles: true }));
-    updateYearDropdownText(currentYear);
-  }
-}
-
-// Update year dropdown button text
-function updateYearDropdownText(year) {
-  // Find the year dropdown button - more specific selector
-  const yearDropdownContainer = document.querySelector('.dropdown:has(ul[hx-get*="/summary/years"])');
-  if (yearDropdownContainer) {
-    const buttonText = yearDropdownContainer.querySelector('.btn span.truncate');
-    if (buttonText && year) {
-      buttonText.textContent = year;
-    }
-  }
-}
-
-// Update year dropdown text based on checked radio button
-function updateYearDropdownFromChecked() {
-  const checkedYear = document.querySelector('[name="selected_year"]:checked');
-  if (checkedYear) {
-    updateYearDropdownText(checkedYear.value);
-  } else {
-    // Always use current year as default
-    const currentYear = getCurrentYear();
-    updateYearDropdownText(currentYear);
-  }
-}
-
-// Restore sub-scopes after popup loads
-function restoreSubScopes() {
-  if (!window.pendingSubScopeRestoration || window.pendingSubScopeRestoration.length === 0) {
-    return;
-  }
-  
-  let restored = false;
-  window.pendingSubScopeRestoration.forEach(subScope => {
-    const checkbox = document.querySelector(`[name="selected_sub_scopes"][value="${subScope}"]`);
-    if (checkbox) {
-      checkbox.checked = true;
-      restored = true;
-    }
-  });
-  
-  if (restored) {
-    // Clear pending restoration
-    window.pendingSubScopeRestoration = null;
-    
-    // Trigger the toggle event to update the UI
-    const firstCheckbox = document.querySelector('[name="selected_sub_scopes"]:checked');
-    if (firstCheckbox) {
-      // Simulate the form submission to update badges and charts
-      setTimeout(() => {
-        const toggleForm = firstCheckbox.closest('form');
-        if (toggleForm) {
-          htmx.trigger(toggleForm, 'submit');
-        }
-      }, 100);
-    }
-  }
-}
-
-// Function to check if PDF buttons should be enabled
-function checkPdfButtonsState() {
-  const selectedScopes = document.querySelectorAll('[name="selected_scopes"]:checked');
-  let selectedSubScopes = document.querySelectorAll('[name="selected_sub_scopes"]:checked');
-  const selectedYear = document.querySelector('[name="selected_year"]:checked');
-
-  // If no sub-scope is checked in DOM, but pendingSubScopeRestoration exists and has values, treat as selected
-  let subScopeCount = selectedSubScopes.length;
-  if (subScopeCount === 0 && window.pendingSubScopeRestoration && Array.isArray(window.pendingSubScopeRestoration) && window.pendingSubScopeRestoration.length > 0) {
-    subScopeCount = window.pendingSubScopeRestoration.length;
-  }
-
-  let hasRequiredSelections = selectedScopes.length > 0 && subScopeCount > 0 && selectedYear;
-  const previewBtn = document.getElementById('preview-pdf-btn');
-  const downloadBtn = document.getElementById('download-pdf-btn');
-  if (!previewBtn || !downloadBtn) return;
-  if (hasRequiredSelections) {
-    previewBtn.disabled = false;
-    previewBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-    previewBtn.classList.add('cursor-pointer');
-    previewBtn.title = 'พรีวิวรายงาน PDF';
-    downloadBtn.disabled = false;
-    downloadBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-    downloadBtn.classList.add('cursor-pointer');
-    downloadBtn.title = 'ดาวน์โหลดรายงาน PDF';
-    previewBtn.onclick = function() {
-      const year = selectedYear ? selectedYear.value : '';
-      htmx.ajax('GET', '/summary/preview-pdf-modal', {
-        target: 'body',
-        swap: 'beforeend',
-        values: {
-          'selected_year': year,
-        }
-      });
-    };
-    downloadBtn.onclick = function() {
-      const year = selectedYear ? selectedYear.value : '';
-      htmx.ajax('GET', '/summary/download-pdf-modal', {
-        target: 'body',  
-        swap: 'beforeend',
-        values: {
-          'selected_year': year,
-        }
-      });
-    };
-  } else {
-    previewBtn.disabled = true;
-    previewBtn.classList.add('opacity-50', 'cursor-not-allowed');
-    previewBtn.classList.remove('cursor-pointer');
-    previewBtn.title = 'กรุณาเลือก Scope, Sub Scope และ Year ก่อน';
-    previewBtn.onclick = null;
-    downloadBtn.disabled = true;
-    downloadBtn.classList.add('opacity-50', 'cursor-not-allowed');
-    downloadBtn.classList.remove('cursor-pointer');
-    downloadBtn.title = 'กรุณาเลือก Scope, Sub Scope และ Year ก่อน';
-    downloadBtn.onclick = null;
-  }
-}
-
-// Event listeners for form changes
-document.addEventListener('DOMContentLoaded', function() {
-  // Always set year to current year on page load
-  setTimeout(() => {
-    setYearToCurrent();
-    checkPdfButtonsState();
-  }, 100);
-
-  // Listen for HTMX afterSwap on dropdowns
-  document.addEventListener('htmx:afterSwap', function(e) {
-    // If year dropdown is swapped, set to current year
-    if (e.detail && e.detail.target && e.detail.target.querySelector && e.detail.target.querySelector('[name="selected_year"]')) {
-      setTimeout(() => {
-        setYearToCurrent();
-        checkPdfButtonsState();
-      }, 100);
-    } else {
-      setTimeout(checkPdfButtonsState, 100);
-    }
-  });
-
-  // Listen for changes in scopes, sub-scopes, and year selections
-  document.addEventListener('change', function(e) {
-    if (e.target && e.target.name === 'selected_year') {
-      updateYearDropdownFromChecked();
-    }
-    checkPdfButtonsState();
-  });
-
-  // Also check PDF button state when badges are updated (from sub-scope popup)
-  const badgesObserver = new MutationObserver(function(mutations) {
-    checkPdfButtonsState();
-  });
-  // Start observing the badges container if it exists
-  setTimeout(() => {
-    const badgesContainer = document.getElementById('active-filters');
-    if (badgesContainer) {
-      badgesObserver.observe(badgesContainer, { childList: true, subtree: true });
-    }
-  }, 1000);
-});
-</script>
-
-
-
 {% endblock content %}
+ 
