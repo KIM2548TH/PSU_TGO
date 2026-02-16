@@ -686,44 +686,52 @@ def _setup_linked_form_fields(form_obj, linked_form_ids):
         material_name = linked_form.material_name
         
         for quantity in linked_form.input_types:
-            # ตรวจสอบว่า quantity นี้มี source_form_id หรือไม่ (อาจเป็น custom field)
-            if hasattr(quantity, 'source_form_id') and quantity.source_form_id:
-                print(f"🔍 DEBUG: Skipping field {quantity.field} from form {form_id} - it has source_form_id (already a linked field)")
-                continue
+            # 1. อนุญาตให้ใช้ฟิลด์ที่ลิงก์มาแล้ว (Daisy Chain Linking)
+            # Daisy Chain Naming Strategy: RootBase_CurrentMaterialName
             
-            # ใช้ original field สำหรับสร้าง identifier เพื่อเช็คกับ checkbox
-            # เพราะ quantity.field อาจมีชื่อฟอร์มต่อท้ายแล้ว แต่ checkbox ส่งมาเป็น original_field
-            original_field = quantity.field
+            # 1. Determine Base Name (Root)
+            # เราจำเป็นต้องหา Root Base เพื่อมาต่อกับชื่อฟอร์มปัจจุบัน (เพื่อให้ชื่อสั้น)
+            # เช็คว่า Field แม่เป็น Linked Field หรือไม่
+            if getattr(quantity, 'source_form_id', None):
+                # ถ้าแม่เป็น Linked Field แสดงว่าแม่มี Suffix -> เราต้องตัดออกเพื่อหา Base
+                # ใช้ rpartition('_')[0] เพื่อตัดส่วนท้ายสุดออก
+                base_name = quantity.field.rpartition('_')[0]
+                if not base_name: # กรณีเผื่อไม่มี underscore
+                     base_name = quantity.field
+            else:
+                # ถ้าแม่เป็น Original Field -> ใช้ชื่อแม่เป็น Base ได้เลย
+                base_name = quantity.field
+
+            # 2. สร้าง Field Name ใหม่
+            field_with_source = f"{base_name}_{material_name}"
             
-            # สร้าง field identifier สำหรับเช็คว่าถูกเลือกหรือไม่ (ใช้ original field)
-            field_identifier = f"{original_field}_{str(linked_form.id)}"
-            field_with_source = f"{original_field}_{material_name}"
+            # 3. สร้าง Label ใหม่
+            base_label = quantity.label.split('(')[0].strip()
+            label_with_source = f"{base_label} ({material_name})"
             
-            # บันทึกตาม checkbox จาก UI
+            # สร้าง field identifier สำหรับเช็คว่าถูกเลือกหรือไม่
+            field_identifier = f"{quantity.field}_{str(linked_form.id)}"
             is_used = field_identifier in linked_fields_used_raw
             
-            print(f"🔍 DEBUG: original_field={original_field}, form_id={linked_form.id}")
-            print(f"🔍 DEBUG: field_identifier={field_identifier}")
-            print(f"🔍 DEBUG: is_used={is_used} (checked: {field_identifier in linked_fields_used_raw})")
-            
-            # สร้าง field name และ label ใหม่ ต่อท้ายด้วยชื่อฟอร์ม (ใช้รูปแบบเดียวกัน)
-            label_with_source = f"{quantity.label}_{material_name}"
-            
-            # ลอก InputType แต่ต่อท้ายชื่อฟอร์ม และเก็บชื่อต้นฉบับไว้ใน original_field
+            print(f"🔍 DEBUG: Naming - Parent={quantity.field}, Base={base_name}, New={field_with_source}")
+
+            # สร้าง InputType ใหม่
             new_field = InputType.create_input(
-                field=field_with_source,  # "ปริมาณ_ดีเซล"
-                label=label_with_source,  # "ปริมาณ_ดีเซล"
+                field=field_with_source, 
+                label=label_with_source, 
                 input_type=quantity.input_type,
                 unit=quantity.unit,
-                source_form_id=str(linked_form.id),  # บันทึก ID ต้นฉบับ
+                source_form_id=str(linked_form.id),  # ชี้ไปที่ฟอร์มแม่ (Immediate Parent)
                 is_used=is_used,
-                original_field=original_field  # ชื่อต้นฉบับ: "ปริมาณ" (สำหรับดึงข้อมูล)
+                # CRITICAL: original_field ต้องเป็น Field ของฟอร์มแม่ (Immediate Parent)
+                # เพื่อให้ emissoins.py หาข้อมูลเจอใน Material ของแม่
+                original_field=quantity.field 
             )
             input_fields.append(new_field)
             
             # เพิ่มเข้า variables ถ้าถูกเลือกใช้
             if is_used:
-                variables.append(field_with_source)  # ใช้ชื่อที่ต่อท้ายแล้ว
+                variables.append(field_with_source)
     
     # 2. เพิ่มฟิลด์ของตัวเอง (custom fields)
     custom_fields = request.form.getlist("custom_field")

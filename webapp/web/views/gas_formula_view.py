@@ -558,44 +558,47 @@ def _get_calculator_variables(form_data, calculator_type=None):
     if form_id:
         try:
             form_obj = FormAndFormula.objects(id=ObjectId(form_id)).first()
-            if form_obj:
-                # ดึงตัวแปรจาก input_types ถ้ามี
-                if form_obj.input_types:
-                    for input_type in form_obj.input_types:
-                        variables.append({
-                            'field': input_type.field,
-                            'label': input_type.label,
-                            'color': 'bg-green-100 text-green-800'
-                        })
-                # ถ้าไม่มี input_types ให้ใช้ variables เก่า
-                elif form_obj.variables:
-                    for var in form_obj.variables:
-                        variables.append({
-                            'field': var,
-                            'label': var,
-                            'color': 'bg-green-100 text-green-800'
-                        })
-        except:
-            pass
-    elif material_name:
-        form_obj = FormAndFormula.objects(material_name=material_name).first()
-        if form_obj:
-            # ดึงตัวแปรจาก input_types ถ้ามี
-            if form_obj.input_types:
+            if form_obj and form_obj.input_types:
+                # User Request: "เอาทุกตัวใน input_types เอาชื่อ field มาใช้ทุกตัวแค่นั่น"
                 for input_type in form_obj.input_types:
+                    # Filter unused variables
+                    if not getattr(input_type, 'is_used', True):
+                        continue
+                        
                     variables.append({
                         'field': input_type.field,
                         'label': input_type.label,
                         'color': 'bg-green-100 text-green-800'
                     })
-            # ถ้าไม่มี input_types ให้ใช้ variables เก่า
-            elif form_obj.variables:
-                for var in form_obj.variables:
+            elif form_obj and form_obj.variables:
+                 for var in form_obj.variables:
                     variables.append({
                         'field': var,
                         'label': var,
                         'color': 'bg-green-100 text-green-800'
                     })
+        except:
+            pass
+    elif material_name:
+        form_obj = FormAndFormula.objects(material_name=material_name).first()
+        if form_obj and form_obj.input_types:
+            for input_type in form_obj.input_types:
+                # Filter unused variables
+                if not getattr(input_type, 'is_used', True):
+                    continue
+
+                variables.append({
+                    'field': input_type.field,
+                    'label': input_type.label,
+                    'color': 'bg-green-100 text-green-800'
+                })
+        elif form_obj and form_obj.variables:
+            for var in form_obj.variables:
+                variables.append({
+                    'field': var,
+                    'label': var,
+                    'color': 'bg-green-100 text-green-800'
+                })
     
     # เพิ่มตัวแปรพื้นฐานตามประเภท calculator
     if calculator_type:

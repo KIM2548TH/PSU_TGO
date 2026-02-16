@@ -84,7 +84,7 @@
                     hx-post="/gas-formula/calculator/show-conversion"
                     hx-target="#conversion-calculator"
                     hx-swap="innerHTML"
-                    hx-include='[name="form_id"]'
+                    hx-include="closest form"
                     title="เปิด/ปิดเครื่องคิดเลข"
                     onclick="const calc = this.nextElementSibling; if(calc.innerHTML) { calc.innerHTML = ''; this.classList.remove('btn-active'); return false; } else { this.classList.add('btn-active'); }">
               <i data-feather="grid" class="w-4 h-4"></i>

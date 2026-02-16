@@ -99,9 +99,14 @@ def calculate_grouped_input_types(head_table, page):
         tuple: (current_headers, materials_form, total_pages)
     """
     items_per_page = 8  # จำนวนรายการต่อหน้า
+    
+    # Optimization: Fetch all forms in one query
+    forms = FormAndFormula.objects(material_name__in=head_table)
+    form_map = {f.material_name: f for f in forms}
+    
     all_input_types = []
     for head in head_table:
-        form_and_formula_item = FormAndFormula.objects(material_name=head).first()
+        form_and_formula_item = form_map.get(head)
         if form_and_formula_item:
             all_input_types.extend(
                 [(head, input_type) for input_type in form_and_formula_item.input_types]
@@ -222,10 +227,13 @@ def load_emissions_table():
         calculate_grouped_input_types(head_table, page)
     )
 
-    # ดึงข้อมูลฟอร์มสำหรับแต่ละ header
+    # ดึงข้อมูลฟอร์มสำหรับแต่ละ header (Optimized)
+    forms = FormAndFormula.objects(material_name__in=current_headers)
+    form_map = {f.material_name: f for f in forms}
+    
     head_table_info = {}
     for head in current_headers:
-        form = FormAndFormula.objects(material_name=head).first()
+        form = form_map.get(head)
         if form:
             head_table_info[head] = {
                 "is_linked": getattr(form, "is_linked", False),
@@ -357,12 +365,21 @@ def load_materials_form():
     )
 
 
-def calculate_result(material):
+def calculate_result(material, visited_ids=None):
     """
     คำนวณผลลัพธ์จากสูตรและบันทึก result และ result2 ลงใน material
     พร้อมทั้งคำนวณผลลัพธ์ก๊าซทั้ง 7 ชนิด
     รองรับ linked fields โดยดึงข้อมูลจาก Material ของฟอร์มต้นฉบับ
     """
+    # Prevent infinite recursion
+    if visited_ids is None:
+        visited_ids = set()
+    
+    if str(material.id) in visited_ids:
+        return
+        
+    visited_ids.add(str(material.id))
+
     # ดึงข้อมูลสูตรจากฐานข้อมูล
     form_and_formula = FormAndFormula.objects(material_name=material.name).first()
     if not form_and_formula:
@@ -388,12 +405,19 @@ def calculate_result(material):
         if not input_type.is_used:
             continue
         
+        # Prepare input_type field for comparison (strip whitespace)
+        input_field_clean = input_type.field.strip()
+        
         # ดูก่อนว่า material.quantity_type มีข้อมูลของ field นี้หรือไม่
         found_in_quantity_type = False
         for qt in material.quantity_type:
             # เช็คว่า qt.field ต้องตรงกับ input_type.field และอยู่ใน variable_mapping
-            if qt.field == input_type.field and input_type.field in variable_mapping:
-                safe_name = variable_mapping[input_type.field]
+            # Normalize comparisons by stripping whitespace from both sides
+            qt_field_clean = qt.field.strip() if qt.field else ""
+            
+            # Check if fields match (ignoring whitespace) AND if the field is in our variable mapping
+            if qt_field_clean == input_field_clean and input_field_clean in variable_mapping:
+                safe_name = variable_mapping[input_field_clean]
                 sanitized_variables[safe_name] = qt.amount
                 found_in_quantity_type = True
                 break
@@ -415,8 +439,8 @@ def calculate_result(material):
                     if source_material:
                         for qt in source_material.quantity_type:
                             if qt.field == input_type.original_field:
-                                if input_type.field in variable_mapping:
-                                    safe_name = variable_mapping[input_type.field]
+                                if input_field_clean in variable_mapping:
+                                    safe_name = variable_mapping[input_field_clean]
                                     sanitized_variables[safe_name] = qt.amount
                                 break
             except Exception as e:
@@ -506,6 +530,9 @@ def save_material(scope_id, sub_scope_id, month_id, year, material_data):
     head = material_data["head"]
     field = material_data["field"]
     amount = material_data["amount"]
+    
+    # Initialize visited_ids for this save operation to track recursion
+    visited_ids = set()
 
     # ค้นหา Material ที่ตรงกับข้อมูล
     material = Material.objects(
@@ -577,7 +604,7 @@ def save_material(scope_id, sub_scope_id, month_id, year, material_data):
         material = new_material
 
     # คำนวณและบันทึก result
-    calculate_result(material)
+    calculate_result(material, visited_ids)
 
     # จัดการ Material ที่ลิงก์ - ใช้ used_by_forms แทนการ query ทุกฟอร์ม
     source_form = FormAndFormula.objects(material_name=head).first()
@@ -650,7 +677,7 @@ def save_material(scope_id, sub_scope_id, month_id, year, material_data):
                     linked_material.save()
 
                     # คำนวณ result ใหม่ตามสูตรของ linked material
-                    calculate_result(linked_material)
+                    calculate_result(linked_material, visited_ids)
                 else:
                     # สร้าง material ใหม่ - รวมเฉพาะ linked fields ที่ source มีข้อมูลจริง
                     linked_quantity_types = []
@@ -695,7 +722,7 @@ def save_material(scope_id, sub_scope_id, month_id, year, material_data):
                     linked_material.save()
 
                     # คำนวณ result ตามสูตรของ linked material
-                    calculate_result(linked_material)
+                    calculate_result(linked_material, visited_ids)
             except Exception as e:
                 print(f"Error updating linked material for form {linked_form_id}: {e}")
                 continue
@@ -983,10 +1010,13 @@ def save_materials():
         calculate_grouped_input_types(head_table, page)
     )
 
-    # สร้าง head_table_info สำหรับ current_headers
+    # สร้าง head_table_info สำหรับ current_headers (Optimized)
+    forms_info = FormAndFormula.objects(material_name__in=current_headers)
+    form_map_info = {f.material_name: f for f in forms_info}
+    
     head_table_info = {}
     for head in current_headers:
-        form = FormAndFormula.objects(material_name=head).first()
+        form = form_map_info.get(head)
         if form:
             head_table_info[head] = {
                 "is_linked": getattr(form, "is_linked", False),
@@ -995,10 +1025,11 @@ def save_materials():
                 "formula": form.formula,
             }
 
-    # สร้าง materials_form ใหม่ตาม current_headers
+    # สร้าง materials_form ใหม่ตาม current_headers (Optimized)
     materials_form = []
+    # reuse form_map_info from above
     for head in current_headers:
-        form_and_formula = FormAndFormula.objects(material_name=head).first()
+        form_and_formula = form_map_info.get(head)
         if form_and_formula:
             materials_form.append(form_and_formula.input_types)
 
@@ -1356,10 +1387,13 @@ def delete_all_materials():
             calculate_grouped_input_types(head_table, page)
         )
 
-        # สร้าง head_table_info สำหรับ current_headers
+        # สร้าง head_table_info สำหรับ current_headers (Optimized)
+        forms_info = FormAndFormula.objects(material_name__in=current_headers)
+        form_map_info = {f.material_name: f for f in forms_info}
+
         head_table_info = {}
         for head in current_headers:
-            form = FormAndFormula.objects(material_name=head).first()
+            form = form_map_info.get(head)
             if form:
                 head_table_info[head] = {
                     "is_linked": getattr(form, "is_linked", False),

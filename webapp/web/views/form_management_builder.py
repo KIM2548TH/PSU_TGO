@@ -147,7 +147,7 @@ def toggle_form_type():
         
         if form_type == 'linked':
             # ดึงรายการ material ที่สามารถลิงก์ได้
-            materials = FormAndFormula.objects(is_linked=False).order_by("ghg_scope", "ghg_sup_scope", "material_name")
+            materials = FormAndFormula.objects().order_by("ghg_scope", "ghg_sup_scope", "material_name")
             return render_template(
                 "form-management/partials/linked-form-section.html",
                 materials=materials
@@ -166,7 +166,7 @@ def material_selector():
     """แสดง Material Selector Modal"""
     try:
         # ดึงรายการ material ที่สามารถลิงก์ได้
-        materials = FormAndFormula.objects(is_linked=False).order_by("ghg_scope", "ghg_sup_scope", "material_name")
+        materials = FormAndFormula.objects().order_by("ghg_scope", "ghg_sup_scope", "material_name")
         return render_template(
             "form-management/partials/material-selector-modal.html",
             materials=materials
@@ -193,7 +193,7 @@ def search_materials():
                 selected_ids = [sid.strip() for sid in selected_ids_str.split(',') if sid.strip()]
         
         # ดึงรายการ material ที่สามารถลิงก์ได้
-        materials_query = FormAndFormula.objects(is_linked=False).order_by("ghg_scope", "ghg_sup_scope", "material_name")
+        materials_query = FormAndFormula.objects().order_by("ghg_scope", "ghg_sup_scope", "material_name")
         
         # Filter by search term
         if search_term:
@@ -656,7 +656,7 @@ def load_edit_custom_fields():
 def get_available_materials():
     """ดึงรายชื่อ material ที่สามารถลิงก์ได้"""
     try:
-        available_form = FormAndFormula.objects(is_linked=False).order_by("ghg_scope", "ghg_sup_scope", "material_name")
+        available_form = FormAndFormula.objects().order_by("ghg_scope", "ghg_sup_scope", "material_name")
         
         return render_template(
             "form-management/partials/material-select.html",
@@ -676,6 +676,7 @@ def _get_calculator_variables(form_data):
     form_type = form_data.get('form_type', 'normal')
     
     if form_type == 'linked':
+        # 1. Variables from Linked Forms
         # Get linked_forms array (could be JSON string or list)
         linked_forms_data = form_data.get('linked_forms')
         if linked_forms_data:
@@ -688,17 +689,66 @@ def _get_calculator_variables(form_data):
                     linked_form_ids = linked_forms_data
                 
                 # Load variables from all linked forms
+                # Get checked fields from request
+                linked_fields_used = request.form.getlist('linked_field_used')
+                
                 for form_id in linked_form_ids:
                     linked_form = FormAndFormula.objects(id=form_id).first()
                     if linked_form and linked_form.input_types:
                         for input_type in linked_form.input_types:
+                            # Filter unchecked fields
+                            # field_identifier must match what is used in checkbox (load_multiple_linked_fields)
+                            field_identifier = f"{input_type.field}_{linked_form.id}"
+                            
+                            # If linked_fields_used is present (not empty), filter.
+                            # If empty/None, it might mean nothing is checked, or it's a first load. 
+                            # But usually calculator is opened after selecting fields.
+                            # If request.form has keys but not linked_field_used, it means all unchecked.
+                            if 'linked_field_used' in request.form and field_identifier not in linked_fields_used:
+                                continue
+
+                            # Logic เดียวกันกับ form_management_view.py -> _setup_linked_form_fields (Daisy Chain)
+                            # เพื่อให้ชื่อตัวแปรใน Calculator ตรงกับที่บันทึกลง Database
+                            
+                            # Daisy Chain Naming Strategy: RootBase_CurrentMaterialName
+                            # 1. Determine Base Name (Root)
+                            if getattr(input_type, 'source_form_id', None):
+                                # ถ้าแม่เป็น Linked Field แสดงว่าแม่มี Suffix -> เราต้องตัดออกเพื่อหา Base
+                                base_name = input_type.field.rpartition('_')[0]
+                                if not base_name:
+                                     base_name = input_type.field
+                            else:
+                                # ถ้าแม่เป็น Original Field -> ใช้ชื่อแม่เป็น Base ได้เลย
+                                base_name = input_type.field
+                            
+                            # 2. สร้าง Field Name ใหม่
+                            field_name = f"{base_name}_{linked_form.material_name}"
+                            
+                            # 3. สร้าง Label ใหม่
+                            base_label = input_type.label.split('(')[0].strip()
+                            
                             variables.append({
-                                'field': f"{input_type.field}_{form_id}",
-                                'label': f"{input_type.label} ({linked_form.material_name})",
+                                'field': field_name,
+                                'label': f"{base_label} ({linked_form.material_name})",
                                 'color': 'bg-pink-100 text-pink-800'
                             })
-            except:
+            except Exception as e:
+                print(f"Error loading linked variables: {e}")
                 pass
+        
+        # 2. Variables from Custom Fields (Fields added manually to this linked form)
+        custom_fields = form_data.getlist('custom_field') if hasattr(form_data, 'getlist') else request.form.getlist('custom_field') or []
+        custom_labels = form_data.getlist('custom_label') if hasattr(form_data, 'getlist') else request.form.getlist('custom_label') or []
+        
+        for i, field in enumerate(custom_fields):
+            if field:
+                label = custom_labels[i] if i < len(custom_labels) else field
+                variables.append({
+                    'field': field,
+                    'label': f"{label} (Custom)",
+                    'color': 'bg-green-100 text-green-800'
+                })
+                
     else:
         fields = form_data.getlist('field') if hasattr(form_data, 'getlist') else request.form.getlist('field')
         labels = form_data.getlist('label') if hasattr(form_data, 'getlist') else request.form.getlist('label')
